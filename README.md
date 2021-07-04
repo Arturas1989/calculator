@@ -1,3 +1,55 @@
+![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
+![Security Status](https://img.shields.io/security-headers?label=Security&url=https%3A%2F%2Fgithub.com&style=flat-square)
+![Gluten Status](https://img.shields.io/badge/Gluten-Free-green.svg)
+![Eco Status](https://img.shields.io/badge/ECO-Friendly-green.svg)
+
+# Calculator
+
+_website project_
+
+Creating a calculator, which by giving orders calculates how you can cut them from a sheet of paper of 2500mm width. For example if you have orders:
+
+| Name        | width (mm)  | length (mm)   | quantity |
+| :---        | :---        | :---          | :---     |
+| A           | 510         | 800           | 1000     |
+| B           | 512         | 1000          | 2000     |
+| C           | 400         | 2000          | 1000     |
+
+Calculator should solve it like this:
+
+| rows  | Name        | width (mm)  | length (mm)   | quantity | meters length |
+| :---  | :---        | :---        | :---          | :---     | :---          |
+| 4     | A           | 510         | 800           | 1000     | 200           |
+| 1     | C           | 400         | 2000          | 100      |               |
+|       |             |             |               |          |               |
+| 4     | B           | 512         | 1000          | 2000     | 500           |
+| 1     | C           | 400         | 2000          | 250      |               |
+|       |             |             |               |          |               |
+| 6     | C           | 400         | 2000          | 650      | 217           |
+
+As quantity of orders grow so does the complexity to solve it in the best way with minimum waste. In the future it will include more methods to try to reduce waste.
+
+## Project features
+
+
+-   CRUD
+-   calculation methods
+-   sorting methods
+-   filter methods
+-   user permission system
+-   form validations
+-   responsive design
+-   repetitive content is generated/rendered;
+
+## Authors
+
+[Artūras](https://github.com/Arturas1989)
+
+#### Using Laravel
+
+
+
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
 <p align="center">
