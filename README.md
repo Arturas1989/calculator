@@ -5,7 +5,7 @@
 
 # Calculator
 
-_website project_
+_website app project_
 
 Creating a calculator, which by giving orders calculates how you can cut them from a sheet of paper of 2500mm width. For example if you have orders:
 
