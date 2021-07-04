@@ -9,6 +9,7 @@ _website project_
 
 Creating a calculator, which by giving orders calculates how you can cut them from a sheet of paper of 2500mm width. For example if you have orders:
 
+<style> tr{background-color:white} </style>
 | Name        | width (mm)  | length (mm)   | quantity |
 | :---        | :---        | :---          | :---     |
 | A           | 510         | 800           | 1000     |
