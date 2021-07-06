@@ -30,4 +30,12 @@ Route::group(['middleware'=>['auth']], function(){
         Route::post('/update/{mark}', [App\Http\Controllers\MarkController::class, 'update'])->name('mark.update');
         Route::post('/destroy/{mark}', [App\Http\Controllers\MarkController::class, 'destroy'])->name('mark.destroy');
     });
+    Route::group(['prefix'=>'company'], function(){
+        Route::get('/create', [App\Http\Controllers\CompanyController::class, 'create'])->name('company.create');
+        Route::get('/index', [App\Http\Controllers\CompanyController::class, 'index'])->name('company.index');
+        Route::post('/store', [App\Http\Controllers\CompanyController::class, 'store'])->name('company.store');
+        Route::get('/edit/{company}', [App\Http\Controllers\CompanyController::class, 'edit'])->name('company.edit');
+        Route::post('/update/{company}', [App\Http\Controllers\CompanyController::class, 'update'])->name('company.update');
+        Route::post('/destroy/{company}', [App\Http\Controllers\CompanyController::class, 'destroy'])->name('company.destroy');
+    });
 });

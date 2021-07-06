@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Validator;
 
 class CompanyController extends Controller
 {
@@ -12,9 +13,14 @@ class CompanyController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function allCompanies()
+    {
+        return Company::all();
+    }
+
     public function index()
     {
-        //
+        return view('company.index',['companies'=>$this->allCompanies()]);
     }
 
     /**
@@ -24,7 +30,7 @@ class CompanyController extends Controller
      */
     public function create()
     {
-        //
+        return view('company.create');
     }
 
     /**
@@ -35,7 +41,27 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->only('company_name'),
+    
+        [
+            'company_name' => ['unique:companies'],
+        ],
+        [
+            'company_name.unique' => 'klientai negali kartotis',
+        ]
+    );
+
+        if($validator->fails()){
+            $request->flash();
+            return redirect()->back()->withErrors($validator);
+        }
+
+
+
+        $company = company::create([
+            'company_name' => $request->company_name,
+        ]);
+        return redirect()->route('company.index',['companies'=>$this->allCompanies()]);
     }
 
     /**
@@ -57,7 +83,7 @@ class CompanyController extends Controller
      */
     public function edit(Company $company)
     {
-        //
+        return view('company.edit',['company'=>$company]);
     }
 
     /**
@@ -69,7 +95,23 @@ class CompanyController extends Controller
      */
     public function update(Request $request, Company $company)
     {
-        //
+        $validator = Validator::make($request->only('company_name'),
+    
+        [
+            'company_name' => ['unique:companies'],
+        ],
+        [
+            'company_name.unique' => 'klientai negali kartotis',
+        ]
+    );
+
+        if($validator->fails()){
+            $request->flash();
+            return redirect()->back()->withErrors($validator);
+        }
+        $company->company_name = $request->company_name;
+        $company->save();
+        return redirect()->route('company.index');
     }
 
     /**
@@ -80,6 +122,7 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company)
     {
-        //
+        $company->delete();
+        return redirect()->route('company.index');
     }
 }
