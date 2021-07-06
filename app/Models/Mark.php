@@ -12,4 +12,9 @@ class Mark extends Model
         'mark_name',
     ];
     use HasFactory;
+
+    public function product()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

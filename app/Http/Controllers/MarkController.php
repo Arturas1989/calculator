@@ -62,7 +62,7 @@ class MarkController extends Controller
         $mark = Mark::create([
             'mark_name' => $request->mark_name,
         ]);
-        return redirect()->route('mark.index',['marks'=>$this->allMarks()]);
+        return redirect()->route('mark.index');
     }
 
     /**

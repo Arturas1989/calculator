@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Company;
+use App\Models\Board;
+use App\Models\Mark;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -12,9 +15,41 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function allProducts()
+    {
+        return Product::all();
+    }
+
+    public function allCompanies()
+    {
+        return Company::all();
+    }
+
+    
+
+    public function markBoardIds($code)
+    {
+        $num = substr($code,1,2);
+        $board = substr($code,3,2);
+        $color = substr($code,6,1);
+        if($board[1]=='0' || $board[1]=='1'){
+            $board = $board[0]; 
+            $color = substr($code,5,1); 
+        }
+        $mark = $board.$num.$color;
+        
+        if(!Mark::where('mark_name','=',$mark)->get()->first() 
+        || !Board::where('board_name','=',$board)->get()->first()){
+            return false;
+        }
+        $mark_id = Mark::where('mark_name','=',$mark)->get()[0]->id;
+        $board_id = Board::where('board_name','=',$board)->get()[0]->id;
+        return ['mark_id' => $mark_id, 'board_id' => $board_id];
+    }
+
     public function index()
     {
-        //
+        return view('product.index',['products'=>$this->allProducts()]);
     }
 
     /**
@@ -24,7 +59,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        //
+        return view('product.create',['companies' => $this->allCompanies()]);
     }
 
     /**
@@ -35,7 +70,23 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        if(!$this->markBoardIds($request->code)){
+            $request->flash();
+            return redirect()->back()->withErrors(['Blogas kodas']); 
+        }
+
+
+        $product = product::create([
+            'code' => $request->code,
+            'description' => $request->description,
+            'sheet_width' => $request->sheet_width,
+            'sheet_length' => $request->sheet_length,
+            'bending' => $request->bending,
+            'company_id' => $request->company_id,
+            'mark_id' => $this->markBoardIds($request->code)['mark_id'],
+            'board_id' => $this->markBoardIds($request->code)['board_id'],
+        ]);
+        return redirect()->route('product.index');
     }
 
     /**
@@ -57,7 +108,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        //
+        return view('product.edit',['product'=>$product,'companies' => $this->allCompanies()]);
     }
 
     /**
@@ -69,7 +120,21 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        //
+        if(!$this->markBoardIds($request->code)){
+            $request->flash();
+            return redirect()->back()->withErrors(['Blogas kodas']); 
+        }
+        
+        $product->code = $request->code;
+        $product->description = $request->description;
+        $product->sheet_width = $request->sheet_width;
+        $product->sheet_length = $request->sheet_length;
+        $product->bending = $request->bending;
+        $product->company_id = $request->company_id;
+        $product->board_id = $this->markBoardIds($request->code)['mark_id'];
+        $product->mark_id = $this->markBoardIds($request->code)['board_id'];
+        $product->save();
+        return redirect()->route('product.index');
     }
 
     /**
@@ -80,6 +145,7 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        $product->delete();
+        return redirect()->route('product.index');
     }
 }

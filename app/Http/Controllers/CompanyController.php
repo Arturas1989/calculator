@@ -61,7 +61,7 @@ class CompanyController extends Controller
         $company = company::create([
             'company_name' => $request->company_name,
         ]);
-        return redirect()->route('company.index',['companies'=>$this->allCompanies()]);
+        return redirect()->route('company.index');
     }
 
     /**

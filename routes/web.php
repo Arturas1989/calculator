@@ -38,4 +38,12 @@ Route::group(['middleware'=>['auth']], function(){
         Route::post('/update/{company}', [App\Http\Controllers\CompanyController::class, 'update'])->name('company.update');
         Route::post('/destroy/{company}', [App\Http\Controllers\CompanyController::class, 'destroy'])->name('company.destroy');
     });
+    Route::group(['prefix'=>'product'], function(){
+        Route::get('/create', [App\Http\Controllers\ProductController::class, 'create'])->name('product.create');
+        Route::get('/index', [App\Http\Controllers\ProductController::class, 'index'])->name('product.index');
+        Route::post('/store', [App\Http\Controllers\ProductController::class, 'store'])->name('product.store');
+        Route::get('/edit/{product}', [App\Http\Controllers\ProductController::class, 'edit'])->name('product.edit');
+        Route::post('/update/{product}', [App\Http\Controllers\ProductController::class, 'update'])->name('product.update');
+        Route::post('/destroy/{product}', [App\Http\Controllers\ProductController::class, 'destroy'])->name('product.destroy');
+    });
 });
