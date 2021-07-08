@@ -21,9 +21,11 @@
                                 
                             <select name="company_id">
                                 @if (old('company_id'))
-                                    <?php
+                                
+                                    @php
                                         $company_name = $companies->find(old('company_id'))->get()->first()->company_name;
-                                    ?>
+                                    @endphp
+
                                     <option value="{{old('company_id')}}">{{$company_name}}</option>
 
                                     @foreach ($companies as $company)

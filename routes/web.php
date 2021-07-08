@@ -46,4 +46,12 @@ Route::group(['middleware'=>['auth']], function(){
         Route::post('/update/{product}', [App\Http\Controllers\ProductController::class, 'update'])->name('product.update');
         Route::post('/destroy/{product}', [App\Http\Controllers\ProductController::class, 'destroy'])->name('product.destroy');
     });
+    Route::group(['prefix'=>'order'], function(){
+        Route::get('/create', [App\Http\Controllers\OrderController::class, 'create'])->name('order.create');
+        Route::get('/index', [App\Http\Controllers\OrderController::class, 'index'])->name('order.index');
+        Route::post('/store', [App\Http\Controllers\OrderController::class, 'store'])->name('order.store');
+        Route::get('/edit/{order}', [App\Http\Controllers\OrderController::class, 'edit'])->name('order.edit');
+        Route::post('/update/{order}', [App\Http\Controllers\OrderController::class, 'update'])->name('order.update');
+        Route::post('/destroy/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('order.destroy');
+    });
 });

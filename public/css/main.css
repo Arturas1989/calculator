@@ -1,0 +1,14 @@
+.form{
+    float: left;
+    width:27%;
+    margin:3%;
+}
+.close1{
+    cursor: pointer;
+    width:6%;
+    margin:3%;
+
+}
+.row1{
+    width:100%;
+}

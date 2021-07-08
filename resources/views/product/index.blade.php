@@ -9,7 +9,7 @@
         <div class="col-lg-10">
             <div class="card">
               
-                <div class="card-header">Klientai</div>
+                <div class="card-header">Gaminiai</div>
  
                 <div class="card-body">
                   

@@ -8,7 +8,7 @@
             <div class="card">
                 <div class="card-header">Sukurti klientą</div>
                 <div class="card-body">
-                    <form action="{{route('company.store')}}" method="post">
+                    <form action="{{route('order.store')}}" method="post">
                         @csrf
                         <div class="form-group">
                             <label>Kliento pavadinimas</label>
