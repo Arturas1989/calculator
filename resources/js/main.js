@@ -41,18 +41,18 @@ function generateInputs(selector){
         DOM.addEventListener('click', function(e){
 
             const DOM2 = document.querySelector('.click');
-            nodeList = DOM2.childNodes;
-            length = nodeList.length;
+            childNodeList = DOM2.childNodes;
+            length = childNodeList.length;
             let count =0;
 
             for (let i = length-1; i >= 0; i--) {
-                if(nodeList[i].classList){
+                if(childNodeList[i].classList){
                     
-                    if(nodeList[i].classList.contains('first')){
+                    if(childNodeList[i].classList.contains('first')){
                         break;
                     }
 
-                    DOM2.removeChild(nodeList[i]);
+                    DOM2.removeChild(childNodeList[i]);
                     count++;
 
                     if(count===3){
