@@ -61,8 +61,8 @@ function generateInputs(selector){
                 }
             }
 
-            const DOM3 = document.querySelector('.form-group>input');
-            DOM3.classList.add('click');
+            const allDOM = document.querySelectorAll('.form-group>input');
+            allDOM[allDOM.length-3].classList.add('click');
         });
     }
 
