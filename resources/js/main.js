@@ -15,15 +15,15 @@ function generateInputs(selector){
         
             `<div class="form-group form">
                 <label>Kodas</label>
-                <input type="text" class="form-control click" name="code-${endNum}" value="">
+                <input type="text" class="form-control click" name="code-${endNum}" value="" required>
             </div>
             <div class="form-group form">
                 <label>Kiekis</label>
-                <input type="text" class="form-control" name="quantity-${endNum}" value="">
+                <input type="text" class="form-control" name="quantity-${endNum}" value="" required>
             </div>
             <div class="form-group form">
                 <label>Data</label>
-                <input type="date" class="form-control" name="date-${endNum}" value="">
+                <input type="date" class="form-control" name="date-${endNum}" value="" required>
             </div>`
 
             DOM.insertAdjacentHTML('beforeend',HTML);
