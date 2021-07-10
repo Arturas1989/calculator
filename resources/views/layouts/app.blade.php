@@ -82,27 +82,27 @@
                             </li>
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                        Company
+                                        Klientai
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{ route('company.index') }}">
-                                        Company List
+                                        Klientų sąrašas
                                     </a>
                                     <a class="dropdown-item" href="{{ route('company.create') }}">
-                                        New company
+                                        Naujas klientas
                                     </a>
                                 </div>
                             </li>
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                        Marks
+                                        Markės
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{ route('mark.index') }}">
-                                            Marks List
+                                            Markių sąrašas
                                     </a>
                                     <a class="dropdown-item" href="{{ route('mark.create') }}">
-                                            New mark
+                                            Sukurti markę
                                     </a>
                                 </div>
                             </li>
