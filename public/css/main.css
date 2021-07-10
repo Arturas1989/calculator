@@ -1,14 +1,23 @@
+.click{
+    display: block;
+}
+.input-row{
+    display:flex;
+}
+
 .form{
+    flex:1;
     float: left;
     width:27%;
-    margin:3%;
+    margin:15px 3%;
 }
 .close{
     cursor: pointer;
     width:6%;
-    margin:3%;
+    margin:0 3%;
 
 }
-.row1{
-    width:100%;
+.btn-container{
+    width: 100%;
+    display:inline-block;
 }

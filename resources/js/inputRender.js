@@ -11,19 +11,19 @@ function generateInputs(selector){
             endNum++;
             e.target.classList.remove("click");
             const HTML = 
-
-        
-            `<div class="form-group form">
-                <label>Kodas</label>
-                <input type="text" class="form-control click" name="code-${endNum}" value="" required>
-            </div>
-            <div class="form-group form">
-                <label>Kiekis</label>
-                <input type="text" class="form-control" name="quantity-${endNum}" value="" required>
-            </div>
-            <div class="form-group form">
-                <label>Data</label>
-                <input type="date" class="form-control" name="date-${endNum}" value="" required>
+            `<div class="input-row">
+                <div class="form-group form">
+                    <label>Kodas</label>
+                    <input type="text" class="form-control click" name="code-${endNum}" value="" required>
+                </div>
+                <div class="form-group form">
+                    <label>Kiekis</label>
+                    <input type="text" class="form-control" name="quantity-${endNum}" value="" required>
+                </div>
+                <div class="form-group form">
+                    <label>Data</label>
+                    <input type="date" class="form-control" name="date-${endNum}" value="" required>
+                </div>
             </div>`
 
             DOM.insertAdjacentHTML('beforeend',HTML);
@@ -43,21 +43,17 @@ function generateInputs(selector){
             const DOM2 = document.querySelector('.click');
             const childNodeList = DOM2.childNodes;
             const length = childNodeList.length;
-            let count =0;
 
+            
             for (let i = length-1; i >= 0; i--) {
                 if(childNodeList[i].classList){
-                    
+                    console.log(childNodeList[i].classList);
                     if(childNodeList[i].classList.contains('first')){
                         break;
                     }
 
                     DOM2.removeChild(childNodeList[i]);
-                    count++;
-
-                    if(count===3){
-                        break;
-                    }
+                    break;
                 }
             }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Validator;
+use App\Rules\InMarks;
 
 class OrderController extends Controller
 {
@@ -13,6 +14,14 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    public function __construct()
+    {
+        $this->ProductController = new ProductController();
+        $this->Order = new Order();
+    }
+
+    
     public function index()
     {
         //
@@ -26,7 +35,7 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         // dd($request->all());
-        return view('order.create');
+        return view('order.create',['Order'=>$this->Order]);
     }
 
     /**
@@ -49,7 +58,13 @@ class OrderController extends Controller
 
             $validator = Validator ::make($request->only($code,$quantity,$date),
         [
-            $code => ['required'],
+            $code =>    [  'required', 
+                        function ($attribute, $value, $fail) {
+                            if (!$this->ProductController->markBoardIds($value)) {
+                                $fail('Kodo '.$value.' markės ' . $this->ProductController->markBoard($value) . ' nėra markių sąraše.');
+                            }
+                        },
+                        ],
             $quantity => ['required', 'numeric', 'integer','gt:0'],
             $date => ['required', 'date'],
         ],

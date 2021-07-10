@@ -27,8 +27,11 @@ class ProductController extends Controller
 
     
 
-    public function markBoardIds($code)
+    public function markBoard($code)
     {
+        if(strlen($code)<8){
+            return $code;
+        }
         $num = substr($code,1,2);
         $board = substr($code,3,2);
         $color = substr($code,6,1);
@@ -36,7 +39,11 @@ class ProductController extends Controller
             $board = $board[0]; 
             $color = substr($code,5,1); 
         }
-        $mark = $board.$num.$color;
+        return  $board.$num.$color;
+    }
+    public function markBoardIds($code)
+    {
+        $mark = $this->markBoard($code);
         
         if(!Mark::where('mark_name','=',$mark)->get()->first() 
         || !Board::where('board_name','=',$board)->get()->first()){
