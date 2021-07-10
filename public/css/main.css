@@ -1,23 +1,5 @@
-.click{
-    display: block;
-}
-.input-row{
-    display:flex;
-}
+/* forms */
+@import "form.css";
 
-.form{
-    flex:1;
-    float: left;
-    width:27%;
-    margin:15px 3%;
-}
-.close{
-    cursor: pointer;
-    width:6%;
-    margin:0 3%;
-
-}
-.btn-container{
-    width: 100%;
-    display:inline-block;
-}
+/* buttons */
+@import "button.css";

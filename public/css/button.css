@@ -1,0 +1,11 @@
+/* order/create.blade.php */
+
+.close{
+    cursor: pointer;
+    width:6%;
+    margin:0 3%;
+}
+.btn-container{
+    width: 100%;
+    display:inline-block;
+}

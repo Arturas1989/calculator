@@ -1,0 +1,12 @@
+/* order/create.blade.php */
+
+.input-row{
+    display:flex;
+}
+.form{
+    flex:1;
+    float: left;
+    width:27%;
+    margin:15px 3%;
+}
+
