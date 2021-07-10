@@ -36,13 +36,13 @@ function generateInputs(selector){
 
     function removeLastChild(selector){
 
-        DOM = document.querySelector(selector);
+        const DOM = document.querySelector(selector);
 
         DOM.addEventListener('click', function(e){
 
             const DOM2 = document.querySelector('.click');
-            childNodeList = DOM2.childNodes;
-            length = childNodeList.length;
+            const childNodeList = DOM2.childNodes;
+            const length = childNodeList.length;
             let count =0;
 
             for (let i = length-1; i >= 0; i--) {
@@ -70,3 +70,4 @@ window.onload=function(){
     generateInputs(".click");
     removeLastChild('.close');
   }
+  
