@@ -5,7 +5,6 @@
 @extends('layouts.app')
 
 @section('content')
-{{-- {{dd($errors->get('quantity-0'))}} --}}
 
 <div class="container">
     <div class="row justify-content-center">
@@ -29,8 +28,8 @@
                             </div>
                             <div class="form-group form">
                                 <label>Data</label>
-                                <input type="date" class="form-control" name="date-0" value="{{old('date-0')}}" required>
-                                {!! $Order->errorsHTML('date-0',$errors) !!}
+                                <input type="date" class="form-control" name="load_date-0" value="{{old('load_date-0')}}" required>
+                                {!! $Order->errorsHTML('load_date-0',$errors) !!}
                             </div>
                         </div>
                             
@@ -39,7 +38,7 @@
                                     @php  
                                         $code = 'code-'.$i;
                                         $quantity = 'quantity-'.$i;
-                                        $date = 'date-'.$i;
+                                        $load_date = 'load_date-'.$i;
                                     @endphp
                                     <div class="input-row first">
                                         <div class="form-group form">
@@ -54,8 +53,8 @@
                                         </div>
                                         <div class="form-group form">
                                             <label>Data</label>
-                                            <input type="date" class="form-control" name="{{$date}}" value="{{old($date)}}" required>
-                                            {!! $Order->errorsHTML($date,$errors) !!}
+                                            <input type="date" class="form-control" name="{{$load_date}}" value="{{old($load_date)}}" required>
+                                            {!! $Order->errorsHTML($load_date,$errors) !!}
                                         </div>
                                     </div>
                                 @endfor

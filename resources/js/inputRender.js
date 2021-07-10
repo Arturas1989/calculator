@@ -22,7 +22,7 @@ function generateInputs(selector){
                 </div>
                 <div class="form-group form">
                     <label>Data</label>
-                    <input type="date" class="form-control" name="date-${endNum}" value="" required>
+                    <input type="date" class="form-control" name="load_date-${endNum}" value="" required>
                 </div>
             </div>`
 

@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
+    public $timestamps = false;
+    protected $fillable = [
+        'product_id',
+        'quantity',
+        'load_date',
+        'state_id',
+    ];
 
     public function errorsHTML($field, $errors)
     {

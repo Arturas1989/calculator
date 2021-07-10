@@ -53,10 +53,10 @@ class OrderController extends Controller
         for ($i=0; $i < (count($requestArr)-1)/3; $i++) {
             $code = 'code-'.$i;
             $quantity = 'quantity-'.$i;
-            $date = 'date-'.$i;
+            $load_date = 'load_date-'.$i;
 
 
-            $validator = Validator ::make($request->only($code,$quantity,$date),
+            $validator = Validator ::make($request->only($code,$quantity,$load_date),
         [
             $code =>    [  'required', 
                         function ($attribute, $value, $fail) {
@@ -66,7 +66,7 @@ class OrderController extends Controller
                         },
                         ],
             $quantity => ['required', 'numeric', 'integer','gt:0'],
-            $date => ['required', 'date'],
+            $load_date => ['required', 'date'],
         ],
         [
             "$code.required" => 'reikalingas kodas',
@@ -76,8 +76,8 @@ class OrderController extends Controller
             "$quantity.integer" => 'turi būti sveikas skaičius',
             "$quantity.gt" => 'turi būti teigiamas skaičius',
 
-            "$date.required" => 'data privaloma',
-            "$date.date" => 'reikalinga data',
+            "$load_date.required" => 'data privaloma',
+            "$load_date.date" => 'reikalinga data',
         ]
 
         );
@@ -87,8 +87,8 @@ class OrderController extends Controller
             if($validator->errors()->get($quantity)){
                 $allErrors[$quantity] = $validator->errors()->get($quantity);
             }
-            if($validator->errors()->get($date)){
-                $allErrors[$date] = $validator->errors()->get($date);
+            if($validator->errors()->get($load_date)){
+                $allErrors[$load_date] = $validator->errors()->get($load_date);
             }
             
            
