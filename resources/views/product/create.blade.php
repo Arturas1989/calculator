@@ -2,8 +2,7 @@
 
 @section('content')
 
-{{-- {{dd($errors)}} --}}
-{{-- {{dd(old('company_id'))}} --}}
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -15,6 +14,7 @@
                         <div class="form-group">
                             <label>Kodas</label>
                             <input type="text" class="form-control" name="code" value="{{old('code')}}">
+                            {!! $Order->errorsHTML('code',$errors) !!}
                         </div>
                         <div class="form-group">
                             <label>Klientai</label>
@@ -51,10 +51,12 @@
                         <div class="form-group">
                             <label>Ruošinio plotis</label>
                             <input type="text" class="form-control" name="sheet_width" value="{{old('sheet_width')}}">
+                            {!! $Order->errorsHTML('sheet_width',$errors) !!}
                         </div>
                         <div class="form-group">
                             <label>Ruošinio ilgis</label>
                             <input type="text" class="form-control" name="sheet_length" value="{{old('sheet_length')}}">
+                            {!! $Order->errorsHTML('sheet_length',$errors) !!}
                         </div>
                         <div class="form-group">
                             <label>Lenkimai</label>

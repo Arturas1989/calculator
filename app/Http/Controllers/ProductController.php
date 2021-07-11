@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Order;
 use App\Models\Company;
 use App\Models\Board;
 use App\Models\Mark;
 use Illuminate\Http\Request;
+use Validator;
 
 class ProductController extends Controller
 {
@@ -15,6 +17,11 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+        $this->Order = new Order();
+    }
+
     public function allProducts()
     {
         return Product::all();
@@ -30,7 +37,7 @@ class ProductController extends Controller
     public function markBoard($code)
     {
         if(strlen($code)<8){
-            return $code;
+            return ['mark'=>$code,'board'=>$code];
         }
         $num = substr($code,1,2);
         $board = substr($code,3,2);
@@ -68,7 +75,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('product.create',['companies' => $this->allCompanies()]);
+        return view('product.create',['companies' => $this->allCompanies(),'Order'=>$this->Order]);
     }
 
     /**
@@ -79,9 +86,40 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        if(!$this->markBoardIds($request->code)){
+        $validator = Validator::make($request->all(),
+    
+        [
+            'code' => ['unique:products',
+            function ($attribute, $value, $fail)
+            {
+                if(!$this->markBoardIds($value)){
+                    $mark = $this->markBoard($value)['mark'];
+                    $board = $this->markBoard($value)['board'];
+                    $fail ('Nėra markės: "'. $mark. '" markių sąraše 
+                    ir/arba nėra gofros: "'.$board.'" sąraše');
+                }
+            }
+                                                        ],
+            'sheet_width' => ['numeric','integer','gt:0'],
+            'sheet_length' => ['numeric','integer','gt:0'],
+        ],
+        [
+            'code.unique' => 'Toks kodas jau yra',
+
+            'sheet_width.numeric' => 'Plotis turi būti skaičius',
+            'sheet_width.integer' => 'Plotis turi būti sveikas skaičius',
+            'sheet_width.gt' => 'Plotis turi būti didesnis nei nulis',
+
+            'sheet_length.numeric' => 'Ilgis turi būti skaičius',
+            'sheet_length.integer' => 'Ilgis turi būti sveikas skaičius',
+            'sheet_length.gt' => 'Ilgis turi būti didesnis nei nulis',
+        ],
+    );
+    
+
+        if($validator->fails()){
             $request->flash();
-            return redirect()->back()->withErrors(['Blogas kodas']); 
+            return redirect()->back()->withErrors($validator); 
         }
 
 

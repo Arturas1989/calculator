@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\State;
 use Illuminate\Http\Request;
 use Validator;
 
@@ -19,6 +20,8 @@ class OrderController extends Controller
     {
         $this->ProductController = new ProductController();
         $this->Order = new Order();
+        $this->Product = new Product();
+        $this->State = new State();
     }
 
     
@@ -61,7 +64,8 @@ class OrderController extends Controller
             $code =>    [  'required', 
                         function ($attribute, $value, $fail) {
                             if (!$this->ProductController->markBoardIds($value)) {
-                                $fail('Kodo '.$value.' markės ' . $this->ProductController->markBoard($value) . ' nėra markių sąraše.');
+                                $fail('Kodo: "'.$value.'" markės: "' 
+                                . $this->ProductController->markBoard($value)['mark'] . '" nėra markių sąraše.');
                             }
                         },
                         ],
@@ -72,9 +76,9 @@ class OrderController extends Controller
             "$code.required" => 'reikalingas kodas',
 
             "$quantity.required" => 'reikalingas skaičius',
-            "$quantity.numeric" => 'turi būti skaičius',
-            "$quantity.integer" => 'turi būti sveikas skaičius',
-            "$quantity.gt" => 'turi būti teigiamas skaičius',
+            "$quantity.numeric" => 'Turi būti skaičius',
+            "$quantity.integer" => 'Turi būti sveikas skaičius',
+            "$quantity.gt" => 'Turi būti teigiamas skaičius',
 
             "$load_date.required" => 'data privaloma',
             "$load_date.date" => 'reikalinga data',
@@ -90,27 +94,41 @@ class OrderController extends Controller
             if($validator->errors()->get($load_date)){
                 $allErrors[$load_date] = $validator->errors()->get($load_date);
             }
+
+            $product_id = null;
+            $nullArr = [];
+            if(!$this->Product->where('code','=',$requestArr[$code])->get()->first()){
+                $product_id = $this->Product
+                ->where('code','=',$requestArr[$code])
+                ->get()->first()->id;
+            }
+
             
+            if(count($allErrors)==0){
+            $order = Order::create([
+                'product_id'=>$product_id,
+                'quantity'=>$requestArr[$quantity],
+                'load_date'=>$requestArr[$load_date],
+                'state_id' => $this->State
+                ->where('state_name','=','Open')->get()->first()->id,
+            ]);
+            }
+            if(!$product_id){
+                $nullArr[] = $product_id;
+            }
            
         }
 
-        if($validator->fails()){
+        if(count($allErrors)!=0){
             $request->flash();
             return redirect()->back()->withErrors($allErrors);
         }
 
-        // $product = new Product();
-        $requestArr = $request->all();
-        dd($this->Order->product()->get());
-        // $order = Order::create([
-            
-        //     'product_id'=>$this->Order->product()
-        //     ->where('code','=',$request->code-0)->get()->first()->id,
-        //     'quantity'=>$request->quantity-0,
-        //     'load_date'=>$request->load_date-0,
-        //     'state_id' => $this->Order->state()
-        //     ->where('status_name','=','Active')->get()->first()->id,
-        // ]);
+        if($nullArr){
+            $unknownOrders = $this->Order->where('product_id','=',null)->get()->all();
+            dd($unknownOrders);
+            return redirect()->route('product.create')->withErrors(['msg','Yra nesuvestų gaminių']);
+        }
 
         return redirect()->route('order.create');
     }
