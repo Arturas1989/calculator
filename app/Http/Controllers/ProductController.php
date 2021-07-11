@@ -39,12 +39,14 @@ class ProductController extends Controller
             $board = $board[0]; 
             $color = substr($code,5,1); 
         }
-        return  $board.$num.$color;
+        return  ['mark'=>$board.$num.$color,'board'=>$board];
     }
     public function markBoardIds($code)
     {
-        $mark = $this->markBoard($code);
-        
+        $markBoardArr = $this->markBoard($code);
+        $mark = $markBoardArr['mark'];
+        $board = $markBoardArr['board'];
+
         if(!Mark::where('mark_name','=',$mark)->get()->first() 
         || !Board::where('board_name','=',$board)->get()->first()){
             return false;

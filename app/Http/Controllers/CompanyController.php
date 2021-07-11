@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Validator;
 
@@ -13,6 +14,11 @@ class CompanyController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+        $this->Order = new Order();
+    }
+
     public function allCompanies()
     {
         return Company::all();
@@ -30,7 +36,7 @@ class CompanyController extends Controller
      */
     public function create()
     {
-        return view('company.create');
+        return view('company.create',['Order'=>$this->Order]);
     }
 
     /**
@@ -47,7 +53,7 @@ class CompanyController extends Controller
             'company_name' => ['unique:companies'],
         ],
         [
-            'company_name.unique' => 'klientai negali kartotis',
+            'company_name.unique' => 'Toks klientas jau yra',
         ]
     );
 

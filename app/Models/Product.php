@@ -20,6 +20,10 @@ class Product extends Model
     ];
     use HasFactory;
 
+    public function order()
+    {
+        return $this->hasMany(Order::class);
+    }
     public function company()
     {
         return $this->belongsTo(Company::class,'company_id');

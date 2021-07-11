@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Validator;
-use App\Rules\InMarks;
 
 class OrderController extends Controller
 {
@@ -94,20 +94,24 @@ class OrderController extends Controller
            
         }
 
-        // dd($allErrors);
-
-        if($validator->fails()){//jei klaida
+        if($validator->fails()){
             $request->flash();
             return redirect()->back()->withErrors($allErrors);
         }
 
-        // $art = Art::create([
-        //     'title'=>$request->title,
-        //     'description'=>$request->description,
-        //     'price'=>$request->price,
+        // $product = new Product();
+        $requestArr = $request->all();
+        dd($this->Order->product()->get());
+        // $order = Order::create([
+            
+        //     'product_id'=>$this->Order->product()
+        //     ->where('code','=',$request->code-0)->get()->first()->id,
+        //     'quantity'=>$request->quantity-0,
+        //     'load_date'=>$request->load_date-0,
+        //     'state_id' => $this->Order->state()
+        //     ->where('status_name','=','Active')->get()->first()->id,
         // ]);
 
-        $request->flash();
         return redirect()->route('order.create');
     }
 

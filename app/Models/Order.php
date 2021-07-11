@@ -16,6 +16,15 @@ class Order extends Model
         'state_id',
     ];
 
+    public function product()
+    {
+        return $this->belongsTo(Product::class,'product_id');
+    }
+    public function state()
+    {
+        return $this->belongsTo(State::class,'state_id');
+    }
+
     public function errorsHTML($field, $errors)
     {
         if(!$errors->has($field)){

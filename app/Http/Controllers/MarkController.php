@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mark;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Validator;
 
@@ -13,6 +14,11 @@ class MarkController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+        $this->Order = new Order();
+    }
+
     public function allMarks()
     {
         return Mark::all();
@@ -30,7 +36,7 @@ class MarkController extends Controller
      */
     public function create()
     {
-        return view('mark.create');
+        return view('mark.create',['Order'=>$this->Order]);
     }
 
     /**
@@ -48,7 +54,7 @@ class MarkController extends Controller
             'mark_name' => ['unique:marks'],
         ],
         [
-            'mark_name.unique' => 'markės negali kartotis',
+            'mark_name.unique' => 'Tokia markė jau yra',
         ]
     );
 
@@ -102,7 +108,7 @@ class MarkController extends Controller
             'mark_name' => ['unique:marks'],
         ],
         [
-            'mark_name.unique' => 'markės negali kartotis',
+            'mark_name.unique' => 'Tokia markė jau yra',
         ]
     );
 
