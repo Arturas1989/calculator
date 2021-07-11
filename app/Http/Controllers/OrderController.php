@@ -97,7 +97,7 @@ class OrderController extends Controller
 
             $product_id = null;
             $nullArr = [];
-            if(!$this->Product->where('code','=',$requestArr[$code])->get()->first()){
+            if($this->Product->where('code','=',$requestArr[$code])->get()->first()){
                 $product_id = $this->Product
                 ->where('code','=',$requestArr[$code])
                 ->get()->first()->id;
@@ -106,6 +106,7 @@ class OrderController extends Controller
             
             if(count($allErrors)==0){
             $order = Order::create([
+                'code' => $requestArr[$code],
                 'product_id'=>$product_id,
                 'quantity'=>$requestArr[$quantity],
                 'load_date'=>$requestArr[$load_date],
@@ -125,9 +126,9 @@ class OrderController extends Controller
         }
 
         if($nullArr){
-            $unknownOrders = $this->Order->where('product_id','=',null)->get()->all();
-            dd($unknownOrders);
-            return redirect()->route('product.create')->withErrors(['msg','Yra nesuvestų gaminių']);
+            $unknownProducts = $this->Order->where('product_id','=',null)->get()->all();
+            return redirect()->route('product.create',['unknownProducts'=>$unknownProducts])
+            ->withErrors(['msg'=>'Yra nesuvestų gaminių']);
         }
 
         return redirect()->route('order.create');

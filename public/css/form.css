@@ -1,4 +1,4 @@
-/* order/create.blade.php */
+
 
 .input-row{
     display:flex;
@@ -9,4 +9,12 @@
     width:27%;
     margin:15px 3%;
 }
+.product-input{
+    height:58px;
+}
+.product-form{
+    width:14%;
+    margin:15px 1%;
+}
+
 

@@ -86,53 +86,89 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),
+        $requestArr = $request->all();
+        $length = count($requestArr);
+        $allErrors = [];
+
+        for ($i=0; $i < ($length-1)/6; $i++) {
+            // dd($requestArr); 
+            $code = 'code-'.$i;
+            $company_id = 'company_id-'. $i;
+            $description = 'description-'.$i;
+            $sheet_width = 'sheet_width-'.$i;
+            $sheet_length = 'sheet_length-'.$i;
+            $bending = 'bending-'.$i;
+
+
+            $validator = Validator::make($request->only($code,$company_id,
+            $description,$sheet_width,$sheet_length,$bending),
     
         [
-            'code' => ['unique:products',
-            function ($attribute, $value, $fail)
-            {
-                if(!$this->markBoardIds($value)){
-                    $mark = $this->markBoard($value)['mark'];
-                    $board = $this->markBoard($value)['board'];
-                    $fail ('Nėra markės: "'. $mark. '" markių sąraše 
-                    ir/arba nėra gofros: "'.$board.'" sąraše');
-                }
-            }
-                                                        ],
-            'sheet_width' => ['numeric','integer','gt:0'],
-            'sheet_length' => ['numeric','integer','gt:0'],
+            'code' => ['unique:products'],
+
+             $code => [function ($attribute, $value, $fail)
+                {
+                    if(!$this->markBoardIds($value)){
+                        $mark = $this->markBoard($value)['mark'];
+                        $board = $this->markBoard($value)['board'];
+                        $fail ('Nėra markės: "'. $mark. '" markių sąraše 
+                        ir/arba nėra gofros: "'.$board.'" sąraše');
+                    }
+                }],
+            $company_id => ['required'],
+            $sheet_width => ['numeric','integer','gt:0'],
+            $sheet_length => ['numeric','integer','gt:0'],
+
         ],
         [
-            'code.unique' => 'Toks kodas jau yra',
+            "code.unique" => 'Toks kodas jau yra',
+            
+            "$company_id.required" => 'Nepasirinkote kliento',
 
-            'sheet_width.numeric' => 'Plotis turi būti skaičius',
-            'sheet_width.integer' => 'Plotis turi būti sveikas skaičius',
-            'sheet_width.gt' => 'Plotis turi būti didesnis nei nulis',
+            "$sheet_width.numeric" => 'Plotis turi būti skaičius',
+            "$sheet_width.integer" => 'Plotis turi būti sveikas skaičius',
+            "$sheet_width.gt" => 'Plotis turi būti didesnis nei nulis',
 
-            'sheet_length.numeric' => 'Ilgis turi būti skaičius',
-            'sheet_length.integer' => 'Ilgis turi būti sveikas skaičius',
-            'sheet_length.gt' => 'Ilgis turi būti didesnis nei nulis',
+            "$sheet_length.numeric" => 'Ilgis turi būti skaičius',
+            "$sheet_length.integer" => 'Ilgis turi būti sveikas skaičius',
+            "$sheet_length.gt" => 'Ilgis turi būti didesnis nei nulis',
         ],
     );
-    
+        if($validator->errors()->get($code)){
+            $allErrors[$code] = $validator->errors()->get($code);
+        }
+        if($validator->errors()->get($company_id)){
+            $allErrors[$company_id] = $validator->errors()->get($company_id);
+        }
+        if($validator->errors()->get($sheet_width)){
+            $allErrors[$sheet_width] = $validator->errors()->get($sheet_width);
+        }
+        if($validator->errors()->get($sheet_length)){
+            $allErrors[$sheet_length] = $validator->errors()->get($sheet_length);
+        }
+        // dd($validator->errors());
+        if(count($allErrors)==0){
+            $product = product::create([
+                'code' => $requestArr[$code],
+                'description' => $requestArr[$description],
+                'sheet_width' => $requestArr[$sheet_width],
+                'sheet_length' => $requestArr[$sheet_length],
+                'bending' => $requestArr[$bending],
+                'company_id' => $requestArr[$company_id],
+                'mark_id' => $this->markBoardIds($requestArr[$code])['mark_id'],
+                'board_id' => $this->markBoardIds($requestArr[$code])['board_id'],
+            ]);
+        }
+
+    }
 
         if($validator->fails()){
             $request->flash();
-            return redirect()->back()->withErrors($validator); 
+            return redirect()->back()->withErrors($allErrors); 
         }
 
 
-        $product = product::create([
-            'code' => $request->code,
-            'description' => $request->description,
-            'sheet_width' => $request->sheet_width,
-            'sheet_length' => $request->sheet_length,
-            'bending' => $request->bending,
-            'company_id' => $request->company_id,
-            'mark_id' => $this->markBoardIds($request->code)['mark_id'],
-            'board_id' => $this->markBoardIds($request->code)['board_id'],
-        ]);
+        
         return redirect()->route('product.index');
     }
 
