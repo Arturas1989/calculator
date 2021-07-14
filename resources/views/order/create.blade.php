@@ -1,10 +1,18 @@
 @push('scripts')
-    <script type="module" src="../../resources/js/inputRender.js"></script>
+    <script id="script" src="../../resources/js/getPutData.js" data-getOrder="{{route('order.data',$order)}}">
+    </script>
+    <script src="../../resources/js/inputRender.js"></script>
+
+
 @endpush
+    
 
 @extends('layouts.app')
 
 @section('content')
+
+<div id="click" class="btn btn-primary">Click</div>
+<div class="show"></div>
 
 <div class="container">
     <div class="row justify-content-center">
@@ -14,22 +22,34 @@
                 <div class="card-body">
                     <form action="{{route('order.store')}}" method="post">
                         @csrf
-                    <div class="click">
+                    <div class="click data">
                         <div class="input-row first">
                             <div class="form-group form">
                                 <label>Kodas</label>
-                                <input type="text"  class="form-control click " name="code-0" value="{{old('code-0')}}" required>
+                                <input type="text"  class="form-control code" name="code-0" value="{{old('code-0')}}" required>
                                 {!! $Order->errorsHTML('code-0',$errors) !!}
                             </div>
                             <div class="form-group form">
                                 <label>Kiekis</label>
-                                <input type="text" class="form-control" name="quantity-0" value="{{old('quantity-0')}}" required>
+                                <input type="text" class="form-control click" name="quantity-0" value="{{old('quantity-0')}}" required>
                                 {!! $Order->errorsHTML('quantity-0',$errors) !!}
                             </div>
                             <div class="form-group form">
                                 <label>Data</label>
                                 <input type="date" class="form-control" name="load_date-0" value="{{old('load_date-0')}}" required>
                                 {!! $Order->errorsHTML('load_date-0',$errors) !!}
+                            </div>
+                            <div class="form-group form">
+                                <label>Plotis</label><br>
+                                <p id="width-0"></p>
+                            </div>
+                            <div class="form-group form">
+                                <label>Ilgis</label><br>
+                                <p id="length-0"></p>
+                            </div>
+                            <div class="form-group form">
+                                <label>Gaminių iš ruošinio</label><br>
+                                <p id="from_sheet_count-0"></p>
                             </div>
                         </div>
                             

@@ -22,6 +22,7 @@
                                 $description_name = 'description-'.$i;
                                 $sheet_width_name = 'sheet_width-'.$i;
                                 $sheet_length_name = 'sheet_length-'.$i;
+                                $from_sheet_count_name = 'from_sheet_count-'.$i;
                                 $bending_name = 'bending-'.$i;
                                 if(count(old())){
                                     $code = old($code_name);
@@ -78,6 +79,11 @@
                                     <label>Ruošinio ilgis</label>
                                     <input type="text" class="form-control product-input" name="{{$sheet_length_name}}" value="{{old($sheet_length_name)}}">
                                     {!! $Order->errorsHTML($sheet_length_name,$errors) !!}
+                                </div>
+                                <div class="form-group product-form">
+                                    <label>Gaminių iš ruošinio</label>
+                                    <input type="text" class="form-control product-input" name="{{$from_sheet_count_name}}" value="{{old($from_sheet_count_name)}}">
+                                    {!! $Order->errorsHTML($from_sheet_count_name,$errors) !!}
                                 </div>
                                 <div class="form-group product-form">
                                     <label>Lenkimai</label>

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\State;
 use Illuminate\Http\Request;
 use Validator;
+use Response;
 
 class OrderController extends Controller
 {
@@ -25,6 +26,23 @@ class OrderController extends Controller
     }
 
     
+    public function data()
+    {
+        $products = Product::all();
+        $data = [];
+        // dd(count($products));
+        foreach ($products as $product) {
+            $data[] =   [
+                            'code'=> $product->code,
+                            'sheet_width'=> $product->sheet_width,
+                            'sheet_length' => $product->sheet_length,
+                            'from_sheet_count' => $product->from_sheet_count,
+                        ];
+        }
+            
+        return Response::json($data);
+    }
+
     public function index()
     {
         //
@@ -38,7 +56,8 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         // dd($request->all());
-        return view('order.create',['Order'=>$this->Order]);
+        $order = Order::find(3);
+        return view('order.create',['Order'=>$this->Order,'order'=>$order]);
     }
 
     /**
@@ -165,7 +184,7 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        //
+        
     }
 
     /**

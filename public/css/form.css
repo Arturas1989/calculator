@@ -2,12 +2,13 @@
 
 .input-row{
     display:flex;
+    border: 1px solid #000;
 }
 .form{
     flex:1;
     float: left;
     width:27%;
-    margin:15px 3%;
+    margin:15px 1%;
 }
 .product-input{
     height:58px;

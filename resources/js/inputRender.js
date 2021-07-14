@@ -1,3 +1,7 @@
+
+
+
+
 function generateInputs(selector){
 
     const DOM = document.querySelector(selector);
@@ -6,7 +10,8 @@ function generateInputs(selector){
         if(e.target && e.target.matches(".click")) {
             const targetName = e.target.name;
             const targetLength = e.target.name.length;
-            const endNumText = targetName.substring(5,targetLength);
+            const endNumText = targetName.substring(9,targetLength);
+            console.log(endNumText);
             let endNum = parseInt(endNumText);
             endNum++;
             e.target.classList.remove("click");
@@ -14,15 +19,27 @@ function generateInputs(selector){
             `<div class="input-row">
                 <div class="form-group form">
                     <label>Kodas</label>
-                    <input type="text" class="form-control click" name="code-${endNum}" value="" required>
+                    <input type="text" class="form-control code" name="code-${endNum}" value="" required>
                 </div>
                 <div class="form-group form">
                     <label>Kiekis</label>
-                    <input type="text" class="form-control" name="quantity-${endNum}" value="" required>
+                    <input type="text" class="form-control click" name="quantity-${endNum}" value="" required>
                 </div>
                 <div class="form-group form">
                     <label>Data</label>
                     <input type="date" class="form-control" name="load_date-${endNum}" value="" required>
+                </div>
+                <div class="form-group form">
+                    <label>Plotis</label><br>
+                    <p id="width-${endNum}"></p>
+                </div>
+                <div class="form-group form">
+                    <label>Ilgis</label><br>
+                    <p id="length-${endNum}"></p>
+                </div>
+                <div class="form-group form">
+                    <label>Gaminių iš ruošinio</label><br>
+                    <p id="from_sheet_count-${endNum}"></p>
                 </div>
             </div>`
 
@@ -47,7 +64,7 @@ function generateInputs(selector){
             
             for (let i = length-1; i >= 0; i--) {
                 if(childNodeList[i].classList){
-                    console.log(childNodeList[i].classList);
+                    
                     if(childNodeList[i].classList.contains('first')){
                         break;
                     }
@@ -62,7 +79,9 @@ function generateInputs(selector){
         });
     }
 
-window.onload=function(){
+  
+window.onload=function inputRender(){
+    console.log(document.querySelector('#script').dataset.getorder);
     generateInputs(".click");
     removeLastChild('.close');
   }

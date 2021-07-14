@@ -11,6 +11,7 @@ class Product extends Model
     protected $fillable = [
         'code',
         'description',
+        'from_sheet_count',
         'sheet_width',
         'sheet_length',
         'bending',

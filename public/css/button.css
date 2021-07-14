@@ -6,6 +6,7 @@
     margin:0 3%;
 }
 .btn-container{
+    margin-top: 10px;
     width: 100%;
     display:inline-block;
 }

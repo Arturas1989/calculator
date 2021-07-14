@@ -21,6 +21,7 @@
                           <th>Pastabos</th>
                           <th>Ruošinio plotis</th>
                           <th>Ruošinio ilgis</th>
+                          <th>Gaminių iš ruošinio</th>
                           <th>Lenkimai</th>
                           <th>Pakoreguoti</th>
                           <th>Ištrinti</th>
@@ -33,6 +34,7 @@
                       <td>{{$product->description}}</td>
                       <td>{{$product->sheet_width}}</td>
                       <td>{{$product->sheet_length}}</td>
+                      <td>{{$product->from_sheet_count}}</td>
                       <td>{{$product->bending}}</td>
                       <td><a class="btn btn-info" href="{{route('product.edit',$product)}}">Edit</a></td>
                       <td>
