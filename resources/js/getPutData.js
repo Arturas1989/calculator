@@ -6,11 +6,13 @@ let timeout = null
 window.addEventListener('load',function(event)
 {
     DOM = document.querySelector('.data');
-
+       
     DOM.addEventListener('input',function (e) 
     {
         if(e.target && e.target.matches(".code"))
         {
+            clearTimeout(timeout);
+
             timeout = setTimeout(function () 
             {
                 axios.get(getOrder)
