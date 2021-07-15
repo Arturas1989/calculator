@@ -1,7 +1,3 @@
-
-
-
-
 function generateInputs(selector){
 
     const DOM = document.querySelector(selector);
@@ -76,7 +72,7 @@ function generateInputs(selector){
             allDOM[allDOM.length-3].classList.add('click');
         });
     }
-    
+
 window.onload=function inputRender(){
     generateInputs(".click");
     removeLastChild('.close');
