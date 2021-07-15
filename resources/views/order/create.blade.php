@@ -2,8 +2,6 @@
     <script id="script" src="../../resources/js/getPutData.js" data-getOrder="{{route('order.data',$order)}}">
     </script>
     <script src="../../resources/js/inputRender.js"></script>
-
-
 @endpush
     
 

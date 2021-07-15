@@ -3,22 +3,16 @@ const script = document.querySelector('#script');
 const getOrder = script.dataset.getorder;
 
 let timeout = null
-console.log(getOrder);
-
-
-
 
 window.addEventListener('load',function(event)
 {
-    console.log('1');
     DOM = document.querySelector('.data');
-
-        
-        DOM.addEventListener('input',function (e) 
+       
+    DOM.addEventListener('input',function (e) 
+    {
+        if(e.target && e.target.matches(".code"))
         {
-            if(e.target && e.target.matches(".code")){
-                clearTimeout(timeout);
-            console.log(timeout);
+            clearTimeout(timeout);
 
             timeout = setTimeout(function () 
             {
@@ -53,15 +47,8 @@ window.addEventListener('load',function(event)
                         document.querySelector(length).innerText = 'Nerasta';
                         document.querySelector(from_sheet_count).innerText = 'Nerasta';
                     }
-
-                })
+                });
             }, 1000);
-            }
-            
-
-            
-        });
-        
-    
-    
+        }  
+    });  
 });
