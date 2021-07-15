@@ -27,7 +27,7 @@ window.addEventListener('load',function(event)
                     });
 
                     const targetName = e.target.name;
-                    const targetLength = e.target.name.length;
+                    const targetLength = targetName.length;
                     const endNumText = targetName.substring(5,targetLength);
                     const width = '#width-' + endNumText;
                     const length = '#length-' + endNumText;

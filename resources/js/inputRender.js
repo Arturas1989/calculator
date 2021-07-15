@@ -5,7 +5,7 @@ function generateInputs(selector){
     function handler(e){
         if(e.target && e.target.matches(".click")) {
             const targetName = e.target.name;
-            const targetLength = e.target.name.length;
+            const targetLength = targetName.length;
             const endNumText = targetName.substring(9,targetLength);
             let endNum = parseInt(endNumText);
             endNum++;
