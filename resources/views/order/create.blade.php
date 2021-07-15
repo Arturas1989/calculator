@@ -9,9 +9,6 @@
 
 @section('content')
 
-<div id="click" class="btn btn-primary">Click</div>
-<div class="show"></div>
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
