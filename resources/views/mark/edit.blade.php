@@ -14,6 +14,7 @@
                         <div class="form-group">
                             <label>Markė</label>
                             <input type="text" class="form-control" name="mark_name" value="{{$mark->mark_name}}">
+                            {!! $Order->errorsHTML('mark_name',$errors) !!}
                         </div>
                         <input class="btn btn-primary" type="submit" value="submit">
                     </form>

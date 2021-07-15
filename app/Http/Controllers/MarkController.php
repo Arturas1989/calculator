@@ -90,7 +90,7 @@ class MarkController extends Controller
      */
     public function edit(Mark $mark)
     {
-        return view('mark.edit',['mark'=>$mark]);
+        return view('mark.edit',['mark'=>$mark,'Order'=>$this->Order]);
     }
 
     /**
@@ -103,15 +103,16 @@ class MarkController extends Controller
     public function update(Request $request, Mark $mark)
     {
         $validator = Validator::make($request->only('mark_name'),
-    
+        
         [
-            'mark_name' => ['unique:marks'],
+            'mark_name' => ['unique:marks','required'],
         ],
         [
             'mark_name.unique' => 'Tokia markė jau yra',
+            'mark_name.required' => 'Neįrašyta markė',
         ]
-    );
-
+        );
+        
         if($validator->fails()){
             $request->flash();
             return redirect()->back()->withErrors($validator);
