@@ -11,7 +11,6 @@ function generateInputs(selector){
             const targetName = e.target.name;
             const targetLength = e.target.name.length;
             const endNumText = targetName.substring(9,targetLength);
-            console.log(endNumText);
             let endNum = parseInt(endNumText);
             endNum++;
             e.target.classList.remove("click");
@@ -61,7 +60,6 @@ function generateInputs(selector){
             const childNodeList = DOM2.childNodes;
             const length = childNodeList.length;
 
-            
             for (let i = length-1; i >= 0; i--) {
                 if(childNodeList[i].classList){
                     
@@ -78,10 +76,8 @@ function generateInputs(selector){
             allDOM[allDOM.length-3].classList.add('click');
         });
     }
-
-  
+    
 window.onload=function inputRender(){
-    console.log(document.querySelector('#script').dataset.getorder);
     generateInputs(".click");
     removeLastChild('.close');
   }
