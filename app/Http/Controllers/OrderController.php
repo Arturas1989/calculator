@@ -30,7 +30,7 @@ class OrderController extends Controller
     {
         $products = Product::all();
         $data = [];
-        // dd(count($products));
+
         foreach ($products as $product) {
             $data[] =   [
                             'code'=> $product->code,
@@ -43,9 +43,15 @@ class OrderController extends Controller
         return Response::json($data);
     }
 
+    public function allOrders()
+    {
+        return Order::all();
+    }
+
     public function index()
     {
-        //
+        $orders = $this->allOrders();
+        return view('order.index',['orders'=>$orders]);
     }
 
     /**
@@ -66,19 +72,9 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function orderValidation($request,$code,$quantity,$load_date)
     {
-        $requestArr = $request->all();
-        $length = count($requestArr);
-        $allErrors = [];
-
-        for ($i=0; $i < (count($requestArr)-1)/3; $i++) {
-            $code = 'code-'.$i;
-            $quantity = 'quantity-'.$i;
-            $load_date = 'load_date-'.$i;
-
-
-            $validator = Validator ::make($request->only($code,$quantity,$load_date),
+        $validator = Validator ::make($request->only($code,$quantity,$load_date),
         [
             $code =>    [  'required', 
                         function ($attribute, $value, $fail) {
@@ -104,6 +100,22 @@ class OrderController extends Controller
         ]
 
         );
+        return $validator;
+    }
+
+    public function store(Request $request)
+    {
+        $requestArr = $request->all();
+        $length = count($requestArr);
+        $allErrors = [];
+
+        for ($i=0; $i < (count($requestArr)-1)/3; $i++) {
+            $code = 'code-'.$i;
+            $quantity = 'quantity-'.$i;
+            $load_date = 'load_date-'.$i;
+
+            $validator = $this->orderValidation($request,$code,$quantity,$load_date);
+            
             if($validator->errors()->get($code)){
                 $allErrors[$code] = $validator->errors()->get($code);
             }
@@ -150,7 +162,7 @@ class OrderController extends Controller
             ->withErrors(['msg'=>'Yra nesuvestų gaminių']);
         }
 
-        return redirect()->route('order.create');
+        return redirect()->route('order.index');
     }
 
     /**
@@ -172,7 +184,7 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
-        //
+        return view('order.edit',['order'=>$order]);
     }
 
     /**
@@ -184,7 +196,27 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        
+        $code = 'code';
+        $quantity = 'quantity';
+        $load_date = 'load_date';
+
+        $validator = $this->orderValidation($request,$code,$quantity,$load_date);
+
+        if($validator->fails()){
+            $request->flash();
+            return redirect()->back()->withErrors($validator);
+        }
+        $order->code = $request->code; 
+        $order->quantity = $request->quantity; 
+        $order->load_date = $request->load_date;
+        if(!Product::where('code','=',$request->code)->get()->first())
+        {
+            $product = $order->product()->get()->first();
+            $product->code = $request->code;
+            $product->save(); 
+        }
+        $order->save();
+        return redirect()->route('order.index'); 
     }
 
     /**
@@ -195,6 +227,7 @@ class OrderController extends Controller
      */
     public function destroy(Order $order)
     {
-        //
+        $order->delete();
+        return redirect()->route('order.index');
     }
 }
