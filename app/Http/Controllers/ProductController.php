@@ -233,8 +233,8 @@ class ProductController extends Controller
         $product->sheet_length = $request->sheet_length;
         $product->bending = $request->bending;
         $product->company_id = $request->company_id;
-        $product->board_id = $this->markBoardIds($request->code)['mark_id'];
-        $product->mark_id = $this->markBoardIds($request->code)['board_id'];
+        $product->board_id = $this->markBoardIds($request->code)['board_id'];
+        $product->mark_id = $this->markBoardIds($request->code)['mark_id'];
         $product->save();
         return redirect()->route('product.index');
     }
