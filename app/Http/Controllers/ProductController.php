@@ -82,6 +82,51 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    public function productValidation($request,$code,$company_id,
+    $description,$sheet_width,$sheet_length,$from_sheet_count,$bending)
+    {
+        $validator = Validator::make($request->only($code,$company_id,
+            $description,$sheet_width,$sheet_length,$from_sheet_count,$bending),
+    
+            [
+                $code => ['unique:products', 
+                            function ($attribute, $value, $fail)
+                            {
+                                if(!$this->markBoardIds($value))
+                                {
+                                    $mark = $this->markBoard($value)['mark'];
+                                    $board = $this->markBoard($value)['board'];
+                                    $fail ('Nėra markės: "'. $mark. '" markių sąraše 
+                                    ir/arba nėra gofros: "'.$board.'" sąraše');
+                                }
+                            }
+                        ],
+                $company_id => ['required'],
+                $sheet_width => ['numeric','integer','gt:0'],
+                $sheet_length => ['numeric','integer','gt:0'],
+                $from_sheet_count => ['numeric','integer','gt:0'],
+            ],
+            [
+                "$code.unique" => 'Toks kodas jau yra',
+                
+                "$company_id.required" => 'Nepasirinkote kliento',
+
+                "$sheet_width.numeric" => 'Plotis turi būti skaičius',
+                "$sheet_width.integer" => 'Plotis turi būti sveikas skaičius',
+                "$sheet_width.gt" => 'Plotis turi būti didesnis nei nulis',
+
+                "$sheet_length.numeric" => 'Ilgis turi būti skaičius',
+                "$sheet_length.integer" => 'Ilgis turi būti sveikas skaičius',
+                "$sheet_length.gt" => 'Ilgis turi būti didesnis nei nulis',
+
+                "$from_sheet_count.numeric" => 'Gaminių kiekis iš ruošinio turi būti skaičius',
+                "$from_sheet_count.integer" => 'Gaminių kiekis iš ruošinio turi būti sveikas skaičius',
+                "$from_sheet_count.gt" => 'Gaminių kiekis iš ruošinio turi būti didesnis nei nulis',
+            ],
+        );
+        return $validator;
+    }
+
     public function store(Request $request)
     {
         $requestArr = $request->all();
@@ -98,46 +143,9 @@ class ProductController extends Controller
             $from_sheet_count = 'from_sheet_count-'.$i;
             $bending = 'bending-'.$i;
 
+            $validator = $this->productValidation($request,$code,$company_id,
+            $description,$sheet_width,$sheet_length,$from_sheet_count,$bending);
 
-            $validator = Validator::make($request->only($code,$company_id,
-            $description,$sheet_width,$sheet_length,$from_sheet_count,$bending),
-    
-        [
-            'code' => ['unique:products'],
-
-             $code => [function ($attribute, $value, $fail)
-                {
-                    if(!$this->markBoardIds($value))
-                    {
-                        $mark = $this->markBoard($value)['mark'];
-                        $board = $this->markBoard($value)['board'];
-                        $fail ('Nėra markės: "'. $mark. '" markių sąraše 
-                        ir/arba nėra gofros: "'.$board.'" sąraše');
-                    }
-                }],
-            $company_id => ['required'],
-            $sheet_width => ['numeric','integer','gt:0'],
-            $sheet_length => ['numeric','integer','gt:0'],
-            $from_sheet_count => ['numeric','integer','gt:0'],
-        ],
-        [
-            "code.unique" => 'Toks kodas jau yra',
-            
-            "$company_id.required" => 'Nepasirinkote kliento',
-
-            "$sheet_width.numeric" => 'Plotis turi būti skaičius',
-            "$sheet_width.integer" => 'Plotis turi būti sveikas skaičius',
-            "$sheet_width.gt" => 'Plotis turi būti didesnis nei nulis',
-
-            "$sheet_length.numeric" => 'Ilgis turi būti skaičius',
-            "$sheet_length.integer" => 'Ilgis turi būti sveikas skaičius',
-            "$sheet_length.gt" => 'Ilgis turi būti didesnis nei nulis',
-
-            "$from_sheet_count.numeric" => 'Gaminių kiekis iš ruošinio turi būti skaičius',
-            "$from_sheet_count.integer" => 'Gaminių kiekis iš ruošinio turi būti sveikas skaičius',
-            "$from_sheet_count.gt" => 'Gaminių kiekis iš ruošinio turi būti didesnis nei nulis',
-        ],
-    );
             if($validator->errors()->get($code))
             {
                 $allErrors[$code] = $validator->errors()->get($code);
@@ -185,9 +193,6 @@ class ProductController extends Controller
             $request->flash();
             return redirect()->back()->withErrors($allErrors); 
         }
-
-
-        
         return redirect()->route('product.index');
     }
 
@@ -208,9 +213,10 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function edit(Product $product)
+    public function edit(Product $product, Order $order)
     {
-        return view('product.edit',['product'=>$product,'companies' => $this->allCompanies()]);
+        $companies = Company::where('id','!=',$product->company_id)->get()->all();
+        return view('product.edit',['product'=>$product,'companies' => $companies,'order'=>$order]);
     }
 
     /**
@@ -222,20 +228,28 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        if(!$this->markBoardIds($request->code)){
+        $validator = $this->productValidation($request,'code','company_id',
+            'description','sheet_width','sheet_length','from_sheet_count','bending');
+
+        if($validator->fails()){
             $request->flash();
-            return redirect()->back()->withErrors(['Blogas kodas']); 
+            return redirect()->back()->withErrors($validator); 
         }
         
-        $product->code = $request->code;
-        $product->description = $request->description;
-        $product->sheet_width = $request->sheet_width;
-        $product->sheet_length = $request->sheet_length;
-        $product->bending = $request->bending;
-        $product->company_id = $request->company_id;
-        $product->board_id = $this->markBoardIds($request->code)['board_id'];
-        $product->mark_id = $this->markBoardIds($request->code)['mark_id'];
-        $product->save();
+        $product->update
+        (
+            [
+                'code' => $request->code,
+                'description' => $request->description,
+                'from_sheet_count' => $request->sheet_width,
+                'sheet_width' => $request->sheet_width,
+                'sheet_length' => $request->sheet_length,
+                'bending' => $request->bending,
+                'company_id' => $request->company_id,
+                'mark_id' => $this->markBoardIds($request->code)['mark_id'],
+                'board_id' => $this->markBoardIds($request->code)['board_id'], 
+            ]
+        );
         return redirect()->route('product.index');
     }
 
