@@ -92,8 +92,6 @@
                             </div>
                         @endfor
                         
-                        
-                        
                         <input class="btn btn-primary" type="submit" value="submit">
                     </form>
                     @endif
