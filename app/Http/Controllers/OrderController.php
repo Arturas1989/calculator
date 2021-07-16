@@ -206,7 +206,7 @@ class OrderController extends Controller
             $request->flash();
             return redirect()->back()->withErrors($validator);
         }
-        $order->code = $request->code; 
+        Order::where('code','=',$order->code)->update(['code'=>$request->code]); 
         $order->quantity = $request->quantity; 
         $order->load_date = $request->load_date;
         if(!Product::where('code','=',$request->code)->get()->first())
