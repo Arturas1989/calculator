@@ -82,15 +82,17 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function productValidation($request,$code,$company_id,
+    public function productValidation($product_id,$request,$code,$company_id,
     $description,$sheet_width,$sheet_length,$from_sheet_count,$bending)
     {
-        
+        $product_id ? $codeValidation = 'unique:products,code,'.$product_id . ',id'
+        : $codeValidation = 'unique:products,code';
+
         $validator = Validator::make($request->only($code,$company_id,
             $description,$sheet_width,$sheet_length,$from_sheet_count,$bending),
     
             [
-                $code => ['unique:products,code',
+                $code => [$codeValidation,
                             function ($attribute, $value, $fail)
                             {
                                 if(!$this->markBoardIds($value))
@@ -143,8 +145,9 @@ class ProductController extends Controller
             $sheet_length = 'sheet_length-'.$i;
             $from_sheet_count = 'from_sheet_count-'.$i;
             $bending = 'bending-'.$i;
+            $product_id = null;
 
-            $validator = $this->productValidation($request,$code,$company_id,
+            $validator = $this->productValidation($product_id,$request,$code,$company_id,
             $description,$sheet_width,$sheet_length,$from_sheet_count,$bending);
 
             if($validator->errors()->get($code))
@@ -244,7 +247,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $validator = $this->productValidation($request,'code','company_id',
+        $validator = $this->productValidation($product->id,$request,'code','company_id',
             'description','sheet_width','sheet_length','from_sheet_count','bending');
 
         if($validator->fails()){
@@ -257,7 +260,7 @@ class ProductController extends Controller
             [
                 'code' => $request->code,
                 'description' => $request->description,
-                'from_sheet_count' => $request->sheet_width,
+                'from_sheet_count' => $request->from_sheet_count,
                 'sheet_width' => $request->sheet_width,
                 'sheet_length' => $request->sheet_length,
                 'bending' => $request->bending,
