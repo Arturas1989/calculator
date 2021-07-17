@@ -37,4 +37,5 @@ class Product extends Model
     {
         return $this->belongsTo(Board::class,'board_id');
     }
+
 }
