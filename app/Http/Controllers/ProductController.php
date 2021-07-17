@@ -85,11 +85,12 @@ class ProductController extends Controller
     public function productValidation($request,$code,$company_id,
     $description,$sheet_width,$sheet_length,$from_sheet_count,$bending)
     {
+        
         $validator = Validator::make($request->only($code,$company_id,
             $description,$sheet_width,$sheet_length,$from_sheet_count,$bending),
     
             [
-                $code => ['unique:products', 
+                $code => ['unique:products,code',
                             function ($attribute, $value, $fail)
                             {
                                 if(!$this->markBoardIds($value))
@@ -119,9 +120,9 @@ class ProductController extends Controller
                 "$sheet_length.integer" => 'Ilgis turi būti sveikas skaičius',
                 "$sheet_length.gt" => 'Ilgis turi būti didesnis nei nulis',
 
-                "$from_sheet_count.numeric" => 'Gaminių kiekis iš ruošinio turi būti skaičius',
-                "$from_sheet_count.integer" => 'Gaminių kiekis iš ruošinio turi būti sveikas skaičius',
-                "$from_sheet_count.gt" => 'Gaminių kiekis iš ruošinio turi būti didesnis nei nulis',
+                "$from_sheet_count.numeric" => 'Kiekis turi būti skaičius',
+                "$from_sheet_count.integer" => 'Kiekis turi būti sveikas skaičius',
+                "$from_sheet_count.gt" => 'Kiekis turi būti didesnis nei nulis',
             ],
         );
         return $validator;
@@ -165,33 +166,48 @@ class ProductController extends Controller
             {
                 $allErrors[$sheet_length] = $validator->errors()->get($sheet_length);
             }
-            
-            if(count($allErrors)==0)
+
+            if($validator->errors()->get($from_sheet_count))
             {
-                $product = product::create([
-                    'code' => $requestArr[$code],
-                    'description' => $requestArr[$description],
-                    'sheet_width' => $requestArr[$sheet_width],
-                    'sheet_length' => $requestArr[$sheet_length],
-                    'from_sheet_count' => $requestArr[$from_sheet_count],
-                    'bending' => $requestArr[$bending],
-                    'company_id' => $requestArr[$company_id],
-                    'mark_id' => $this->markBoardIds($requestArr[$code])['mark_id'],
-                    'board_id' => $this->markBoardIds($requestArr[$code])['board_id'],
-                ]);
-
-                $order = Order::where('code','=',$requestArr[$code])->get()->first();
-                $order->product_id = $product->id;
-                $order->save(); 
-
+                $allErrors[$from_sheet_count] = $validator->errors()->get($from_sheet_count);
             }
-
-
         }
 
-        if($validator->fails()){
+        if(count($allErrors)){
+            // dd($allErrors);
             $request->flash();
             return redirect()->back()->withErrors($allErrors); 
+        }
+
+        for ($i=0; $i < ($length-1)/7; $i++) 
+        {
+            $code = 'code-'.$i;
+            $company_id = 'company_id-'. $i;
+            $description = 'description-'.$i;
+            $sheet_width = 'sheet_width-'.$i;
+            $sheet_length = 'sheet_length-'.$i;
+            $from_sheet_count = 'from_sheet_count-'.$i;
+            $bending = 'bending-'.$i;
+
+            $product = product::create
+             ([
+                'code' => $requestArr[$code],
+                'description' => $requestArr[$description],
+                'sheet_width' => $requestArr[$sheet_width],
+                'sheet_length' => $requestArr[$sheet_length],
+                'from_sheet_count' => $requestArr[$from_sheet_count],
+                'bending' => $requestArr[$bending],
+                'company_id' => $requestArr[$company_id],
+                'mark_id' => $this->markBoardIds($requestArr[$code])['mark_id'],
+                'board_id' => $this->markBoardIds($requestArr[$code])['board_id'],
+            ]);
+            
+            $order = Order::where('code','=',$requestArr[$code])->get()->first();
+            if($order)
+            {
+                Order::where('code','=',$requestArr[$code])
+                ->update(['product_id' => $product->id]);
+            }  
         }
         return redirect()->route('product.index');
     }
