@@ -43,14 +43,12 @@ class OrderController extends Controller
         return Response::json($data);
     }
 
-    public function allOrders()
-    {
-        return Order::all();
-    }
+    
 
     public function index()
     {
-        $orders = $this->allOrders();
+        $order = new Order();
+        $orders = $order->createdProducts();
         return view('order.index',['orders'=>$orders]);
     }
 
@@ -206,15 +204,25 @@ class OrderController extends Controller
             $request->flash();
             return redirect()->back()->withErrors($validator);
         }
-        Order::where('code','=',$order->code)->update(['code'=>$request->code]); 
+
+        Order::where('code','=',$order->code)->update(['code'=>$request->code]);
+
         $order->quantity = $request->quantity; 
         $order->load_date = $request->load_date;
-        if(!Product::where('code','=',$request->code)->get()->first())
+        $product = Product::where('code','=',$request->code)->get()->first();
+        if(!$product)
         {
             $product = $order->product()->get()->first();
             $product->code = $request->code;
             $product->save(); 
         }
+        else
+        {
+            $product->code = $request->code;
+            $product->save();
+            Order::where('product_id','=',$order->product_id)->update(['product_id'=>$product->id]);
+        }
+
         $order->save();
         return redirect()->route('order.index'); 
     }
