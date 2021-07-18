@@ -131,6 +131,12 @@ class MarkController extends Controller
      */
     public function destroy(Mark $mark)
     {
+        $countProducts = $mark->product()->get()->count();
+        if($countProducts)
+        {
+            return redirect()->back()
+            ->withErrors(array('mark' => 'Yra neištrintų gaminių, kurie turi markę: '.$mark->mark_name));
+        }
         $mark->delete();
         return redirect()->route('mark.index');
     }

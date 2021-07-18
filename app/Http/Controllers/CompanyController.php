@@ -128,6 +128,12 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company)
     {
+        $productCount = $company->product()->get()->count();
+        if($productCount)
+        {
+            return redirect()->back()
+            ->withErrors(array('company' => 'Yra neištrintų gaminių, kurie turi klientą: '.$company->company_name));
+        }
         $company->delete();
         return redirect()->route('company.index');
     }

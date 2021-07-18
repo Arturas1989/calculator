@@ -280,6 +280,12 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $orderCount = $product->order()->get()->count();
+        if($orderCount)
+        {
+            return redirect()->back()
+            ->withErrors(array('product' => 'Yra neištrintų užsakymų, kurie turi gaminį, kurio kodas: '.$product->code));
+        }
         $product->delete();
         return redirect()->route('product.index');
     }

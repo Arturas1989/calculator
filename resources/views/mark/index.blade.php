@@ -2,8 +2,11 @@
 
 @section('content')
 
+{{-- @push('errors')
+  
+@endpush --}}
 
-
+{{-- {{dd($errors->has('mark'))}} --}}
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
