@@ -15,7 +15,9 @@ class CreatePairsTable extends Migration
     {
         Schema::create('pairs', function (Blueprint $table) {
             $table->id();
+            $table->integer('rows');
             $table->integer('metrics');
+            $table->integer('quantity');
             $table->unsignedBigInteger('order_id');
             $table->foreign('order_id')->references('id')->on('orders');
             $table->unsignedBigInteger('paired_order_id');
