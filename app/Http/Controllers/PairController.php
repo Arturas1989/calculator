@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pair;
+use App\Models\Mark;
+use App\Models\Order;
+use App\Models\Company;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class PairController extends Controller
@@ -12,6 +16,11 @@ class PairController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function allMarks()
+    {
+        return Mark::all();
+    }
+
     public function index()
     {
         //
@@ -24,7 +33,7 @@ class PairController extends Controller
      */
     public function create()
     {
-        //
+        return view('pair.create',['marks' => $this->allMarks()]);
     }
 
     /**
@@ -33,9 +42,17 @@ class PairController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function calculator($request,$mark)
     {
-        //
+        $id = $mark->id;
+        dd(Order::whereHas('product', function ($q) use ($mark){
+            return $q->where('mark_id', $mark->id);
+        })->get());
+    }
+
+    public function store(Request $request,Mark $mark)
+    {
+        $this->calculator($request,$mark);
     }
 
     /**

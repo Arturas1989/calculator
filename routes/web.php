@@ -55,4 +55,8 @@ Route::group(['middleware'=>['auth']], function(){
         Route::post('/update/{order}', [App\Http\Controllers\OrderController::class, 'update'])->name('order.update');
         Route::post('/destroy/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('order.destroy');
     });
+    Route::group(['prefix'=>'pair'], function(){
+        Route::get('/create', [App\Http\Controllers\PairController::class, 'create'])->name('pair.create');
+        Route::post('/store/{mark}', [App\Http\Controllers\PairController::class, 'store'])->name('pair.store');
+    });
 });
