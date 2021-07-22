@@ -2,6 +2,10 @@
 
 @section('content')
 
+@push('select-scripts')
+    <script src="../../resources/js/multiselect.js"></script>
+@endpush
+
 
 <div class="container">
     <div class="row justify-content-center">
@@ -9,6 +13,20 @@
             <div class="card">
                 <div class="card-header">Sukurti programą</div>
                 <div class="card-body">
+                    
+                    <select name=markIds[] class="multiple" multiple>
+                        <option id ="0" value="AL">Alabama</option>
+                        <option id ="1" value="AK">Alaska</option>
+                        <option id ="2" value="HI">Hawaii</option>
+                        <option id ="3" value="TN">Tennessee</option>
+                        <option id ="4" value="TX">Texas</option>
+                        <option id ="5" value="FL">Florida</option>
+                        <option id ="6" value="UT">Utah</option>
+                        <option id ="7" value="WY">Wyoming</option>
+                    </select>
+
+                    <div class="output"></div>
+                        
                     @foreach ( $marks as $mark)
                         @php
                             $mark_name = $mark->mark_name;

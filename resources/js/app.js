@@ -36,35 +36,8 @@ const app = new Vue({
 
 
 
-// let timeout = null
-
-// DOM = document.querySelector('.code');
-//     console.log(DOM);
-
-
     
-//     DOM.addEventListener('input',function (e) 
-//     {
-//         clearTimeout(timeout);
 
-//         timeout = setTimeout(function () 
-//         {
-//             axios.get(getOrder)
-//             .then(response =>
-//             {
-//                 const row = response.data.find(function(data) 
-//                 {
-//                     if(data.code === "G20BE0R00800")
-//                     {
-//                         return true;
-//                     }  
-//                 });
-//                 console.log(e.target.name);
-//             })
-//         }, 1500);
-
-        
-//     });
 
 
 
