@@ -47,7 +47,7 @@ class PairController extends Controller
         $id = $mark->id;
         dd(Order::whereHas('product', function ($q) use ($mark){
             return $q->where('mark_id', $mark->id);
-        })->get());
+        })->get()->all());
     }
 
     public function store(Request $request,Mark $mark)

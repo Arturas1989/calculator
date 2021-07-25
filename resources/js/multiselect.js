@@ -1,6 +1,18 @@
 window.onload=function(){
     const DOM = document.querySelector(".multiple");
+    DOM.onscroll = function(e){
+        DOM.addEventListener('click', function (e){
+            if(e.target){
+                const scrollTop = e.pageY;
+                const scrollLeft = e.pageX;
+                DOM.scrollTo(scrollLeft, scrollTop);
+            }
+            
+        })
+        
+    }
     DOM.addEventListener('mousedown',function(e){
+        
         option = DOM.getElementsByTagName('option')[e.target.id]
         if(option){
             e.preventDefault();
@@ -9,14 +21,18 @@ window.onload=function(){
             }
             else{
                 option.selected = 'selected';
+                e.preventDefault();
+                
+                
             }
+            
             // console.log(this.selectedIndex);
-            console.log(e.target.id);
-            console.log(option.selected);
+            
             // e.target.addEventListener('onFocus',function(e){
 
             // });
         };
+        
     })
     DOM.addEventListener('click',function (){
         let result = "";
