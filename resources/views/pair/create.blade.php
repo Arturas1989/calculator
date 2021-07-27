@@ -4,7 +4,12 @@
 
 @push('select-scripts')
     <script src="../../resources/js/multiselect.js" defer></script>
-    <script src="../../resources/js/multi-select/jquery.multi-select.js" type="text/javascript" defer></script>
+    <script src="../../resources/js/multi-select/jquery.multi-select.js" type="text/javascript" defer>
+        window.onload=function (){
+
+            $('#your-select').multiSelect({});
+            }
+    </script>
 @endpush
 
 
