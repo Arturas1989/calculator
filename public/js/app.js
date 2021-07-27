@@ -1907,6 +1907,10 @@ var app = new Vue({
   el: '#app'
 });
 
+window.onload = function () {
+  $('#your-select').multiSelect({});
+};
+
 /***/ }),
 
 /***/ "./resources/js/bootstrap.js":

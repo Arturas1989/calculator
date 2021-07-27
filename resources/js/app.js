@@ -33,7 +33,10 @@ const app = new Vue({
     el: '#app',
 });
 
+window.onload=function (){
 
+    $('#your-select').multiSelect({});
+}
 
 
     
