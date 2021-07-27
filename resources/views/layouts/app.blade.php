@@ -11,7 +11,7 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" defer></script> --}}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" defer></script>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -20,8 +20,14 @@
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{asset('css/main.css')}}" rel="stylesheet" >
+    <link href="{{asset('css/multi-select/multi-select.css')}}" rel="stylesheet" >
+    <link href="{{asset('css/multi-select/multi-select.dev.css')}}" rel="stylesheet" >
+    <link href="{{asset('css/multi-select/multi-select.dev.css.map')}}" rel="stylesheet" >
+    <link href="{{asset('css/multi-select/multi-select.dist.css')}}" rel="stylesheet" >
+
     
     @stack('scripts')
+    @stack('select-scripts')
 </head>
 <body>
     <div id="app">
@@ -56,6 +62,17 @@
                                 </li>
                             @endif
                         @else
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                        Gamybos programa
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('pair.create') }}">
+                                        Sukurti
+                                    </a>
+                                    
+                                </div>
+                            </li>
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                         Užsakymai
