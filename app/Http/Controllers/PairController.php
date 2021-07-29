@@ -42,17 +42,39 @@ class PairController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function calculator($request,$mark)
+    public function calculator($request)
     {
-        $id = $mark->id;
-        dd(Order::whereHas('product', function ($q) use ($mark){
-            return $q->where('mark_id', $mark->id);
-        })->get()->all());
+        
+        $id = $request->marks[0];
+        $orders = Order::whereHas('product', function ($q) use ($id){
+            return $q->where('mark_id', $id);
+        })->get()->all();
+        $productsList = [];
+        foreach ($orders as $order) {
+            $product = $order->product()->get()->first();
+            $company_name = $product->company->get()->first()->company_name;
+            $product->description ? 
+            $description =  $company_name . ' ' . $product->description : 
+            $description =  $company_name;
+
+            $product->bending ? $bending =  $product->bending : $bending =  '';
+
+            $productsList[] = 
+            [
+                'code' => $order->code,
+                'description' => $description,
+                'sheet_width' => $product->sheet_width,
+                'sheet_length' => $product->sheet_length,
+                'quantity' => $order->quantity,
+                'bending' => $bending
+            ];
+        }
+        dd($productsList);
     }
 
-    public function store(Request $request,Mark $mark)
+    public function store(Request $request)
     {
-        $this->calculator($request,$mark);
+        $this->calculator($request);
     }
 
     /**
