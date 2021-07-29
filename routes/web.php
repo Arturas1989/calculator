@@ -57,6 +57,6 @@ Route::group(['middleware'=>['auth']], function(){
     });
     Route::group(['prefix'=>'pair'], function(){
         Route::get('/create', [App\Http\Controllers\PairController::class, 'create'])->name('pair.create');
-        Route::post('/store/{mark}', [App\Http\Controllers\PairController::class, 'store'])->name('pair.store');
+        Route::post('/store', [App\Http\Controllers\PairController::class, 'store'])->name('pair.store');
     });
 });
