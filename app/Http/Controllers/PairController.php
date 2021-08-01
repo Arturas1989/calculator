@@ -114,16 +114,16 @@ class PairController extends Controller
 
         foreach ($productsList as $key => $markProducts) {
             $widerThan820[$key] = array_filter($markProducts, function($el) {
-                return $el['sheet_width'] > 820;
+                return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
             });
             $lessThan821[$key] = array_filter($markProducts, function($el) {
-                return $el['sheet_width'] < 821;
+                return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
             });
             $singles[$key] = array_filter($markProducts, function($el) {
                 return $this->isSingle($el['sheet_width']);
             });
         }
-        dd( $singles);
+        dd( $lessThan821);
     }
     
     public function store(Request $request, Mark $mark)
