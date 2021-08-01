@@ -42,14 +42,13 @@ class PairController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function calculator($request, Mark $mark)
+    public function getProductsList($request, Mark $mark)
     {
         $productsList = [];
 
         foreach ($request->marks as $mark_id) 
         {
             $mark_name = $mark->find($mark_id)->mark_name;
-            // $productsList[] = [$mark_name => []];
 
             $orders = Order::whereHas('product', function ($q) use ($mark_id){
                 return $q->where('mark_id', $mark_id);
@@ -76,14 +75,61 @@ class PairController extends Controller
                 ];
             }
         }
-        
-        dd($productsList);
+        return $productsList;
     }
 
+    public function maxWidthPair($array)
+    {
+        $maxSumArr = 
+        [
+            'maxSum' => 0,
+            'pairIndex1' => -1,
+            'pairIndex2' => -1
+        ];
+
+        $maxWidth = 2460;
+    }
+
+    public function isSingle($sheetWidth)
+    {
+        $maxRows = 8;
+        $maxWidth = 2460;
+        $minWidth = 2330;
+
+        for ($i=1; $i <= $maxRows ; ++$i) { 
+            if($sheetWidth * $i > $minWidth && $sheetWidth * $i <= $maxWidth){
+                return true;
+            }  
+        }
+        return false;
+    }
+
+    public function calculator($productsList)
+    {
+        $widerThan820 = [];
+        $lessThan821 = [];
+        $singles = [];
+
+        
+
+        foreach ($productsList as $key => $markProducts) {
+            $widerThan820[$key] = array_filter($markProducts, function($el) {
+                return $el['sheet_width'] > 820;
+            });
+            $lessThan821[$key] = array_filter($markProducts, function($el) {
+                return $el['sheet_width'] < 821;
+            });
+            $singles[$key] = array_filter($markProducts, function($el) {
+                return $this->isSingle($el['sheet_width']);
+            });
+        }
+        dd( $singles);
+    }
     
     public function store(Request $request, Mark $mark)
     {
-        $this->calculator($request,$mark);
+        $productsList = $this->getProductsList($request,$mark);
+        $this->calculator($productsList);
     }
 
     /**
