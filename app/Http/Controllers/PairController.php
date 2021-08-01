@@ -42,39 +42,48 @@ class PairController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function calculator($request)
+    public function calculator($request, Mark $mark)
     {
-        
-        $id = $request->marks[0];
-        $orders = Order::whereHas('product', function ($q) use ($id){
-            return $q->where('mark_id', $id);
-        })->get()->all();
         $productsList = [];
-        foreach ($orders as $order) {
-            $product = $order->product()->get()->first();
-            $company_name = $product->company->get()->first()->company_name;
-            $product->description ? 
-            $description =  $company_name . ' ' . $product->description : 
-            $description =  $company_name;
 
-            $product->bending ? $bending =  $product->bending : $bending =  '';
+        foreach ($request->marks as $mark_id) 
+        {
+            $mark_name = $mark->find($mark_id)->mark_name;
+            // $productsList[] = [$mark_name => []];
 
-            $productsList[] = 
-            [
-                'code' => $order->code,
-                'description' => $description,
-                'sheet_width' => $product->sheet_width,
-                'sheet_length' => $product->sheet_length,
-                'quantity' => $order->quantity,
-                'bending' => $bending
-            ];
+            $orders = Order::whereHas('product', function ($q) use ($mark_id){
+                return $q->where('mark_id', $mark_id);
+            })->get()->all();
+        
+            foreach ($orders as $order) 
+            {
+                $product = $order->product()->get()->first();
+                $company_name = $product->company->get()->first()->company_name;
+                $product->description ? 
+                $description =  $company_name . ' ' . $product->description : 
+                $description =  $company_name;
+
+                $product->bending ? $bending =  $product->bending : $bending =  '';
+
+                $productsList[$mark_name][] = 
+                 [
+                    'code' => $order->code,
+                    'description' => $description,
+                    'sheet_width' => $product->sheet_width,
+                    'sheet_length' => $product->sheet_length,
+                    'quantity' => $order->quantity,
+                    'bending' => $bending
+                ];
+            }
         }
+        
         dd($productsList);
     }
 
-    public function store(Request $request)
+    
+    public function store(Request $request, Mark $mark)
     {
-        $this->calculator($request);
+        $this->calculator($request,$mark);
     }
 
     /**
