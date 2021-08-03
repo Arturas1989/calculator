@@ -3,6 +3,12 @@
 
 window.onload=function() 
 {
+    $('#boards').multiSelect
+    ({
+        selectableHeader: "<div class='custom-header'>Gofrų sąrašas</div>",
+        selectionHeader: "<div class='custom-header'>Pasirinkta</div>",
+    });
+
     $('#marks').multiSelect
     ({
         selectableHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='Ieškoti'>",

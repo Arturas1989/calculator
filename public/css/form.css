@@ -4,6 +4,10 @@
     display:flex;
     border: 1px solid #000;
 }
+.date-row{
+    flex:1;
+    margin:15px 1%;
+}
 .form{
     float: left;
     margin:15px 1%;
@@ -18,6 +22,10 @@
 .product-form{
     width:14%;
     margin:15px 1%;
+}
+
+.card-body h4{
+    margin:15px;
 }
 
 
