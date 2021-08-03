@@ -70,9 +70,9 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function orderValidation($request,$code,$quantity,$load_date)
+    public function orderValidation($request,$code,$quantity,$load_date,$manufactury_date)
     {
-        $validator = Validator ::make($request->only($code,$quantity,$load_date),
+        $validator = Validator ::make($request->only($code,$quantity,$load_date,$manufactury_date),
         [
             $code =>    [  'required', 
                         function ($attribute, $value, $fail) {
@@ -84,6 +84,7 @@ class OrderController extends Controller
                         ],
             $quantity => ['required', 'numeric', 'integer','gt:0'],
             $load_date => ['required', 'date'],
+            $manufactury_date => ['required', 'date'],
         ],
         [
             "$code.required" => 'reikalingas kodas',
@@ -95,6 +96,9 @@ class OrderController extends Controller
 
             "$load_date.required" => 'data privaloma',
             "$load_date.date" => 'reikalinga data',
+
+            "$manufactury_date.required" => 'data privaloma',
+            "$manufactury_date.date" => 'reikalinga data',
         ]
 
         );
@@ -107,12 +111,13 @@ class OrderController extends Controller
         $length = count($requestArr);
         $allErrors = [];
 
-        for ($i=0; $i < (count($requestArr)-1)/3; $i++) {
+        for ($i=0; $i < (count($requestArr)-1)/4; $i++) {
             $code = 'code-'.$i;
             $quantity = 'quantity-'.$i;
             $load_date = 'load_date-'.$i;
+            $manufactury_date = 'manufactury_date-'.$i;
 
-            $validator = $this->orderValidation($request,$code,$quantity,$load_date);
+            $validator = $this->orderValidation($request,$code,$quantity,$load_date,$manufactury_date);
             
             if($validator->errors()->get($code)){
                 $allErrors[$code] = $validator->errors()->get($code);
@@ -122,6 +127,9 @@ class OrderController extends Controller
             }
             if($validator->errors()->get($load_date)){
                 $allErrors[$load_date] = $validator->errors()->get($load_date);
+            }
+            if($validator->errors()->get($manufactury_date)){
+                $allErrors[$manufactury_date] = $validator->errors()->get($manufactury_date);
             }
 
             $product_id = null;
@@ -138,6 +146,7 @@ class OrderController extends Controller
                 'code' => $requestArr[$code],
                 'product_id'=>$product_id,
                 'quantity'=>$requestArr[$quantity],
+                'manufactury_date'=>$requestArr[$manufactury_date],
                 'load_date'=>$requestArr[$load_date],
                 'state_id' => $this->State
                 ->where('state_name','=','Open')->get()->first()->id,
@@ -197,8 +206,9 @@ class OrderController extends Controller
         $code = 'code';
         $quantity = 'quantity';
         $load_date = 'load_date';
+        $manufactury_date = 'manufactury_date';
 
-        $validator = $this->orderValidation($request,$code,$quantity,$load_date);
+        $validator = $this->orderValidation($request,$code,$quantity,$load_date,$manufactury_date);
 
         if($validator->fails()){
             $request->flash();
@@ -209,6 +219,7 @@ class OrderController extends Controller
 
         $order->quantity = $request->quantity; 
         $order->load_date = $request->load_date;
+        $order->manufactury_date = $request->manufactury_date;
         $product = Product::where('code','=',$request->code)->get()->first();
         if(!$product)
         {

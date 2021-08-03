@@ -5,10 +5,12 @@
     border: 1px solid #000;
 }
 .form{
-    flex:1;
     float: left;
-    width:27%;
     margin:15px 1%;
+}
+.form:nth-child(n+5){
+    width: 10%;
+    float: left;
 }
 .product-input{
     height:58px;

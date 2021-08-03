@@ -13,6 +13,7 @@ class Order extends Model
         'code',
         'product_id',
         'quantity',
+        'manufactury_date',
         'load_date',
         'state_id',
     ];

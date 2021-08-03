@@ -19,6 +19,7 @@
                           <th>Kodas</th>
                           <th>Klientas</th>
                           <th>Kiekis</th>
+                          <th>Gamybos data</th>
                           <th>Atkrovimo data</th>
                           <th>Ruošinio plotis</th>
                           <th>Ruošinio ilgis</th>
@@ -33,6 +34,7 @@
                       <td>{{$order->product()->get()->first()
                       ->company()->get()->first()->company_name}}</td>
                       <td>{{$order->quantity}}</td>
+                      <td>{{$order->manufactury_date}}</td>
                       <td>{{$order->load_date}}</td>
                       <td>{{$order->product()->get()->first()->sheet_width}}</td>
                       <td>{{$order->product()->get()->first()->sheet_length}}</td>
