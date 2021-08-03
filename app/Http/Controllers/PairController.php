@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pair;
 use App\Models\Mark;
+use App\Models\Board;
 use App\Models\Order;
 use App\Models\Company;
 use App\Models\Product;
@@ -21,6 +22,11 @@ class PairController extends Controller
         return Mark::all();
     }
 
+    public function allBoards()
+    {
+        return Board::all();
+    }
+
     public function index()
     {
         //
@@ -33,7 +39,7 @@ class PairController extends Controller
      */
     public function create()
     {
-        return view('pair.create',['marks' => $this->allMarks()]);
+        return view('pair.create',['boards' => $this->allBoards(),'marks' => $this->allMarks()]);
     }
 
     /**
@@ -110,8 +116,6 @@ class PairController extends Controller
         $lessThan821 = [];
         $singles = [];
 
-        
-
         foreach ($productsList as $key => $markProducts) {
             $widerThan820[$key] = array_filter($markProducts, function($el) {
                 return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
@@ -128,6 +132,7 @@ class PairController extends Controller
     
     public function store(Request $request, Mark $mark)
     {
+        dd($request->all());
         $productsList = $this->getProductsList($request,$mark);
         $this->calculator($productsList);
     }
