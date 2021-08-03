@@ -22,6 +22,11 @@
                             {!! $order->errorsHTML('quantity',$errors) !!}
                         </div>
                         <div class="form-group">
+                            <label>Gamybos data</label>
+                            <input type="date" class="form-control" name="manufactury_date" value="{{$order->manufactury_date}}">
+                            {!! $order->errorsHTML('manufactury_date',$errors) !!}
+                        </div>
+                        <div class="form-group">
                             <label>Atkrovimo data</label>
                             <input type="date" class="form-control" name="load_date" value="{{$order->load_date}}">
                             {!! $order->errorsHTML('load_date',$errors) !!}

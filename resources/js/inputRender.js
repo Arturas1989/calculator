@@ -21,7 +21,11 @@ function generateInputs(selector){
                     <input type="text" class="form-control click" name="quantity-${endNum}" value="" required>
                 </div>
                 <div class="form-group form">
-                    <label>Data</label>
+                    <label>Gamybos data</label>
+                    <input type="date" class="form-control" name="manufactury_date-${endNum}" value="" required>
+                </div>
+                <div class="form-group form">
+                    <label>Krovimo data</label>
                     <input type="date" class="form-control" name="load_date-${endNum}" value="" required>
                 </div>
                 <div class="form-group form">
@@ -33,7 +37,7 @@ function generateInputs(selector){
                     <p id="length-${endNum}"></p>
                 </div>
                 <div class="form-group form">
-                    <label>Gaminių iš ruošinio</label><br>
+                    <label>Iš ruošinio</label><br>
                     <p id="from_sheet_count-${endNum}"></p>
                 </div>
             </div>`

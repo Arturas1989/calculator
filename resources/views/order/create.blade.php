@@ -30,7 +30,12 @@
                                 {!! $Order->errorsHTML('quantity-0',$errors) !!}
                             </div>
                             <div class="form-group form">
-                                <label>Data</label>
+                                <label>Gamybos data</label>
+                                <input type="date" class="form-control" name="manufactury_date-0" value="{{old('manufactury_date-0')}}" required>
+                                {!! $Order->errorsHTML('manufactury_date-0',$errors) !!}
+                            </div>
+                            <div class="form-group form">
+                                <label>Krovimo data</label>
                                 <input type="date" class="form-control" name="load_date-0" value="{{old('load_date-0')}}" required>
                                 {!! $Order->errorsHTML('load_date-0',$errors) !!}
                             </div>
@@ -43,7 +48,7 @@
                                 <p id="length-0"></p>
                             </div>
                             <div class="form-group form">
-                                <label>Gaminių iš ruošinio</label><br>
+                                <label>Iš ruošinio</label><br>
                                 <p id="from_sheet_count-0"></p>
                             </div>
                         </div>
