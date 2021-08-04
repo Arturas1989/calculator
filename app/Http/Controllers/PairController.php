@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Company;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PairController extends Controller
 {
@@ -17,9 +18,10 @@ class PairController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function allMarks()
+    public function marks()
     {
-        return Mark::all();
+        return Mark::where(\DB::raw("substr(mark_name, 1, 2)"),'=','BC')
+        ->orderBy('mark_name','desc')->limit(2)->get());
     }
 
     public function allBoards()
@@ -39,7 +41,8 @@ class PairController extends Controller
      */
     public function create()
     {
-        return view('pair.create',['boards' => $this->allBoards(),'marks' => $this->allMarks()]);
+        dd($this->marks());
+        return view('pair.create',['boards' => $this->allBoards(),'marks' => $this->marks()]);
     }
 
     /**
