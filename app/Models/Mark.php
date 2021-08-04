@@ -10,6 +10,7 @@ class Mark extends Model
     public $timestamps = false;
     protected $fillable = [
         'mark_name',
+        'board_id',
     ];
     use HasFactory;
 

@@ -31,7 +31,7 @@ class ProductController extends Controller
 
     
 
-    public function markBoard($code)
+    public function mark($code)
     {
         if(strlen($code)<8){
             return ['mark'=>$code,'board'=>$code];
@@ -43,21 +43,16 @@ class ProductController extends Controller
             $board = $board[0]; 
             $color = substr($code,5,1); 
         }
-        return  ['mark'=>$board.$num.$color,'board'=>$board];
+        return  $board.$num.$color;
     }
-    public function markBoardIds($code)
+    public function markId($code)
     {
-        $markBoardArr = $this->markBoard($code);
-        $mark = $markBoardArr['mark'];
-        $board = $markBoardArr['board'];
+        $mark = $this->mark($code);
 
-        if(!Mark::where('mark_name','=',$mark)->get()->first() 
-        || !Board::where('board_name','=',$board)->get()->first()){
+        if(!Mark::where('mark_name','=',$mark)->get()->first()){
             return false;
         }
-        $mark_id = Mark::where('mark_name','=',$mark)->get()[0]->id;
-        $board_id = Board::where('board_name','=',$board)->get()[0]->id;
-        return ['mark_id' => $mark_id, 'board_id' => $board_id];
+        return Mark::where('mark_name','=',$mark)->get()[0]->id;
     }
 
     public function index()
@@ -95,12 +90,10 @@ class ProductController extends Controller
                 $code => [$codeValidation,
                             function ($attribute, $value, $fail)
                             {
-                                if(!$this->markBoardIds($value))
+                                if(!$this->markId($value))
                                 {
-                                    $mark = $this->markBoard($value)['mark'];
-                                    $board = $this->markBoard($value)['board'];
-                                    $fail ('Nėra markės: "'. $mark. '" markių sąraše 
-                                    ir/arba nėra gofros: "'.$board.'" sąraše');
+                                    $mark = $this->mark($value);
+                                    $fail ('Nėra markės: "'. $mark. '" markių sąraše');
                                 }
                             }
                         ],
@@ -201,8 +194,7 @@ class ProductController extends Controller
                 'from_sheet_count' => $requestArr[$from_sheet_count],
                 'bending' => $requestArr[$bending],
                 'company_id' => $requestArr[$company_id],
-                'mark_id' => $this->markBoardIds($requestArr[$code])['mark_id'],
-                'board_id' => $this->markBoardIds($requestArr[$code])['board_id'],
+                'mark_id' => $this->markId($requestArr[$code]),
             ]);
             
             $order = Order::where('code','=',$requestArr[$code])->get()->first();
@@ -265,8 +257,7 @@ class ProductController extends Controller
                 'sheet_length' => $request->sheet_length,
                 'bending' => $request->bending,
                 'company_id' => $request->company_id,
-                'mark_id' => $this->markBoardIds($request->code)['mark_id'],
-                'board_id' => $this->markBoardIds($request->code)['board_id'], 
+                'mark_id' => $this->markId($request->code),
             ]
         );
         return redirect()->route('product.index');

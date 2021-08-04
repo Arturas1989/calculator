@@ -21,7 +21,7 @@ class PairController extends Controller
     public function marks()
     {
         return Mark::where(\DB::raw("substr(mark_name, 1, 2)"),'=','BC')
-        ->orderBy('mark_name','desc')->limit(2)->get());
+        ->orderBy('mark_name','desc')->limit(2)->get();
     }
 
     public function allBoards()
@@ -41,7 +41,6 @@ class PairController extends Controller
      */
     public function create()
     {
-        dd($this->marks());
         return view('pair.create',['boards' => $this->allBoards(),'marks' => $this->marks()]);
     }
 
@@ -51,11 +50,11 @@ class PairController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getProductsList($request, Mark $mark)
+    public function getProductsList($request, Board $board)
     {
         $productsList = [];
 
-        foreach ($request->marks as $mark_id) 
+        foreach ($request->boards as $board_id) 
         {
             $mark_name = $mark->find($mark_id)->mark_name;
 
