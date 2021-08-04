@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mark;
+use App\Models\Board;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Validator;
@@ -63,10 +64,15 @@ class MarkController extends Controller
             return redirect()->back()->withErrors($validator);
         }
 
-
+        $board = substr($request->mark_name,0,2);
+        if(is_numeric($board[1])){
+            $board = $board[0];
+        }
+        $board_id = Board::where('board_name',$board)->get()->first()->id;
 
         $mark = Mark::create([
             'mark_name' => $request->mark_name,
+            'board_id' => $board_id,
         ]);
         return redirect()->route('mark.index');
     }

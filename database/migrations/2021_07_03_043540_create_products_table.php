@@ -25,8 +25,6 @@ class CreateProductsTable extends Migration
             $table->foreign('company_id')->references('id')->on('companies');
             $table->unsignedBigInteger('mark_id');
             $table->foreign('mark_id')->references('id')->on('marks');
-            $table->unsignedBigInteger('board_id');
-            $table->foreign('board_id')->references('id')->on('boards');
         });
     }
 
