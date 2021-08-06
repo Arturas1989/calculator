@@ -35,21 +35,21 @@
                         <div class="input-row">
                             <div class="form-group flex-row">
                                 <label>Gamybos data: nuo</label>
-                                <input type="date" class="form-control" name="manufactury_date" value="{{old('manufactury_date')}}" required>
+                                <input type="date" class="form-control" name="manufactury_date_from" value="{{old('manufactury_date_from')}}" required>
                             </div>
                             <div class="form-group flex-row">
                                 <label>Gamybos data: iki</label>
-                                <input type="date" class="form-control" name="manufactury_date" value="{{old('manufactury_date')}}" required>
+                                <input type="date" class="form-control" name="manufactury_date_till" value="{{old('manufactury_date_till')}}" required>
                             </div>
                         </div>
                         <div class="input-row">
                             <div class="form-group flex-row">
                                 <label>Krovimo data: nuo</label>
-                                <input type="date" class="form-control" name="load_date" value="{{old('load_date')}}" required>
+                                <input type="date" class="form-control" name="load_date" value="{{old('load_date')}}">
                             </div>
                             <div class="form-group flex-row">
                                 <label>Krovimo data: iki</label>
-                                <input type="date" class="form-control" name="load_date" value="{{old('load_date')}}" required>
+                                <input type="date" class="form-control" name="load_date" value="{{old('load_date')}}">
                             </div>
                         </div>
                     </form>

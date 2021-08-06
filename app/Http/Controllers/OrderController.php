@@ -76,9 +76,9 @@ class OrderController extends Controller
         [
             $code =>    [  'required', 
                         function ($attribute, $value, $fail) {
-                            if (!$this->ProductController->markBoardIds($value)) {
+                            if (!$this->ProductController->markId($value)) {
                                 $fail('Kodo: "'.$value.'" markės: "' 
-                                . $this->ProductController->markBoard($value)['mark'] . '" nėra markių sąraše.');
+                                . $this->ProductController->mark($value) . '" nėra markių sąraše.');
                             }
                         },
                         ],

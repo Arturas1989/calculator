@@ -41,6 +41,7 @@ class PairController extends Controller
      */
     public function create()
     {
+        // dd($this->marks());
         return view('pair.create',['boards' => $this->allBoards(),'marks' => $this->marks()]);
     }
 
@@ -56,33 +57,65 @@ class PairController extends Controller
 
         foreach ($request->boards as $board_id) 
         {
-            $mark_name = $mark->find($mark_id)->mark_name;
+            $board = Board::find($board_id);
+            $board_name = $board->board_name;
+            $marks = $board->marks()->get();
 
-            $orders = Order::whereHas('product', function ($q) use ($mark_id){
-                return $q->where('mark_id', $mark_id);
-            })->get()->all();
-        
-            foreach ($orders as $order) 
+            foreach ($marks as $mark) 
             {
-                $product = $order->product()->get()->first();
-                $company_name = $product->company->get()->first()->company_name;
-                $product->description ? 
-                $description =  $company_name . ' ' . $product->description : 
-                $description =  $company_name;
+                $mark_name = $mark->mark_name;
+                $mark_id = $mark->id;
+                $orders = Order::whereHas('product', function ($q) use ($mark_id){
+                    return $q->where('mark_id', $mark_id);
+                })->get()->all();
+            
+                foreach ($orders as $order) 
+                {
+                    $product = $order->product()->get()->first();
+                    $company_name = $product->company->get()->first()->company_name;
+                    $product->description ? 
+                    $description =  $company_name . ' ' . $product->description : 
+                    $description =  $company_name;
+    
+                    $product->bending ? $bending =  $product->bending : $bending =  '';
+    
+                    $productsList[$board_name][$mark_name][] = 
+                     [
+                        'code' => $order->code,
+                        'description' => $description,
+                        'sheet_width' => $product->sheet_width,
+                        'sheet_length' => $product->sheet_length,
+                        'quantity' => $order->quantity,
+                        'bending' => $bending
+                    ];
+                }
+            }   
+        }
 
-                $product->bending ? $bending =  $product->bending : $bending =  '';
+        
 
-                $productsList[$mark_name][] = 
-                 [
-                    'code' => $order->code,
-                    'description' => $description,
-                    'sheet_width' => $product->sheet_width,
-                    'sheet_length' => $product->sheet_length,
-                    'quantity' => $order->quantity,
-                    'bending' => $bending
-                ];
+        if(isset($request->marks) && count($request->marks) == 1)
+        {
+            foreach ($request->marks as $mark_id) 
+            {
+                if(Mark::find($mark_id)->mark_name == 'BC24R')
+                {
+                    unset($productsList['BC']['BC25R']);
+                }
+                else
+                {
+                    unset($productsList['BC']['BC24R']);
+                }
             }
         }
+        
+        if(!isset($request->marks))
+        {
+            unset($productsList['BC']['BC24R']);
+            unset($productsList['BC']['BC25R']);
+        }
+        
+        dd($productsList);
         return $productsList;
     }
 
@@ -132,10 +165,10 @@ class PairController extends Controller
         dd( $lessThan821);
     }
     
-    public function store(Request $request, Mark $mark)
+    public function store(Request $request, Board $board)
     {
-        dd($request->all());
-        $productsList = $this->getProductsList($request,$mark);
+        // dd($request->all());
+        $productsList = $this->getProductsList($request,$board);
         $this->calculator($productsList);
     }
 

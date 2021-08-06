@@ -54,7 +54,7 @@
                         </div>
                             
                             @if(count(old()) > 0)
-                                @for ($i=1;$i<(count(old())-1)/3;$i++)
+                                @for ($i=1;$i<(count(old())-1)/4;$i++)
                                     @php  
                                         $code = 'code-'.$i;
                                         $quantity = 'quantity-'.$i;
