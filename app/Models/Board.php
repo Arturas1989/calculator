@@ -13,4 +13,9 @@ class Board extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function marks()
+    {
+        return $this->hasMany(Mark::class);
+    }
 }

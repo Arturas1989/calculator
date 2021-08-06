@@ -37,11 +37,17 @@ class ProductController extends Controller
             return ['mark'=>$code,'board'=>$code];
         }
         $num = substr($code,1,2);
-        $board = substr($code,3,2);
-        $color = substr($code,6,1);
-        if($board[1]=='0' || $board[1]=='1'){
-            $board = $board[0]; 
-            $color = substr($code,5,1); 
+
+        strpos($code, 'R') ? $position = strpos($code, 'R') : 
+        (strpos($code, 'W') ? $position = strpos($code, 'W') : $position = 0);
+
+        strpos($code, 'WW') ? $color = 'WW' : $color = substr($code,$position,1);
+        
+        $code[3] == 'P' ? $board = 'BC' : $board = substr($code,3,2);
+        
+
+        if(is_numeric($board[1])){
+            $board = $board[0];
         }
         return  $board.$num.$color;
     }
