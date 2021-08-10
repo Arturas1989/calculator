@@ -54,43 +54,56 @@ class PairController extends Controller
     public function getProductsList($request, Board $board)
     {
         $productsList = [];
-
-        foreach ($request->boards as $board_id) 
-        {
-            $board = Board::find($board_id);
-            $board_name = $board->board_name;
-            $marks = $board->marks()->get();
-
-            foreach ($marks as $mark) 
+        isset($request->boards) ? $boards = $request->boards : 
+        $boards = [Board::where('board_name','BC')->get()->first()->id];
+        
+            foreach ($boards as $board_id) 
             {
-                $mark_name = $mark->mark_name;
-                $mark_id = $mark->id;
-                $orders = Order::whereHas('product', function ($q) use ($mark_id){
-                    return $q->where('mark_id', $mark_id);
-                })->get()->all();
-            
-                foreach ($orders as $order) 
+                $board = Board::find($board_id);
+                $board_name = $board->board_name;
+                $marks = $board->marks()->get();
+
+                foreach ($marks as $mark) 
                 {
-                    $product = $order->product()->get()->first();
-                    $company_name = $product->company->get()->first()->company_name;
-                    $product->description ? 
-                    $description =  $company_name . ' ' . $product->description : 
-                    $description =  $company_name;
-    
-                    $product->bending ? $bending =  $product->bending : $bending =  '';
-    
-                    $productsList[$board_name][$mark_name][] = 
-                     [
-                        'code' => $order->code,
-                        'description' => $description,
-                        'sheet_width' => $product->sheet_width,
-                        'sheet_length' => $product->sheet_length,
-                        'quantity' => $order->quantity,
-                        'bending' => $bending
-                    ];
-                }
-            }   
-        }
+                    $mark_name = $mark->mark_name;
+                    if(!isset($request->boards) && $mark_name!='BC25R' && $mark_name!='BC24R'){
+                        continue;
+                    }
+                    
+                    $mark_id = $mark->id;
+                    $from = $request->manufactury_date_from;
+                    $to = $request->manufactury_date_till;
+                    $orders = Order::whereBetween('manufactury_date', [$from, $to])
+                    ->whereHas('product', function ($q) use ($mark_id){
+                        return $q->where('mark_id', $mark_id);
+                    })->get()->all();
+                
+                    foreach ($orders as $order) 
+                    {
+                        $product = $order->product()->get()->first();
+                        $company_name = $product->company->get()->first()->company_name;
+                        $product->description ? 
+                        $description =  $company_name . ' ' . $product->description : 
+                        $description =  $company_name;
+        
+                        $product->bending ? $bending =  $product->bending : $bending =  '';
+                        $dates = substr($order->manufactury_date,-2).' ('.substr($order->load_date,-2).')';
+                        $productsList[$board_name][$mark_name][] = 
+                        [
+                            'code' => $order->code,
+                            'description' => $description,
+                            'sheet_width' => $product->sheet_width,
+                            'sheet_length' => $product->sheet_length,
+                            'quantity' => $order->quantity,
+                            'dates' => $dates,
+                            'bending' => $bending,
+                            'order_id' => $order->id,
+                        ];
+                    }
+                }   
+            }
+        
+        
 
         
 
@@ -115,7 +128,7 @@ class PairController extends Controller
             unset($productsList['BC']['BC25R']);
         }
         
-        dd($productsList);
+        // dd($productsList);
         return $productsList;
     }
 
@@ -124,8 +137,7 @@ class PairController extends Controller
         $maxSumArr = 
         [
             'maxSum' => 0,
-            'pairIndex1' => -1,
-            'pairIndex2' => -1
+            'pairIndex' => -1,
         ];
 
         $maxWidth = 2460;
@@ -151,16 +163,18 @@ class PairController extends Controller
         $lessThan821 = [];
         $singles = [];
 
-        foreach ($productsList as $key => $markProducts) {
-            $widerThan820[$key] = array_filter($markProducts, function($el) {
-                return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
-            });
-            $lessThan821[$key] = array_filter($markProducts, function($el) {
-                return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
-            });
-            $singles[$key] = array_filter($markProducts, function($el) {
-                return $this->isSingle($el['sheet_width']);
-            });
+        foreach ($productsList as $marks) {
+            foreach ($marks as $key => $markProducts) {
+                $widerThan820[$key] = array_filter($markProducts, function($el) {
+                    return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
+                });
+                $lessThan821[$key] = array_filter($markProducts, function($el) {
+                    return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
+                });
+                $singles[$key] = array_filter($markProducts, function($el) {
+                    return $this->isSingle($el['sheet_width']);
+                });
+            } 
         }
         dd( $lessThan821);
     }
