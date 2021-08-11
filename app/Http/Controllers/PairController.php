@@ -73,10 +73,24 @@ class PairController extends Controller
                     $mark_id = $mark->id;
                     $from = $request->manufactury_date_from;
                     $to = $request->manufactury_date_till;
-                    $orders = Order::whereBetween('manufactury_date', [$from, $to])
-                    ->whereHas('product', function ($q) use ($mark_id){
-                        return $q->where('mark_id', $mark_id);
-                    })->get()->all();
+                    if(isset($request->load_date_from) && isset($request->load_date_till))
+                    {
+                        $from2 = $request->load_date_from;
+                        $to2 = $request->load_date_till;
+                        $orders = Order::whereBetween('manufactury_date', [$from, $to])
+                        ->whereBetween('load_date', [$from2, $to2])
+                        ->whereHas('product', function ($q) use ($mark_id){
+                            return $q->where('mark_id', $mark_id);
+                        })->get()->all();
+                    }
+                    else
+                    {
+                        $orders = Order::whereBetween('manufactury_date', [$from, $to])
+                        ->whereHas('product', function ($q) use ($mark_id){
+                            return $q->where('mark_id', $mark_id);
+                        })->get()->all();
+                    }
+                    
                 
                     foreach ($orders as $order) 
                     {
@@ -132,15 +146,46 @@ class PairController extends Controller
         return $productsList;
     }
 
-    public function maxWidthPair($array)
+    public function maxWidthPair($width,$products)
     {
+        // dd($products);
         $maxSumArr = 
         [
             'maxSum' => 0,
             'pairIndex' => -1,
         ];
-
+        $maxRows = 8;
         $maxWidth = 2460;
+        $minWidth = 2330;
+        $rows = floor($maxWidth/$width);
+        if($rows>8){
+            $rows = $maxRows;
+        }
+
+        foreach ($products as $key => $product) {
+            
+            for ($i=1; $i <= $rows ; ++$i) {
+                $width_left = $maxWidth - $i * $width;
+                $rows2 = floor($width_left/$product['sheet_width']);
+                if($rows2>8){
+                    $rows2 = $maxRows;
+                } 
+                 for ($j=1; $j <= $rows2 ; ++$j) {
+                     $widthSum =  $width * $i + $product['sheet_width'] * $j;
+                    if($widthSum >= $minWidth && $widthSum <= $maxWidth){
+                        $maxSumArr = 
+                        [
+                            'maxSum' => $widthSum, 
+                            'pairIndex' => $key,
+                            'rows1' => $i,
+                            'rows2' => $j
+                        ];
+                    }  
+                 }
+            }  
+        }
+        // dd($maxSumArr);
+        return $maxSumArr['maxSum'] ? $maxSumArr : false;
     }
 
     public function isSingle($sheetWidth)
@@ -150,7 +195,7 @@ class PairController extends Controller
         $minWidth = 2330;
 
         for ($i=1; $i <= $maxRows ; ++$i) { 
-            if($sheetWidth * $i > $minWidth && $sheetWidth * $i <= $maxWidth){
+            if($sheetWidth * $i >= $minWidth && $sheetWidth * $i <= $maxWidth){
                 return true;
             }  
         }
@@ -176,7 +221,61 @@ class PairController extends Controller
                 });
             } 
         }
-        dd( $lessThan821);
+
+        $pairs = [];
+        foreach ($widerThan820 as $mark) {
+            foreach ($mark as $key => $product) {
+                $searchProductWidth = $mark[$key]['sheet_width'];
+                $maxWidthArr = $this->maxWidthPair($searchProductWidth,$mark);
+                if(!$maxWidthArr){
+                    continue;
+                }
+                $searchProduct = $mark[$key];
+                $searchProductMeters = $searchProduct['sheet_length'] * $searchProduct['quantity'] 
+                / $maxWidthArr['rows1']; 
+
+                $pairedIndex = $maxWidthArr['pairIndex'];
+                $pairedProduct = $mark[$pairedIndex];
+                $pairedProductMeters = $pairedProduct['sheet_length'] * $pairedProduct['quantity']
+                /$maxWidthArr['rows2'];
+
+                $searchProductMeters > $pairedProductMeters ? 
+                $meters = $pairedProductMeters : $meters = $searchProductMeters;
+
+                $searchProductQuantity = $meters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
+                $pairedProductQuantity = $meters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
+
+                $mark[$key]['quantity'] -= $searchProductQuantity;
+                $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
+                $pairs[] = 
+                [
+                    'meters' => round($meters/1000,0),
+                    'product1' => 
+                    [
+                        'code' => $searchProduct['code'],
+                        'description' => $searchProduct['description'],
+                        'rows' => $maxWidthArr['rows1'],
+                        'sheet_width' => $searchProduct['sheet_width'],
+                        'sheet_length' => $searchProduct['sheet_length'],
+                        'quantity' => round($searchProductQuantity,0),
+                        'dates' => $searchProduct['dates']
+                    ],
+                    'product2' => 
+                    [
+                        'code' => $pairedProduct['code'],
+                        'description' => $pairedProduct['description'],
+                        'rows' => $maxWidthArr['rows1'],
+                        'sheet_width' => $pairedProduct['sheet_width'],
+                        'sheet_length' => $pairedProduct['sheet_length'],
+                        'quantity' => round($pairedProductQuantity,0),
+                        'dates' => $pairedProduct['dates']
+                    ]
+                ];
+                dd($pairs);
+            }
+            
+        }
+        
     }
     
     public function store(Request $request, Board $board)

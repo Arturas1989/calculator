@@ -45,11 +45,11 @@
                         <div class="input-row">
                             <div class="form-group flex-row">
                                 <label>Krovimo data: nuo</label>
-                                <input type="date" class="form-control" name="load_date" value="{{old('load_date')}}">
+                                <input type="date" class="form-control" name="load_date_from" value="{{old('load_date_from')}}">
                             </div>
                             <div class="form-group flex-row">
                                 <label>Krovimo data: iki</label>
-                                <input type="date" class="form-control" name="load_date" value="{{old('load_date')}}">
+                                <input type="date" class="form-control" name="load_date_till" value="{{old('load_date_till')}}">
                             </div>
                         </div>
                     </form>
