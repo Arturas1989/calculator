@@ -79,19 +79,30 @@ class PairController extends Controller
                         $to2 = $request->load_date_till;
                         $orders = Order::whereBetween('manufactury_date', [$from, $to])
                         ->whereBetween('load_date', [$from2, $to2])
-                        ->whereHas('product', function ($q) use ($mark_id){
+                        ->whereHas('product', function ($q) use ($mark_id)
+                        {
                             return $q->where('mark_id', $mark_id);
-                        })->get()->all();
+                        })
+                        ->get()->sortByDesc(function($q)
+                        {
+                            return $q->product()->get()->first()->sheet_width;
+                         })
+                        ->values()->all();
                     }
                     else
                     {
                         $orders = Order::whereBetween('manufactury_date', [$from, $to])
-                        ->whereHas('product', function ($q) use ($mark_id){
+                        ->whereHas('product', function ($q) use ($mark_id)
+                        {
                             return $q->where('mark_id', $mark_id);
-                        })->get()->all();
+                        })
+                        ->get()->sortByDesc(function($q)
+                        {
+                            return $q->product()->get()->first()->sheet_width;
+                         })
+                        ->values()->all();
                     }
                     
-                
                     foreach ($orders as $order) 
                     {
                         $product = $order->product()->get()->first();
@@ -207,6 +218,7 @@ class PairController extends Controller
         $widerThan820 = [];
         $lessThan821 = [];
         $singles = [];
+        // dd($productsList);
 
         foreach ($productsList as $marks) {
             foreach ($marks as $key => $markProducts) {
@@ -222,15 +234,17 @@ class PairController extends Controller
             } 
         }
 
+        // dd($widerThan820);
         $pairs = [];
-        foreach ($widerThan820 as $mark) {
-            foreach ($mark as $key => $product) {
-                $searchProductWidth = $mark[$key]['sheet_width'];
+        foreach ($widerThan820 as &$mark) 
+        {
+            foreach ($mark as $searchProduct) 
+            {
+                $searchProductWidth = $searchProduct['sheet_width'];
                 $maxWidthArr = $this->maxWidthPair($searchProductWidth,$mark);
-                if(!$maxWidthArr){
+                if(!$maxWidthArr || !$searchProduct['quantity']){
                     continue;
                 }
-                $searchProduct = $mark[$key];
                 $searchProductMeters = $searchProduct['sheet_length'] * $searchProduct['quantity'] 
                 / $maxWidthArr['rows1']; 
 
@@ -245,8 +259,9 @@ class PairController extends Controller
                 $searchProductQuantity = $meters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
                 $pairedProductQuantity = $meters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
 
-                $mark[$key]['quantity'] -= $searchProductQuantity;
+                $searchProduct['quantity'] -= $searchProductQuantity;
                 $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
+                // dd($mark);
                 $pairs[] = 
                 [
                     'meters' => round($meters/1000,0),
@@ -264,17 +279,17 @@ class PairController extends Controller
                     [
                         'code' => $pairedProduct['code'],
                         'description' => $pairedProduct['description'],
-                        'rows' => $maxWidthArr['rows1'],
+                        'rows' => $maxWidthArr['rows2'],
                         'sheet_width' => $pairedProduct['sheet_width'],
                         'sheet_length' => $pairedProduct['sheet_length'],
                         'quantity' => round($pairedProductQuantity,0),
                         'dates' => $pairedProduct['dates']
                     ]
                 ];
-                dd($pairs);
             }
             
         }
+        dd($widerThan820);
         
     }
     
