@@ -175,7 +175,7 @@ class PairController extends Controller
 
         foreach ($products as $key => $product) {
             
-            for ($i=1; $i <= $rows ; ++$i) {
+            for ($i=1; $i <= $rows; ++$i) {
                 $width_left = $maxWidth - $i * $width;
                 $rows2 = floor($width_left/$product['sheet_width']);
                 if($rows2>8){
@@ -236,61 +236,67 @@ class PairController extends Controller
 
         // dd($widerThan820);
         $pairs = [];
-        foreach ($widerThan820 as &$mark) 
+        foreach ($widerThan820 as $key1 => &$mark) 
         {
-            foreach ($mark as $searchProduct) 
+            foreach ($mark as $key2 => &$searchProduct) 
             {
                 $searchProductWidth = $searchProduct['sheet_width'];
-                $maxWidthArr = $this->maxWidthPair($searchProductWidth,$mark);
-                if(!$maxWidthArr || !$searchProduct['quantity']){
-                    continue;
+                while (isset($mark[$key2]) && $this->maxWidthPair($searchProductWidth,$mark)) 
+                {
+                    $maxWidthArr = $this->maxWidthPair($searchProductWidth,$mark);
+                
+                    $searchProductMeters = $searchProduct['sheet_length'] * $searchProduct['quantity'] 
+                    / $maxWidthArr['rows1']; 
+
+                    $pairedIndex = $maxWidthArr['pairIndex'];
+                    $pairedProduct = $mark[$pairedIndex];
+                    $pairedProductMeters = $pairedProduct['sheet_length'] * $pairedProduct['quantity']
+                    /$maxWidthArr['rows2'];
+
+                    $searchProductMeters > $pairedProductMeters ? 
+                    $meters = $pairedProductMeters : $meters = $searchProductMeters;
+
+                    $searchProductQuantity = $meters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
+                    $pairedProductQuantity = $meters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
+
+                    $searchProduct['quantity'] -= $searchProductQuantity;
+                    $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
+                    $pairs[$key1][] = 
+                    [
+                        'meters' => round($meters/1000,0),
+                        'product1' => 
+                        [
+                            'code' => $searchProduct['code'],
+                            'description' => $searchProduct['description'],
+                            'rows' => $maxWidthArr['rows1'],
+                            'sheet_width' => $searchProduct['sheet_width'],
+                            'sheet_length' => $searchProduct['sheet_length'],
+                            'quantity' => round($searchProductQuantity,0),
+                            'dates' => $searchProduct['dates']
+                        ],
+                        'product2' => 
+                        [
+                            'code' => $pairedProduct['code'],
+                            'description' => $pairedProduct['description'],
+                            'rows' => $maxWidthArr['rows2'],
+                            'sheet_width' => $pairedProduct['sheet_width'],
+                            'sheet_length' => $pairedProduct['sheet_length'],
+                            'quantity' => round($pairedProductQuantity,0),
+                            'dates' => $pairedProduct['dates']
+                        ]
+                    ];
+
+                    if(!$searchProduct['quantity']){
+                        unset($mark[$key2]);
+                    }else{
+                        unset($mark[$pairedIndex]);
+                    }
                 }
-                $searchProductMeters = $searchProduct['sheet_length'] * $searchProduct['quantity'] 
-                / $maxWidthArr['rows1']; 
-
-                $pairedIndex = $maxWidthArr['pairIndex'];
-                $pairedProduct = $mark[$pairedIndex];
-                $pairedProductMeters = $pairedProduct['sheet_length'] * $pairedProduct['quantity']
-                /$maxWidthArr['rows2'];
-
-                $searchProductMeters > $pairedProductMeters ? 
-                $meters = $pairedProductMeters : $meters = $searchProductMeters;
-
-                $searchProductQuantity = $meters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
-                $pairedProductQuantity = $meters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
-
-                $searchProduct['quantity'] -= $searchProductQuantity;
-                $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
-                // dd($mark);
-                $pairs[] = 
-                [
-                    'meters' => round($meters/1000,0),
-                    'product1' => 
-                    [
-                        'code' => $searchProduct['code'],
-                        'description' => $searchProduct['description'],
-                        'rows' => $maxWidthArr['rows1'],
-                        'sheet_width' => $searchProduct['sheet_width'],
-                        'sheet_length' => $searchProduct['sheet_length'],
-                        'quantity' => round($searchProductQuantity,0),
-                        'dates' => $searchProduct['dates']
-                    ],
-                    'product2' => 
-                    [
-                        'code' => $pairedProduct['code'],
-                        'description' => $pairedProduct['description'],
-                        'rows' => $maxWidthArr['rows2'],
-                        'sheet_width' => $pairedProduct['sheet_width'],
-                        'sheet_length' => $pairedProduct['sheet_length'],
-                        'quantity' => round($pairedProductQuantity,0),
-                        'dates' => $pairedProduct['dates']
-                    ]
-                ];
+                
             }
             
         }
-        dd($widerThan820);
-        
+        dd($pairs);
     }
     
     public function store(Request $request, Board $board)
