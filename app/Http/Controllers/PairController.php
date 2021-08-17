@@ -157,6 +157,39 @@ class PairController extends Controller
         return $productsList;
     }
 
+    public function getArrays($widthType, Request $request, Board $board)
+    {
+        $productsList = $this->getProductsList($request, $board);
+        $array = [];
+        // dd($productsList);
+
+        foreach ($productsList as $marks) 
+        {
+            foreach ($marks as $key => $markProducts) 
+            {
+                switch ($widthType)
+                {
+                    case 'widerThan820':
+                        $array[$key] = array_filter($markProducts, function($el) {
+                            return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
+                        });
+                    break;
+                    case 'lessThan821':
+                        $array[$key] = array_filter($markProducts, function($el) {
+                            return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
+                        });
+                    break;
+                    case 'singles':
+                        $array[$key] = array_filter($markProducts, function($el) {
+                            return $this->isSingle($el['sheet_width']);
+                        });
+                    default:
+                    $array = [];
+                }  
+            } 
+        }
+        return $array;
+    }
     public function maxWidthPair($width,$products)
     {
         // dd($products);
@@ -213,30 +246,10 @@ class PairController extends Controller
         return false;
     }
 
-    public function calculator($productsList)
+    public function calculator($productsArray, Request $request, Board $board)
     {
-        $widerThan820 = [];
-        $lessThan821 = [];
-        $singles = [];
-        // dd($productsList);
-
-        foreach ($productsList as $marks) {
-            foreach ($marks as $key => $markProducts) {
-                $widerThan820[$key] = array_filter($markProducts, function($el) {
-                    return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
-                });
-                $lessThan821[$key] = array_filter($markProducts, function($el) {
-                    return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
-                });
-                $singles[$key] = array_filter($markProducts, function($el) {
-                    return $this->isSingle($el['sheet_width']);
-                });
-            } 
-        }
-
-        // dd($widerThan820);
         $pairs = [];
-        foreach ($widerThan820 as $key1 => &$mark) 
+        foreach ($productsArray as $key1 => &$mark) 
         {
             foreach ($mark as $key2 => &$searchProduct) 
             {
@@ -285,25 +298,39 @@ class PairController extends Controller
                             'dates' => $pairedProduct['dates']
                         ]
                     ];
-
                     if(!$searchProduct['quantity']){
                         unset($mark[$key2]);
                     }else{
                         unset($mark[$pairedIndex]);
                     }
-                }
-                
-            }
-            
+                } 
+            }  
         }
-        dd($pairs);
+        return [$productsArray,$pairs];
     }
     
     public function store(Request $request, Board $board)
     {
-        // dd($request->all());
-        $productsList = $this->getProductsList($request,$board);
-        $this->calculator($productsList);
+        $widerThan820 = $this->getArrays('widerThan820',$request,$board);
+        $lessThan821 = $this->getArrays('lessThan821',$request,$board);
+        $singles = $this->getArrays('singles',$request,$board);
+        $all = [$widerThan820,$lessThan821,$singles];
+        $pairs = [];
+        for ($i=0; $i < 3; $i++) {
+            if($i){
+                // dd('taip',$i,$remainingProducts);
+                $merge = array_merge_recursive($remainingProducts,$all[$i]);
+                $result = $this->calculator($merge,$request,$board);
+                $pairs = array_merge_recursive($pairs,$result[1]);
+            }
+            else{
+                $result = $this->calculator($all[$i],$request,$board);
+                $pairs = $result[1];
+            }
+            $remainingProducts = $result[0];  
+        }
+        
+        dd($pairs);
     }
 
     /**
