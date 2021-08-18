@@ -183,6 +183,7 @@ class PairController extends Controller
                         $array[$key] = array_filter($markProducts, function($el) {
                             return $this->isSingle($el['sheet_width']);
                         });
+                    break;
                     default:
                     $array = [];
                 }  
@@ -190,8 +191,9 @@ class PairController extends Controller
         }
         return $array;
     }
-    public function maxWidthPair($width,$products)
+    public function maxWidthPair($minWidth,$productWidth,$index,$products)
     {
+        unset($products[$index]);
         // dd($products);
         $maxSumArr = 
         [
@@ -200,22 +202,21 @@ class PairController extends Controller
         ];
         $maxRows = 8;
         $maxWidth = 2460;
-        $minWidth = 2330;
-        $rows = floor($maxWidth/$width);
+        $rows = floor($maxWidth/$productWidth);
         if($rows>8){
             $rows = $maxRows;
         }
-
+        
         foreach ($products as $key => $product) {
-            
+        
             for ($i=1; $i <= $rows; ++$i) {
-                $width_left = $maxWidth - $i * $width;
+                $width_left = $maxWidth - $i * $productWidth;
                 $rows2 = floor($width_left/$product['sheet_width']);
                 if($rows2>8){
                     $rows2 = $maxRows;
                 } 
-                 for ($j=1; $j <= $rows2 ; ++$j) {
-                     $widthSum =  $width * $i + $product['sheet_width'] * $j;
+                    for ($j=1; $j <= $rows2 ; ++$j) {
+                        $widthSum =  $productWidth * $i + $product['sheet_width'] * $j;
                     if($widthSum >= $minWidth && $widthSum <= $maxWidth){
                         $maxSumArr = 
                         [
@@ -225,11 +226,11 @@ class PairController extends Controller
                             'rows2' => $j
                         ];
                     }  
-                 }
+                    }
             }  
         }
-        // dd($maxSumArr);
-        return $maxSumArr['maxSum'] ? $maxSumArr : false;
+        
+        return ($maxSumArr['maxSum'] ) ? $maxSumArr : false;
     }
 
     public function isSingle($sheetWidth)
@@ -237,27 +238,26 @@ class PairController extends Controller
         $maxRows = 8;
         $maxWidth = 2460;
         $minWidth = 2330;
-
         for ($i=1; $i <= $maxRows ; ++$i) { 
             if($sheetWidth * $i >= $minWidth && $sheetWidth * $i <= $maxWidth){
                 return true;
             }  
         }
-        return false;
+        return false;  
     }
 
-    public function calculator($productsArray, Request $request, Board $board)
+    public function calculator($productsArray,$minWidth, Request $request, Board $board)
     {
         $pairs = [];
         foreach ($productsArray as $key1 => &$mark) 
         {
             foreach ($mark as $key2 => &$searchProduct) 
             {
+                // dd($searchProduct);
                 $searchProductWidth = $searchProduct['sheet_width'];
-                while (isset($mark[$key2]) && $this->maxWidthPair($searchProductWidth,$mark)) 
+ 
+                while (isset($mark[$key2]) && $maxWidthArr = $this->maxWidthPair($minWidth,$searchProductWidth,$key2,$mark)) 
                 {
-                    $maxWidthArr = $this->maxWidthPair($searchProductWidth,$mark);
-                
                     $searchProductMeters = $searchProduct['sheet_length'] * $searchProduct['quantity'] 
                     / $maxWidthArr['rows1']; 
 
@@ -274,30 +274,40 @@ class PairController extends Controller
 
                     $searchProduct['quantity'] -= $searchProductQuantity;
                     $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
+
+                    $product1 = 
+                    [
+                        'code' => $searchProduct['code'],
+                        'description' => $searchProduct['description'],
+                        'rows' => $maxWidthArr['rows1'],
+                        'sheet_width' => $searchProduct['sheet_width'],
+                        'sheet_length' => $searchProduct['sheet_length'],
+                        'quantity' => round($searchProductQuantity,0),
+                        'dates' => $searchProduct['dates'],
+                        'order_id' => $searchProduct['order_id']
+                    ];
+
+                    $product2 = 
+                    [
+                        'code' => $pairedProduct['code'],
+                        'description' => $pairedProduct['description'],
+                        'rows' => $maxWidthArr['rows2'],
+                        'sheet_width' => $pairedProduct['sheet_width'],
+                        'sheet_length' => $pairedProduct['sheet_length'],
+                        'quantity' => round($pairedProductQuantity,0),
+                        'dates' => $pairedProduct['dates'],
+                        'order_id' => $pairedProduct['order_id']
+                    ];
+                    if($product1['rows'] * $product1['sheet_width']<$product2['rows'] * $product2['sheet_width']){
+                        list($product1,$product2) = [$product2,$product1];
+                    }
                     $pairs[$key1][] = 
                     [
                         'meters' => round($meters/1000,0),
-                        'product1' => 
-                        [
-                            'code' => $searchProduct['code'],
-                            'description' => $searchProduct['description'],
-                            'rows' => $maxWidthArr['rows1'],
-                            'sheet_width' => $searchProduct['sheet_width'],
-                            'sheet_length' => $searchProduct['sheet_length'],
-                            'quantity' => round($searchProductQuantity,0),
-                            'dates' => $searchProduct['dates']
-                        ],
-                        'product2' => 
-                        [
-                            'code' => $pairedProduct['code'],
-                            'description' => $pairedProduct['description'],
-                            'rows' => $maxWidthArr['rows2'],
-                            'sheet_width' => $pairedProduct['sheet_width'],
-                            'sheet_length' => $pairedProduct['sheet_length'],
-                            'quantity' => round($pairedProductQuantity,0),
-                            'dates' => $pairedProduct['dates']
-                        ]
+                        'product1' => $product1,
+                        'product2' => $product2
                     ];
+                    // dd($pairs[$key1]);
                     if(!$searchProduct['quantity']){
                         unset($mark[$key2]);
                     }else{
@@ -317,20 +327,22 @@ class PairController extends Controller
         $all = [$widerThan820,$lessThan821,$singles];
         $pairs = [];
         for ($i=0; $i < 3; $i++) {
+            $i == 2 ? $minWidth = 2140 : $minWidth = 2330;
             if($i){
                 // dd('taip',$i,$remainingProducts);
                 $merge = array_merge_recursive($remainingProducts,$all[$i]);
-                $result = $this->calculator($merge,$request,$board);
+                $result = $this->calculator($merge,$minWidth,$request,$board);
                 $pairs = array_merge_recursive($pairs,$result[1]);
             }
             else{
-                $result = $this->calculator($all[$i],$request,$board);
+                $result = $this->calculator($all[$i],$minWidth,$request,$board);
                 $pairs = $result[1];
             }
             $remainingProducts = $result[0];  
         }
         
-        dd($pairs);
+        
+        dd($remainingProducts);
     }
 
     /**
