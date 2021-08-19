@@ -246,6 +246,50 @@ class PairController extends Controller
         return false;  
     }
 
+    public function calculatorSingle($productsArray,$maxWidth, Request $request, Board $board)
+    {
+        $pairs = [];
+        foreach ($productsArray as $key1 => &$mark) 
+        {
+            foreach ($mark as $key2 => &$product) 
+            {
+                // dd($searchProduct);
+                $productWidth = $product['sheet_width'];
+                $productLength = $product['sheet_length'];
+                $rows = floor($maxWidth/$productWidth);
+                $rows > 8 ? 8 : $rows;
+                
+                    $milimeters = $productLength * $product['quantity'] / $rows;
+                    $productQuantity = $milimeters * $rows / $productLength;
+                    $wasteM2 = $milimeters * ($maxWidth - $rows * $productWidth)/1000000;
+                    
+
+                    $product['quantity'] -= $productQuantity;
+
+                    $product = 
+                    [
+                        'code' => $product['code'],
+                        'description' => $product['description'],
+                        'rows' => $rows,
+                        'sheet_width' => $product['sheet_width'],
+                        'sheet_length' => $product['sheet_length'],
+                        'quantity' => round($productQuantity,0),
+                        'dates' => $product['dates'],
+                        'order_id' => $product['order_id']
+                    ];
+                    $pairs[$key1][] = 
+                    [
+                        'waste' => round($wasteM2,2),
+                        'meters' => round($milimeters/1000,0),
+                        'product' => $product
+                    ];
+                    unset($mark[$key2]);
+                 
+            }  
+        }
+        return [$productsArray,$pairs];
+    }
+
     public function calculator($productsArray,$minWidth, Request $request, Board $board)
     {
         $pairs = [];
@@ -255,25 +299,46 @@ class PairController extends Controller
             {
                 // dd($searchProduct);
                 $searchProductWidth = $searchProduct['sheet_width'];
+                $searchProductOrderQuantity = Order::find($searchProduct['order_id'])
+                ->get()->first()->quantity;
  
                 while (isset($mark[$key2]) && $maxWidthArr = $this->maxWidthPair($minWidth,$searchProductWidth,$key2,$mark)) 
                 {
-                    $searchProductMeters = $searchProduct['sheet_length'] * $searchProduct['quantity'] 
-                    / $maxWidthArr['rows1']; 
+                    $searchProductMilimeters = $searchProduct['sheet_length'] 
+                    * $searchProduct['quantity'] / $maxWidthArr['rows1']; 
 
                     $pairedIndex = $maxWidthArr['pairIndex'];
+                    
                     $pairedProduct = $mark[$pairedIndex];
-                    $pairedProductMeters = $pairedProduct['sheet_length'] * $pairedProduct['quantity']
-                    /$maxWidthArr['rows2'];
+                    $pairedProductOrderQuantity = Order::find($pairedProduct['order_id'])
+                    ->get()->first()->quantity;
+                    $pairedProductMilimeters = $pairedProduct['sheet_length'] 
+                    * $pairedProduct['quantity']/$maxWidthArr['rows2'];
 
-                    $searchProductMeters > $pairedProductMeters ? 
-                    $meters = $pairedProductMeters : $meters = $searchProductMeters;
+                    $milimeters = min($searchProductMilimeters,$pairedProductMilimeters);
 
-                    $searchProductQuantity = $meters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
-                    $pairedProductQuantity = $meters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
+                    $wasteM2 = $milimeters * (2500-$maxWidthArr['maxSum'])/1000000;
+
+                    $searchProductQuantity = $milimeters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
+                    $pairedProductQuantity = $milimeters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
 
                     $searchProduct['quantity'] -= $searchProductQuantity;
                     $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
+
+                    if(!$searchProduct['quantity'] && $mark[$pairedIndex]['quantity']
+                    /$pairedProductOrderQuantity<0.05)
+                    {
+                        $milimeters+=$pairedProduct['sheet_length']
+                        * $mark[$pairedIndex]['quantity']/$maxWidthArr['rows2'];
+                        $mark[$pairedIndex]['quantity'] = 0;
+                    }
+                    if(!$mark[$pairedIndex]['quantity'] && $searchProduct['quantity']
+                    /$searchProductOrderQuantity<0.05)
+                    {
+                        $milimeters+=$searchProduct['sheet_length']
+                        * $searchProduct['quantity']/$maxWidthArr['rows1'];
+                        $searchProduct['quantity'] = 0;
+                    }
 
                     $product1 = 
                     [
@@ -303,22 +368,51 @@ class PairController extends Controller
                     }
                     $pairs[$key1][] = 
                     [
-                        'meters' => round($meters/1000,0),
+                        'waste' => round($wasteM2,2),
+                        'meters' => round($milimeters/1000,0),
                         'product1' => $product1,
                         'product2' => $product2
                     ];
                     // dd($pairs[$key1]);
                     if(!$searchProduct['quantity']){
                         unset($mark[$key2]);
-                    }else{
+                        if(!$mark[$pairedIndex]['quantity']){
+                            unset($mark[$pairedIndex]);
+                        }
+                    }
+                    else{
                         unset($mark[$pairedIndex]);
                     }
+                    
                 } 
             }  
         }
         return [$productsArray,$pairs];
     }
     
+    public function wasteSum($array)
+    {
+        // dd($array);
+        $wasteSum = 0;
+        $wasteSumArr = [];
+
+        foreach ($array as $key =>$mark) {
+            foreach ($mark as $product) {
+                foreach ($product as $key2 => $value) {
+                    if($key2 == 'waste'){
+                        $wasteSum += $product['waste']; 
+                    }
+                    else{
+                        break;
+                    }
+                }  
+            }
+        $wasteSumArr[$key] = $wasteSum;
+        $wasteSum = 0;
+        }
+        return $wasteSumArr;
+    }
+
     public function store(Request $request, Board $board)
     {
         $widerThan820 = $this->getArrays('widerThan820',$request,$board);
@@ -340,9 +434,14 @@ class PairController extends Controller
             }
             $remainingProducts = $result[0];  
         }
+
+        if(count($remainingProducts)){
+            $singleProducts = $this->calculatorSingle($remainingProducts,2460,$request,$board);
+            $pairs = array_merge_recursive($pairs,$singleProducts[1]);
+        }
+        $wasteSumArr = $this->wasteSum($pairs);
         
-        
-        dd($remainingProducts);
+        dd($wasteSumArr);
     }
 
     /**
