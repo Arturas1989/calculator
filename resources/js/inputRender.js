@@ -6,7 +6,7 @@ function generateInputs(selector){
         if(e.target && e.target.matches(".click")) {
             const targetName = e.target.name;
             const targetLength = targetName.length;
-            const endNumText = targetName.substring(9,targetLength);
+            const endNumText = targetName.substring(targetName.indexOf('-')+1,targetLength);
             let endNum = parseInt(endNumText);
             endNum++;
             e.target.classList.remove("click");
