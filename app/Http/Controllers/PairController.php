@@ -102,11 +102,12 @@ class PairController extends Controller
                          })
                         ->values()->all();
                     }
-                    
+
                     foreach ($orders as $order) 
                     {
                         $product = $order->product()->get()->first();
-                        $company_name = $product->company->get()->first()->company_name;
+                        
+                        $company_name = $product->company()->get()->first()->company_name;
                         $product->description ? 
                         $description =  $company_name . ' ' . $product->description : 
                         $description =  $company_name;
@@ -294,6 +295,7 @@ class PairController extends Controller
     {
         $pairs = [];
         // $test = [];
+        // dd($productsArray);
         foreach ($productsArray as $key1 => &$mark) 
         {
             foreach ($mark as $key2 => &$searchProduct) 
@@ -428,10 +430,44 @@ class PairController extends Controller
         return $wasteSumArr;
     }
 
+    public function quantityTest($array){
+        $result = [];
+        foreach ($array as $mark)
+        {
+            foreach($mark as $pair)
+            {
+                foreach ($pair as $key => $value) {
+                    if($key=='product1'||$key=='product2'||$key=='product')
+                    {
+                        foreach($value as $key2 => $product)
+                        {
+                            if($key2=='code'){
+                                // dd($key2);
+                                if(!isset($result[$product]))
+                                {
+                                    $result[$product] = 0;
+                                }
+                                $result[$product]+=$value['quantity'];
+                            }
+                            else
+                            {
+                                break;
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+            }   
+        }
+        return $result;
+    }
+
     public function store(Request $request, Board $board)
     {
         $widerThan820 = $this->getArrays('widerThan820',$request,$board);
-        // dd($widerThan820);
+        dd($widerThan820);
         $lessThan821 = $this->getArrays('lessThan821',$request,$board);
         $singles = $this->getArrays('singles',$request,$board);
         $all = [$widerThan820,$lessThan821,$singles];
@@ -457,8 +493,11 @@ class PairController extends Controller
         }
         $wasteSumArr = $this->wasteSum($pairs);
         
-        dd($wasteSumArr);
+        $result = $this->quantityTest($pairs);
+        dd($pairs);
     }
+
+
 
     /**
      * Display the specified resource.
