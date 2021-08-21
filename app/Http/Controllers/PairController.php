@@ -441,7 +441,7 @@ class PairController extends Controller
         }
         $wasteSumArr = $this->wasteSum($pairs);
         
-        dd($wasteSumArr);
+        dd($pairs);
     }
 
     /**
