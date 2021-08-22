@@ -59,22 +59,40 @@
                                         $code = 'code-'.$i;
                                         $quantity = 'quantity-'.$i;
                                         $load_date = 'load_date-'.$i;
+                                        $manufactury_date = 'manufactury_date-'.$i;
                                     @endphp
                                     <div class="input-row first">
                                         <div class="form-group form">
                                             <label>Kodas</label>
-                                            <input type="text"  class="form-control click " name="{{$code}}" value="{{old($code)}}" required>
+                                            <input type="text"  class="form-control code" name="{{$code}}" value="{{old($code)}}" required>
                                             {!! $Order->errorsHTML($code,$errors) !!}
                                         </div>
                                         <div class="form-group form">
                                             <label>Kiekis</label>
-                                            <input type="text" class="form-control" name="{{$quantity}}" value="{{old($quantity)}}" required>
+                                            <input type="text" class="form-control click" name="{{$quantity}}" value="{{old($quantity)}}" required>
                                             {!! $Order->errorsHTML($quantity,$errors) !!}
                                         </div>
                                         <div class="form-group form">
                                             <label>Data</label>
                                             <input type="date" class="form-control" name="{{$load_date}}" value="{{old($load_date)}}" required>
                                             {!! $Order->errorsHTML($load_date,$errors) !!}
+                                        </div>
+                                        <div class="form-group form">
+                                            <label>Data</label>
+                                            <input type="date" class="form-control" name="{{$manufactury_date}}" value="{{old($manufactury_date)}}" required>
+                                            {!! $Order->errorsHTML($manufactury_date,$errors) !!}
+                                        </div>
+                                        <div class="form-group form">
+                                            <label>Plotis</label><br>
+                                            <p id="width-{{$i}}"></p>
+                                        </div>
+                                        <div class="form-group form">
+                                            <label>Ilgis</label><br>
+                                            <p id="length-{{$i}}"></p>
+                                        </div>
+                                        <div class="form-group form">
+                                            <label>Iš ruošinio</label><br>
+                                            <p id="from_sheet_count-{{$i}}"></p>
                                         </div>
                                     </div>
                                 @endfor

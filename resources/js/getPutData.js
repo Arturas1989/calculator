@@ -27,12 +27,13 @@ window.addEventListener('load',function(event)
                     });
 
                     const targetName = e.target.name;
+                    console.log(targetName)
                     const targetLength = targetName.length;
-                    const endNumText = targetName.substring(5,targetLength);
+                    const endNumText = targetName.substring(targetName.indexOf('-')+1,targetLength);
                     const width = '#width-' + endNumText;
                     const length = '#length-' + endNumText;
                     const from_sheet_count = '#from_sheet_count-' + endNumText;
-
+                    
                     if(row)
                     {
                         document.querySelector(width).innerText = row.sheet_width;
