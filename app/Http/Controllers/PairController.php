@@ -128,6 +128,7 @@ class PairController extends Controller
                     }
                 }   
             }
+            
         
         
 
@@ -262,8 +263,7 @@ class PairController extends Controller
                 
                     $milimeters = $productLength * $product['quantity'] / $rows;
                     $productQuantity = $milimeters * $rows / $productLength;
-                    $wasteM2 = $milimeters * ($maxWidth - $rows * $productWidth)/1000000;
-                    
+                    $wasteM2 = $milimeters * (2500 - $rows * $productWidth)/1000000;
 
                     $product['quantity'] -= $productQuantity;
 
@@ -309,7 +309,7 @@ class PairController extends Controller
                     
                     $searchProductMilimeters = $searchProduct['sheet_length'] 
                     * $searchProduct['quantity'] / $maxWidthArr['rows1']; 
-
+                    
                     $pairedIndex = $maxWidthArr['pairIndex'];
                     
                     $pairedProduct = $mark[$pairedIndex];
@@ -317,102 +317,102 @@ class PairController extends Controller
                     $pairedProductMilimeters = $pairedProduct['sheet_length'] 
                     * $pairedProduct['quantity']/$maxWidthArr['rows2'];
                     
-
-                    
                     $milimeters = min($searchProductMilimeters,$pairedProductMilimeters);
-
-                    $wasteM2 = $milimeters * (2500-$maxWidthArr['maxSum'])/1000000;
-
+                    
                     $searchProductQuantity = $milimeters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
                     $pairedProductQuantity = $milimeters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
-
-                    $searchProduct['quantity'] -= $searchProductQuantity;
-                    $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
-
-                   
+                    
+                    
+                    
                     if($searchProduct['quantity']<0){
                         $searchProduct['quantity']=0;
                     }
-
+                    
                     if($mark[$pairedIndex]['quantity']<0){
                         $mark[$pairedIndex]['quantity']=0;
                     }
-
+                    
                     if(!$searchProduct['quantity'] && $mark[$pairedIndex]['quantity']
                     /$pairedProductOrderQuantity<0.05)
                     {
                         $milimeters+=$pairedProduct['sheet_length']
                         * $mark[$pairedIndex]['quantity']/$maxWidthArr['rows2'];
-                        $mark[$pairedIndex]['quantity'] = 0;
                         $pairedProductQuantity = $milimeters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'];
                     }
-
-                    
 
                     if(!$mark[$pairedIndex]['quantity'] && $searchProduct['quantity']
                     /$searchProductOrderQuantity<0.05)
                     {
+                        if($searchProductWidth == 630){
+                            dd('taip');
+                        }
                         $milimeters+=$searchProduct['sheet_length']
                         * $searchProduct['quantity']/$maxWidthArr['rows1'];
-                        $searchProduct['quantity'] = 0;
                         $searchProductQuantity = $milimeters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'];
                     }
 
+                    $searchProduct['quantity'] -= $searchProductQuantity;
+                    $mark[$pairedIndex]['quantity'] -= $pairedProductQuantity;
+                    
+                    $wasteM2 = $milimeters * (2500-$maxWidthArr['maxSum'])/1000000;
                     // if($searchProduct['code']=='G20BE0R3189'){
-                    //     dd($searchProduct['quantity'],$searchProductOrderQuantity,$searchProductQuantity);
-                    // }
-                    
-                   
-                    $product1 = 
-                    [
-                        'code' => $searchProduct['code'],
-                        'description' => $searchProduct['description'],
-                        'rows' => $maxWidthArr['rows1'],
-                        'sheet_width' => $searchProduct['sheet_width'],
-                        'sheet_length' => $searchProduct['sheet_length'],
-                        'quantity' => round($searchProductQuantity,0),
-                        'dates' => $searchProduct['dates'],
-                        'order_id' => $searchProduct['order_id']
-                    ];
-
-                    $product2 = 
-                    [
-                        'code' => $pairedProduct['code'],
-                        'description' => $pairedProduct['description'],
-                        'rows' => $maxWidthArr['rows2'],
-                        'sheet_width' => $pairedProduct['sheet_width'],
-                        'sheet_length' => $pairedProduct['sheet_length'],
-                        'quantity' => round($pairedProductQuantity,0),
-                        'dates' => $pairedProduct['dates'],
-                        'order_id' => $pairedProduct['order_id']
-                    ];
-                    if($product1['rows'] * $product1['sheet_width']<$product2['rows'] * $product2['sheet_width']){
-                        list($product1,$product2) = [$product2,$product1];
-                    }
-                    
-                    $pairs[$key1][] = 
-                    [
-                        'waste' => round($wasteM2,2),
-                        'meters' => round($milimeters/1000,0),
-                        'product1' => $product1,
-                        'product2' => $product2
-                    ];
-                    // dd($pairs[$key1]);
-                    if(!$searchProduct['quantity']){
-                        unset($mark[$key2]);
-                        if(!$mark[$pairedIndex]['quantity']){
+                        //     dd($searchProduct['quantity'],$searchProductOrderQuantity,$searchProductQuantity);
+                        // }
+                        
+                        
+                        $product1 = 
+                        [
+                            'code' => $searchProduct['code'],
+                            'description' => $searchProduct['description'],
+                            'rows' => $maxWidthArr['rows1'],
+                            'sheet_width' => $searchProduct['sheet_width'],
+                            'sheet_length' => $searchProduct['sheet_length'],
+                            'quantity' => round($searchProductQuantity,0),
+                            'dates' => $searchProduct['dates'],
+                            'order_id' => $searchProduct['order_id']
+                        ];
+                        
+                        $product2 = 
+                        [
+                            'code' => $pairedProduct['code'],
+                            'description' => $pairedProduct['description'],
+                            'rows' => $maxWidthArr['rows2'],
+                            'sheet_width' => $pairedProduct['sheet_width'],
+                            'sheet_length' => $pairedProduct['sheet_length'],
+                            'quantity' => round($pairedProductQuantity,0),
+                            'dates' => $pairedProduct['dates'],
+                            'order_id' => $pairedProduct['order_id']
+                        ];
+                        if($product1['rows'] * $product1['sheet_width']<$product2['rows'] * $product2['sheet_width']){
+                            list($product1,$product2) = [$product2,$product1];
+                        }
+                        
+                        $pairs[$key1][] = 
+                        [
+                            'waste' => round($wasteM2,2),
+                            'meters' => round($milimeters/1000,0),
+                            'product1' => $product1,
+                            'product2' => $product2
+                        ];
+                        // dd($pairs[$key1]);
+                        if(!$searchProduct['quantity']){
+                            unset($mark[$key2]);
+                            if(!$mark[$pairedIndex]['quantity']){
+                                unset($mark[$pairedIndex]);
+                            }
+                        }
+                        else{
                             unset($mark[$pairedIndex]);
                         }
-                    }
-                    else{
-                        unset($mark[$pairedIndex]);
-                    }
-                   
-                } 
-            }  
-        }
-        // dd($test);
-        return [$productsArray,$pairs];
+                        // if($pairedProduct['sheet_width'] == 534){
+                        //     // dd($mark[$key2]);
+                        // }
+                        
+                    } 
+                }  
+            }
+            // dd($test);
+            return [$productsArray,$pairs];
     }
     
     public function wasteSum($array)
@@ -504,7 +504,7 @@ class PairController extends Controller
         $wasteSumArr = $this->wasteSum($pairs);
         
         $result = $this->quantityTest($pairs);
-        dd($wasteSumArr);
+        dd($pairs);
     }
 
 
