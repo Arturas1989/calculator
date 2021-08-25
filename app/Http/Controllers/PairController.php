@@ -332,6 +332,9 @@ class PairController extends Controller
                 {
                     // dd($searchProduct);
                     $searchProductWidth = $searchProduct['sheet_width'];
+                    if($this->isSingle($searchProductWidth)){
+                        continue;
+                    }
 
                     $searchProductOrderQuantity = Order::find($searchProduct['order_id'])->quantity;
     
