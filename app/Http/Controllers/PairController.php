@@ -638,7 +638,6 @@ class PairController extends Controller
                         $result[$boards][$mark] = $products;
                         $result[$boards][$mark]['waste'] = $products['waste'];
                     }
-                    # code...
                 }
                     
             } 
