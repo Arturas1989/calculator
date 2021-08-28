@@ -121,6 +121,7 @@ class PairController extends Controller
                             'sheet_width' => $product->sheet_width,
                             'sheet_length' => $product->sheet_length,
                             'quantity' => $order->quantity,
+                            'totalQuantity' => $order->quantity,
                             'dates' => $dates,
                             'bending' => $bending,
                             'order_id' => $order->id,
@@ -189,7 +190,7 @@ class PairController extends Controller
         return $array;
     }
 
-    public function beEnoughMeters($maxWidth, $searchProduct, $pairedProduct, $rows1, $rows2)
+    public function checkMetersQuantity($maxWidth, $minMeters, $searchProduct, $pairedProduct, $rows1, $rows2)
     {
         $searchProduct['rows'] = $rows1;
         $pairedProduct['rows'] = $rows2;
@@ -199,33 +200,57 @@ class PairController extends Controller
 
         $pairedProductMilimeters = $pairedProduct['sheet_length'] 
         * $pairedProduct['quantity']/$rows2;
-        
-        $milimeters = min($searchProductMilimeters,$pairedProductMilimeters);
 
-        $searchProductMilimeters <= $pairedProductMilimeters ? 
-        $productToValidate = $pairedProduct : $productToValidate = $searchProduct;
-        
-        $productToValidate['quantity'] -= $milimeters * $productToValidate['rows'] 
-        / $productToValidate['sheet_length'];
-        $maxRows = floor($maxWidth/$productToValidate['sheet_width']);
+        if($searchProductMilimeters <= $pairedProductMilimeters){
+            $checkMetersProduct = $pairedProduct;
+            $checkQuantityProduct = $searchProduct;
+            $minMilimeters = $searchProductMilimeters;
+            $maxMilimeters = $pairedProductMilimeters;
+        }
+        else{
+            $checkMetersProduct = $searchProduct;
+            $checkQuantityProduct = $pairedProduct;
+            $minMilimeters = $pairedProductMilimeters;
+            $maxMilimeters = $searchProductMilimeters;
+        }
+        $difMilimeters = $maxMilimeters - $minMilimeters;
+        $additionalQuantity =  round($difMilimeters * $checkQuantityProduct['rows'] 
+        / $checkQuantityProduct['sheet_length'],0);
+
+        if($additionalQuantity / $checkQuantityProduct['totalQuantity'] > 0.05
+        || strpos($checkQuantityProduct['description'],'tikslus')
+        || strpos($checkQuantityProduct['description'],'pak'))
+        {
+            $milimeters = $minMilimeters;
+        }
+        else
+        {
+            $milimeters = $maxMilimeters;
+        }
+        // dd($additionalQuantity,$checkQuantityProduct['totalQuantity'],$milimeters,$maxMilimeters);
+
+        $quantity = round($minMilimeters * $checkMetersProduct['rows'] 
+        / $checkMetersProduct['sheet_length'],0);
+        $quantityLeft = $checkMetersProduct['quantity'] - $quantity;
+
+       
+
+        // dd($quantityLeft,$checkMetersProduct['totalQuantity'],$checkMetersProduct['sheet_width']);
+        $maxRows = floor($maxWidth/$checkMetersProduct['sheet_width']);
         $maxRows > 8 ? 8 : $maxRows;
-        $productMeters = $productToValidate['quantity'] * $productToValidate['sheet_length'] 
-        /$maxRows/1000;
-        $notLessThanMeters = 70;
-        return $productMeters>=$notLessThanMeters;
+        $productMeters = round($quantityLeft * $checkMetersProduct['sheet_length'] 
+        /$maxRows/1000,0);
+        // dd($quantity,$quantityLeft,$productMeters);
+        return $productMeters>=$minMeters ? $milimeters : false;
     }
 
-    public function maxWidthPair($minWidth,$productWidth,$index,$products)
+    public function maxWidthPair($minWidth,$minMeters,$productWidth,$index,$products)
     {
         $searchProduct = $products[$index];
         unset($products[$index]);
         // dd($searchProduct);
         
-        $maxSumArr = 
-        [
-            'maxSum' => 0,
-            'pairIndex' => -1,
-        ];
+        $maxSumArr = ['maxSum' => 0];
         $maxRows = 8;
         $maxWidth = 2460;
         $rows = floor($maxWidth/$productWidth);
@@ -246,11 +271,12 @@ class PairController extends Controller
                         if($widthSum >= $minWidth 
                         && $widthSum <= $maxWidth 
                         && $widthSum > $maxSumArr['maxSum']
-                        && $this->beEnoughMeters($maxWidth,$searchProduct,$products[$key],$i,$j))
+                        && $milimeters = $this->checkMetersQuantity($maxWidth,$minMeters,$searchProduct,$products[$key],$i,$j))
                         {
                             $maxSumArr = 
                             [
-                                'maxSum' => $widthSum, 
+                                'maxSum' => $widthSum,
+                                'milimeters' => $milimeters,
                                 'pairIndex' => $key,
                                 'rows1' => $i,
                                 'rows2' => $j
@@ -275,7 +301,7 @@ class PairController extends Controller
         return false;  
     }
 
-    public function calculatorSingle($productsArray,$maxWidth, Request $request, Board $board)
+    public function calculatorSingle($productsArray, $maxWidth,  Request $request, Board $board)
     {
         $pairs = [];
         foreach ($productsArray as $board => &$marks) 
@@ -320,7 +346,7 @@ class PairController extends Controller
         return [$productsArray,$pairs];
     }
 
-    public function calculator($productsArray,$minWidth, Request $request, Board $board)
+    public function calculator($productsArray, $minWidth, $minMeters, Request $request, Board $board)
     {
         $pairs = [];
         // dd($productsArray);
@@ -335,30 +361,25 @@ class PairController extends Controller
                     if($this->isSingle($searchProductWidth)){
                         continue;
                     }
-
-                    $searchProductOrderQuantity = Order::find($searchProduct['order_id'])->quantity;
     
-                    while (isset($products[$key]) && $maxWidthArr = $this->maxWidthPair($minWidth,$searchProductWidth,$key,$products)) 
+                    while (isset($products[$key]) 
+                    && $maxWidthArr = $this->maxWidthPair($minWidth,$minMeters,$searchProductWidth,$key,$products)) 
                     {
-                        
-                        $searchProductMilimeters = $searchProduct['sheet_length'] 
-                        * $searchProduct['quantity'] / $maxWidthArr['rows1']; 
-                        
+
                         $pairedIndex = $maxWidthArr['pairIndex'];
-                        
                         $pairedProduct = $products[$pairedIndex];
-                        $pairedProductOrderQuantity = Order::find($pairedProduct['order_id'])->quantity;
-                        $pairedProductMilimeters = $pairedProduct['sheet_length'] 
-                        * $pairedProduct['quantity']/$maxWidthArr['rows2'];
+                        $milimeters = $maxWidthArr['milimeters'];
+                        if($milimeters/1000<70){
+                            $this -> calculator($productsArray, $minWidth, 70, $request, $board);
+                        }
                         
-                        $milimeters = min($searchProductMilimeters,$pairedProductMilimeters);
-                        
-                        $searchProductQuantity = round($milimeters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'],0);
-                        $pairedProductQuantity = round($milimeters * $maxWidthArr['rows2'] / $pairedProduct['sheet_length'],0);
-                        
-                        
-                            $searchProduct['quantity'] -= $searchProductQuantity;
-                            $products[$pairedIndex]['quantity'] -= $pairedProductQuantity;
+                        $searchProductQuantity = round($milimeters * $maxWidthArr['rows1'] 
+                        / $searchProduct['sheet_length'],0);
+                        $pairedProductQuantity = round($milimeters * $maxWidthArr['rows2'] 
+                        / $pairedProduct['sheet_length'],0);
+
+                        $searchProduct['quantity'] -= $searchProductQuantity;
+                        $products[$pairedIndex]['quantity'] -= $pairedProductQuantity;
                         
                         
                         // if(!$products[$pairedIndex]['quantity']
@@ -408,10 +429,11 @@ class PairController extends Controller
                             'product1' => $product1,
                             'product2' => $product2
                         ];
+                       
                         // dd($pairs[$key1]);
-                        if(!$searchProduct['quantity']){
+                        if($searchProduct['quantity']<=0){
                             unset($products[$key]);
-                            if(!$products[$pairedIndex]['quantity']){
+                            if($products[$pairedIndex]['quantity']<=0){
                                 unset($products[$pairedIndex]);
                             }
                         }
@@ -536,11 +558,11 @@ class PairController extends Controller
             if($i){
                 // dd('taip',$i,$remainingProducts);
                 $merge = array_merge_recursive($remainingProducts,$all[$i]);
-                $result = $this->calculator($merge,$minWidth,$request,$board);
+                $result = $this->calculator($merge,$minWidth,0,$request,$board);
                 $pairs = array_merge_recursive($pairs,$result[1]);
             }
             else{
-                $result = $this->calculator($all[$i],$minWidth,$request,$board);
+                $result = $this->calculator($all[$i],$minWidth,0,$request,$board);
                 $pairs = $result[1];
             }
             $remainingProducts = $result[0];
