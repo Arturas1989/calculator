@@ -188,6 +188,11 @@ class PairController extends Controller
                             return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
                         });
                     break;
+                    case 'exceptSingles':
+                        $array[$board][$mark] = array_filter($markProducts, function($el) {
+                            return !$this->isSingle($el['sheet_width']);
+                        });
+                    break;
                     case 'singles':
                         $array[$board][$mark] = array_filter($markProducts, function($el) {
                             return $this->isSingle($el['sheet_width']);
@@ -203,6 +208,7 @@ class PairController extends Controller
 
     public function checkMetersQuantity($maxWidth, $minMeters, $searchProduct, $pairedProduct, $rows1, $rows2)
     {
+        
         $searchProduct['rows'] = $rows1;
         $pairedProduct['rows'] = $rows2;
 
@@ -236,20 +242,28 @@ class PairController extends Controller
         }
         else
         {
-            $milimeters = $maxMilimeters;
+            return $maxMilimeters;
         }
-
-        $quantity = round($minMilimeters * $checkMetersProduct['rows'] 
+        
+        
+        $quantity = round($milimeters * $checkMetersProduct['rows'] 
         / $checkMetersProduct['sheet_length'],0);
         $quantityLeft = $checkMetersProduct['quantity'] - $quantity;
+        
+        
+        if($checkMetersProduct['sheet_width'] > $maxWidth) $maxWidth = 2500;
 
         $rows = floor($maxWidth/$checkMetersProduct['sheet_width']);
         $maxRows = $this->params()['maxRows'];
-        $rows > $maxRows ? $maxRows : $rows;
+        if($rows > $maxRows) $rows = $maxRows;
 
         $productMeters = round($quantityLeft * $checkMetersProduct['sheet_length'] 
-        /$maxRows/1000,0);
+        /$rows/1000,0);
 
+        // if($searchProduct['sheet_width'] == 1500 && $pairedProduct['sheet_width'] == 950){
+        //     dd($quantityLeft,$checkMetersProduct['sheet_length'],$maxRows,
+        //     $productMeters,$minMeters);
+        // }
         return $productMeters>=$minMeters ? $milimeters : false;
     }
 
@@ -260,7 +274,11 @@ class PairController extends Controller
         
         $maxSumArr = ['maxSum' => 0];
         $maxRows = $this->params()['maxRows'];
+
         $maxWidth = $this->params()['maxWidth'];
+        if($productWidth > $maxWidth){
+            $maxWidth = 2500;
+        }
         $rows = floor($maxWidth/$productWidth);
         if($rows>$maxRows){
             $rows = $maxRows;
@@ -322,6 +340,9 @@ class PairController extends Controller
                     $maxRows = $this->params()['maxRows'];
                     $productWidth = $product['sheet_width'];
                     $productLength = $product['sheet_length'];
+                    if($productWidth > $maxWidth){
+                        $maxWidth = 2500;
+                    }
                     $rows = floor($maxWidth/$productWidth);
                     $rows > $maxRows ? $maxRows : $rows;
                     
@@ -358,14 +379,17 @@ class PairController extends Controller
     public function calculator($productsArray, $minWidth, $minMeters, Request $request, Board $board)
     {
         $pairs = [];
+        $productsCopy = $productsArray;
         $minMeters2 = $this->params()['minMeters'];
         // dd($productsArray);
-        foreach ($productsArray as $board => &$marks) 
+        foreach ($productsArray as $boards => &$marks) 
         {
             foreach ($marks as $mark => &$products) 
             {
+                
                 foreach ($products as $key => &$searchProduct) 
                 {
+                    
                     // dd($searchProduct);
                     $searchProductWidth = $searchProduct['sheet_width'];
                     if($this->isSingle($searchProductWidth)){
@@ -375,14 +399,16 @@ class PairController extends Controller
                     while (isset($products[$key]) 
                     && $maxWidthArr = $this->maxWidthPair($minWidth,$minMeters,$searchProductWidth,$key,$products)) 
                     {
-
                         $pairedIndex = $maxWidthArr['pairIndex'];
                         $pairedProduct = $products[$pairedIndex];
                         $milimeters = $maxWidthArr['milimeters'];
                         
                         if($milimeters/1000 < $minMeters2){
-                            $this -> calculator($productsArray, $minWidth, $minMeters2, $request, $board);
+                            return $this -> calculator($productsCopy, $minWidth, $minMeters2, $request, $board);
                         }
+                        // if($searchProduct['sheet_width'] == 950 && $mark == 'BE22R'){
+                        //     dd($searchProduct);
+                        // }
                         
                         $searchProductQuantity = round($milimeters * $maxWidthArr['rows1'] 
                         / $searchProduct['sheet_length'],0);
@@ -391,19 +417,7 @@ class PairController extends Controller
 
                         $searchProduct['quantity'] -= $searchProductQuantity;
                         $products[$pairedIndex]['quantity'] -= $pairedProductQuantity;
-                        
-                        
-                        // if(!$products[$pairedIndex]['quantity']
-                        //     && $searchProduct['quantity']/$searchProductOrderQuantity<0.05)
-                        // {
-                        //     $milimeters+=$searchProduct['sheet_length']
-                        //     * $searchProduct['quantity']/$maxWidthArr['rows1'];
-                        //     $searchProductQuantity = round($milimeters * $maxWidthArr['rows1'] / $searchProduct['sheet_length'],0);
-                        //     $searchProduct['quantity'] = 0;
-                        // }
 
-                        
-                        
                         $wasteM2 = $milimeters * (2500-$maxWidthArr['maxSum'])/1000000;   
                             
                         $product1 = 
@@ -433,7 +447,7 @@ class PairController extends Controller
                             list($product1,$product2) = [$product2,$product1];
                         }
                         
-                        $pairs[$board][$mark][] = 
+                        $pairs[$boards][$mark][] = 
                         [
                             'waste' => round($wasteM2,2),
                             'meters' => round($milimeters/1000,0),
@@ -477,7 +491,7 @@ class PairController extends Controller
                         }
                     }  
                 }
-            $wasteSumArr[$board][$mark] = $wasteSum;
+            $wasteSumArr[$board][$mark]['waste'] = $wasteSum;
             $wasteSum = 0;
             }
         }
@@ -556,7 +570,7 @@ class PairController extends Controller
         return $result;
     }
 
-    public function store(Request $request, Board $board)
+    public function calculationMethod($productList, Request $request, Board $board)
     {
         $widerThan820 = $this->getArrays('widerThan820',$request,$board);
         // dd($widerThan820);
@@ -564,32 +578,71 @@ class PairController extends Controller
         $singles = $this->getArrays('singles',$request,$board);
         $all = [$widerThan820,$lessThan821,$singles];
         $pairs = [];
-        for ($i=0; $i < 3; $i++) {
-            $i == 2 ? $minWidth = 2140 : $minWidth = 2330;
+        $maxWidth = $this->params()['maxWidth'];
+        $length = count($productList);
+        for ($i=0; $i < $length; $i++) {
+            $i == $length - 1 ? $minWidth = 2140 : $minWidth = $this->params()['minWidth'];
             if($i){
                 // dd('taip',$i,$remainingProducts);
-                $merge = array_merge_recursive($remainingProducts,$all[$i]);
+                $merge = array_merge_recursive($remainingProducts,$productList[$i]);
                 $result = $this->calculator($merge,$minWidth,0,$request,$board);
                 $pairs = array_merge_recursive($pairs,$result[1]);
             }
             else{
-                $result = $this->calculator($all[$i],$minWidth,0,$request,$board);
+                $result = $this->calculator($productList[$i],$minWidth,0,$request,$board);
                 $pairs = $result[1];
             }
             $remainingProducts = $result[0];
-            // dd($remainingProducts);
+            // dd($result);
         }
 
         if(count($remainingProducts)){
-            $singleProducts = $this->calculatorSingle($remainingProducts,2460,$request,$board);
+            $singleProducts = $this->calculatorSingle($remainingProducts,$maxWidth,$request,$board);
             $pairs = array_merge_recursive($pairs,$singleProducts[1]);
             $remainingProducts = $singleProducts[0];
         }
         $wasteSumArr = $this->wasteSum($pairs);
         
-        $result = $this->quantityTest($pairs);
-        $result2 = $this->sheetWidthTest($pairs,600);
-        dd($pairs);
+        // $result = $this->quantityTest($pairs);
+        // $result2 = $this->sheetWidthTest($pairs,600);
+        return array_merge_recursive($pairs,$wasteSumArr);
+        
+    }
+
+    public function store(Request $request, Board $board)
+    {
+        $widerThan820 = $this->getArrays('widerThan820',$request,$board);
+        $lessThan821 = $this->getArrays('lessThan821',$request,$board);
+        $singles = $this->getArrays('singles',$request,$board);
+        $exceptSingles = $this->getArrays('exceptSingles',$request,$board);
+        $productList1 = [$widerThan820,$lessThan821,$singles];
+        $productList2 = [$exceptSingles,$singles];
+        $productList3 = [$this->getProductsList($request, $board)];
+        
+        $result1 = $this->calculationMethod($productList1, $request, $board);
+        $result2 = $this->calculationMethod($productList2, $request, $board);
+        $result3 = $this->calculationMethod($productList3, $request, $board);
+        
+        $all = [$result1,$result2,$result3];
+        $result = [];
+        foreach ($all as $key => $value) 
+        {
+            foreach ($value as $boards => $marks) 
+            {
+                foreach ($marks as $mark => $products) {
+                    if(!isset($result[$boards][$mark]['waste'])){
+                        $result[$boards][$mark] = $products;
+                        $result[$boards][$mark]['waste'] = $products['waste'];
+                    }
+                    else if($products['waste'] < $result[$boards][$mark]['waste']){
+                        $result[$boards][$mark] = $products;
+                        $result[$boards][$mark]['waste'] = $products['waste'];
+                    }
+                }
+                    
+            } 
+        }
+        dd($result);
     }
 
 
