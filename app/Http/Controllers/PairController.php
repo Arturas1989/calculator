@@ -283,13 +283,14 @@ class PairController extends Controller
         if($rows>$maxRows){
             $rows = $maxRows;
         }
+        
         foreach ($products as $key => $product) {
         
             for ($i=1; $i <= $rows; ++$i) {
                 $width_left = $maxWidth - $i * $productWidth;
                 $rows2 = floor($width_left/$product['sheet_width']);
-                if($rows2>$maxRows){
-                    $rows2 = $maxRows;
+                if($i + $rows2 > $maxRows){
+                    $rows2 = $maxRows - $i;
                 } 
                     for ($j=1; $j <= $rows2 ; ++$j) 
                     {
