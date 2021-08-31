@@ -42,7 +42,7 @@
                                         <label>Klientai</label>
                                             
                                         <select class="product-input reload" name="{{$company_id_name}}" required>
-                                            @if (old($company_id_name))
+                                            @if (old($company_id_name) && $companies->find(old($company_id_name)))
                                             
                                                 @php
                                                     $company_name = $companies->find(old($company_id_name))->get()->first()->company_name;

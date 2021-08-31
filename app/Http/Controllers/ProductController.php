@@ -60,6 +60,10 @@ class ProductController extends Controller
         }
         return Mark::where('mark_name','=',$mark)->get()[0]->id;
     }
+    public function companyExists($id)
+    {
+        return Company::find($id);
+    }
 
     public function index()
     {
@@ -103,7 +107,15 @@ class ProductController extends Controller
                                 }
                             }
                         ],
-                $company_id => ['required'],
+                $company_id => ['required',
+                                function($attribute, $value, $fail)
+                                {
+                                    if(!$this->companyExists($value))
+                                    {
+                                        $fail ('Nėra įmonės įmonių sąraše');
+                                    }  
+                                }
+                            ],
                 $sheet_width => ['numeric','integer','gt:0'],
                 $sheet_length => ['numeric','integer','gt:0'],
                 $from_sheet_count => ['numeric','integer','gt:0'],
