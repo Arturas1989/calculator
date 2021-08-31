@@ -27,7 +27,6 @@ window.addEventListener('load',function(event)
                     });
 
                     const targetName = e.target.name;
-                    console.log(targetName)
                     const targetLength = targetName.length;
                     const endNumText = targetName.substring(targetName.indexOf('-')+1,targetLength);
                     const width = '#width-' + endNumText;

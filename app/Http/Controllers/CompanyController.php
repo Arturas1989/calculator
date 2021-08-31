@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Validator;
+use Response;
 
 class CompanyController extends Controller
 {
@@ -22,6 +23,21 @@ class CompanyController extends Controller
     public function allCompanies()
     {
         return Company::all();
+    }
+
+    public function data()
+    {
+        $companies = $this->allCompanies();
+        $data = [];
+
+        foreach ($companies as $company) {
+            $data[] =   [
+                            'id'=> $company->id,
+                            'company_name'=> $company->company_name,
+                        ];
+        }
+            
+        return Response::json($data);
     }
 
     public function index()

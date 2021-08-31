@@ -31,6 +31,7 @@ Route::group(['middleware'=>['auth']], function(){
         Route::post('/destroy/{mark}', [App\Http\Controllers\MarkController::class, 'destroy'])->name('mark.destroy');
     });
     Route::group(['prefix'=>'company'], function(){
+        Route::get('/data', [App\Http\Controllers\CompanyController::class, 'data'])->name('company.data');
         Route::get('/create', [App\Http\Controllers\CompanyController::class, 'create'])->name('company.create');
         Route::get('/index', [App\Http\Controllers\CompanyController::class, 'index'])->name('company.index');
         Route::post('/store', [App\Http\Controllers\CompanyController::class, 'store'])->name('company.store');
