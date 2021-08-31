@@ -28,6 +28,7 @@
     
     @stack('scripts')
     @stack('select-scripts')
+    @stack('company-reload')
 </head>
 <body>
     <div id="app">

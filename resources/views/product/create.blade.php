@@ -1,7 +1,12 @@
+
+
 @extends('layouts.app')
 
 @section('content')
 
+@push('company-reload')
+    <script src="../../resources/js/companyReload.js" id="script" data-getcompany="{{route('company.data')}}" defer></script>
+@endpush
 {{-- {{dd($errors)}} --}}
 <div class="container">
     <div class="row justify-content-center">
@@ -36,7 +41,7 @@
                                     <div class="form-group product-form">
                                         <label>Klientai</label>
                                             
-                                        <select class="product-input" name="{{$company_id_name}}" required>
+                                        <select class="product-input reload" name="{{$company_id_name}}" required>
                                             @if (old($company_id_name))
                                             
                                                 @php
@@ -99,7 +104,7 @@
                             <div class="form-group product-form">
                                 <label>Klientai</label>
                                     
-                                <select class="product-input" name="company_id-0" required>
+                                <select class="product-input reload" name="company_id-0" required>
                                     @if (old('company_id-0'))
                                     
                                         @php
@@ -152,7 +157,8 @@
                         </div>
                         @endif
                             
-                        <input class="btn btn-primary" type="submit" value="submit">
+                        <input class="btn btn-primary" type="submit" value="Išsaugoti">
+                        <div class="btn btn-primary click">Perkrauti klientus</div>
                     </form>
 
                     
