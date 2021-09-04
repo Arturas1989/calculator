@@ -82,9 +82,11 @@
                                     <a class="dropdown-item" href="{{ route('order.index') }}">
                                         Užsakymų sąrašas
                                     </a>
-                                    <a class="dropdown-item" href="{{ route('order.create') }}">
-                                        Naujas užsakymas
-                                    </a>
+                                    <form action="{{ route('order.create') }}" method="post">
+                                        @csrf
+                                        <input class="dropdown-item" type="submit" value="Naujas Užsakymas">
+                                    </form>
+                                    
                                 </div>
                             </li>
                             <li class="nav-item dropdown">

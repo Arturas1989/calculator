@@ -49,7 +49,7 @@ Route::group(['middleware'=>['auth']], function(){
     });
     Route::group(['prefix'=>'order'], function(){
         Route::get('/data', [App\Http\Controllers\OrderController::class, 'data'])->name('order.data');
-        Route::get('/create', [App\Http\Controllers\OrderController::class, 'create'])->name('order.create');
+        Route::post('/create', [App\Http\Controllers\OrderController::class, 'create'])->name('order.create');
         Route::get('/index', [App\Http\Controllers\OrderController::class, 'index'])->name('order.index');
         Route::post('/store', [App\Http\Controllers\OrderController::class, 'store'])->name('order.store');
         Route::get('/edit/{order}', [App\Http\Controllers\OrderController::class, 'edit'])->name('order.edit');
