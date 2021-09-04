@@ -3,10 +3,13 @@ const script = document.querySelector('#script');
 const getCompany = script.dataset.getcompany;
 
 window.onload=function(){
-    DOM = document.querySelector(".click");
-    DOM2 = document.querySelectorAll(".reload");
-    DOM.addEventListener('click', function(){
-        axios.get(getCompany)
+    rowContainer = document.querySelector(".card-body");
+    companySelects = document.querySelectorAll(".reload");
+    rowContainer.addEventListener('click', function(e){
+        if(e.target && e.target.matches(".click")){
+            const rowNum = parseInt(e.target.classList[3]);
+            console.log(rowNum);
+            axios.get(getCompany)
                 .then(response =>
                 {
                     const data = response.data;
@@ -15,13 +18,11 @@ window.onload=function(){
                     for (let i=0; i<length; ++i) {
                         HTML += `<option value="${data[i].id}">${data[i].company_name}</option>`;
                     }
-
-                    for (element of DOM2) {
-                        element.innerHTML = HTML;
-                        console.log(element);
-                    }
-                   
+                    HTML += `<div class="btn btn-primary click ${rowNum}">Perkrauti</div>`;
+                    companySelects[rowNum].innerHTML = HTML;
                 });
+        }
+        
     })
     
 }

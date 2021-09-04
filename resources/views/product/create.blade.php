@@ -65,6 +65,7 @@
             
                                             @endif
                                         </select>
+                                        <div class="btn btn-primary click {{$i}}">Perkrauti</div>
                                         {!! $Order->errorsHTML($company_id_name,$errors) !!}
                                     </div>
                                     <div class="form-group product-form">
@@ -128,6 +129,7 @@
     
                                     @endif
                                 </select>
+                                <div class="btn btn-primary click 0">Perkrauti</div>
                                 {!! $Order->errorsHTML('company_id-0',$errors) !!}
                             </div>
                             <div class="form-group product-form">
@@ -158,7 +160,7 @@
                         @endif
                             
                         <input class="btn btn-primary" type="submit" value="Išsaugoti">
-                        <div class="btn btn-primary click">Perkrauti klientus</div>
+                        
                     </form>
 
                     
