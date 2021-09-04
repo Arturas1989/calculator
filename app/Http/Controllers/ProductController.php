@@ -158,6 +158,8 @@ class ProductController extends Controller
             $bending = 'bending-'.$i;
             $product_id = null;
 
+            if($request[$from_sheet_count] == null) $request[$from_sheet_count] = 1;
+
             $validator = $this->productValidation($product_id,$request,$code,$company_id,
             $description,$sheet_width,$sheet_length,$from_sheet_count,$bending);
 
@@ -203,6 +205,7 @@ class ProductController extends Controller
             $from_sheet_count = 'from_sheet_count-'.$i;
             $bending = 'bending-'.$i;
 
+            if($requestArr[$from_sheet_count] == null) $requestArr[$from_sheet_count] = 1;
             $product = product::create
              ([
                 'code' => $requestArr[$code],
