@@ -19,7 +19,7 @@ class CreateProductsTable extends Migration
             $table->string('description')->nullable();
             $table->integer('sheet_width');
             $table->integer('sheet_length');
-            $table->integer('from_sheet_count');
+            $table->integer('from_sheet_count')->default('1');
             $table->string('bending')->nullable();
             $table->unsignedBigInteger('company_id');
             $table->foreign('company_id')->references('id')->on('companies');

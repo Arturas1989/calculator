@@ -84,7 +84,7 @@
                                     </div>
                                     <div class="form-group product-form">
                                         <label>Gaminių iš ruošinio</label>
-                                        <input type="text" class="form-control product-input" name="{{$from_sheet_count_name}}" value="{{old($from_sheet_count_name)}}" required>
+                                        <input type="text" class="form-control product-input" name="{{$from_sheet_count_name}}" value="{{old($from_sheet_count_name)}}">
                                         {!! $Order->errorsHTML($from_sheet_count_name,$errors) !!}
                                     </div>
                                     <div class="form-group product-form">
@@ -148,7 +148,7 @@
                             </div>
                             <div class="form-group product-form">
                                 <label>Gaminių iš ruošinio</label>
-                                <input type="text" class="form-control product-input" name="{{'from_sheet_count-0'}}" value="{{old('from_sheet_count-0')}}" required>
+                                <input type="text" class="form-control product-input" name="{{'from_sheet_count-0'}}" value="{{old('from_sheet_count-0')}}">
                                 {!! $Order->errorsHTML('from_sheet_count-0',$errors) !!}
                             </div>
                             <div class="form-group product-form">
