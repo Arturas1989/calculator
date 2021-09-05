@@ -268,6 +268,17 @@ class PairController extends Controller
         return $productMeters>=$minMeters ? $milimeters : false;
     }
 
+    public function isLargerWidth($width1,$width2,$maxWidth,$maxRows,$maxWidthSum)
+    {
+        $rows1 = floor($maxWidth/$width1);
+        if($rows1>$maxRows) $rows1 = $maxRows;
+        $rows2 = floor($maxWidth/$width2);
+        if($rows2>$maxRows) $rows2 = $maxRows;
+        $maxWidth1 = $rows1 * $width1;
+        $maxWidth2 = $rows2 * $width2;
+        return $maxWidth1>=$maxWidthSum && $maxWidth2>=$maxWidthSum;
+    }
+
     public function maxWidthPair($minWidth,$minMeters,$productWidth,$index,$products)
     {
         $searchProduct = $products[$index];
@@ -296,6 +307,8 @@ class PairController extends Controller
                     for ($j=1; $j <= $rows2 ; ++$j) 
                     {
                         $widthSum =  $productWidth * $i + $product['sheet_width'] * $j;
+                        if($this->isLargerWidth($productWidth,$product['sheet_width'],$maxWidth,$maxRows,$widthSum)) continue;
+
                         if($widthSum >= $minWidth 
                         && $widthSum <= $maxWidth 
                         && $widthSum > $maxSumArr['maxSum']
