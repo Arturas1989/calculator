@@ -276,7 +276,7 @@ class PairController extends Controller
         if($rows2>$maxRows) $rows2 = $maxRows;
         $maxWidth1 = $rows1 * $width1;
         $maxWidth2 = $rows2 * $width2;
-        return $maxWidth1>=$maxWidthSum && $maxWidth2>=$maxWidthSum;
+        return ($maxWidth1+$maxWidth2)/2 >= $maxWidthSum;
     }
 
     public function maxWidthPair($minWidth,$minMeters,$productWidth,$index,$products)
