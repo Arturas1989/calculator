@@ -203,6 +203,7 @@ class PairController extends Controller
                 }  
             } 
         }
+        
         return $array;
     }
 
@@ -233,10 +234,10 @@ class PairController extends Controller
         $difMilimeters = $maxMilimeters - $minMilimeters;
         $additionalQuantity =  round($difMilimeters * $checkQuantityProduct['rows'] 
         / $checkQuantityProduct['sheet_length'],0);
+        $quantityPercentage = $this->params()['quantityPercentage'];
 
-        if($additionalQuantity / $checkQuantityProduct['totalQuantity'] > 0.05
-        || strpos($checkQuantityProduct['description'],'tikslus')
-        || strpos($checkQuantityProduct['description'],'pak'))
+        if($additionalQuantity / $checkQuantityProduct['totalQuantity'] > $quantityPercentage
+        || strpos($checkQuantityProduct['description'],'tikslus'))
         {
             $milimeters = $minMilimeters;
         }
@@ -381,7 +382,7 @@ class PairController extends Controller
     {
         $pairs = [];
         $productsCopy = $productsArray;
-        $minMeters2 = $this->params()['minMeters'];
+        $minMetersParam = $this->params()['minMeters'];
         // dd($productsArray);
         foreach ($productsArray as $boards => &$marks) 
         {
@@ -396,6 +397,7 @@ class PairController extends Controller
                     if($this->isSingle($searchProductWidth)){
                         continue;
                     }
+                    
     
                     while (isset($products[$key]) 
                     && $maxWidthArr = $this->maxWidthPair($minWidth,$minMeters,$searchProductWidth,$key,$products)) 
@@ -403,9 +405,13 @@ class PairController extends Controller
                         $pairedIndex = $maxWidthArr['pairIndex'];
                         $pairedProduct = $products[$pairedIndex];
                         $milimeters = $maxWidthArr['milimeters'];
+                        // if($pairedProduct['sheet_width']==589){
+                        //     dd($pairedProduct['sheet_width'],$searchProductWidth,$milimeters);
+                        // }
+                    
                         
-                        if($milimeters/1000 < $minMeters2){
-                            return $this -> calculator($productsCopy, $minWidth, $minMeters2, $request, $board);
+                        if($milimeters/1000 < $minMetersParam){
+                            return false;
                         }
                         // if($searchProduct['sheet_width'] == 950 && $mark == 'BE22R'){
                         //     dd($searchProduct);
@@ -470,7 +476,7 @@ class PairController extends Controller
                 }  
             }
         }
-            // dd($test);
+            // dd($pairs);
             return [$productsArray,$pairs];
     }
     
@@ -509,28 +515,32 @@ class PairController extends Controller
             {
                 foreach($mark as $pair)
                 {
-                    foreach ($pair as $key => $value) 
+                    if(is_array($pair))
                     {
-                        if($key=='product1'||$key=='product2'||$key=='product')
+                        foreach ($pair as $key => $value) 
                         {
-                            foreach($value as $key2 => $product)
+                            if($key=='product1'||$key=='product2'||$key=='product')
                             {
-                                if($key2=='code'){
-                                    // dd($key2);
-                                    if(!isset($result[$product]))
-                                    {
-                                        $result[$product] = 0;
-                                    }
-                                    $result[$product]+=$value['quantity'];
-                                }
-                                else
+                                foreach($value as $key2 => $product)
                                 {
-                                    break;
-                                }
-                                
-                            }  
+                                    if($key2=='code'){
+                                        // dd($key2);
+                                        if(!isset($result[$product]))
+                                        {
+                                            $result[$product] = 0;
+                                        }
+                                        $result[$product]+=$value['quantity'];
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                    
+                                }  
+                            }
                         }
                     }
+                    
                 }   
             }
         }
@@ -548,22 +558,26 @@ class PairController extends Controller
             {
                 foreach($mark as $pair)
                 {
-                    foreach ($pair as $key => $value) 
+                    if(is_array($pair))
                     {
-                        if($key=='product1'||$key=='product2'||$key=='product')
+                        foreach ($pair as $key => $value) 
                         {
-                            foreach($value as $key2 => $product)
+                            if($key=='product1'||$key=='product2'||$key=='product')
                             {
-                                // dd($value['sheet_width']);
-                                if($key2 == 'sheet_width' && $value['sheet_width'] == $sheet_width){
+                                foreach($value as $key2 => $product)
+                                {
+                                    // dd($value['sheet_width']);
+                                    if($key2 == 'sheet_width' && $value['sheet_width'] == $sheet_width){
+                                        
+                                        $result[]=$pair;
+                                    }
                                     
-                                    $result[]=$pair;
-                                }
-                                
-                                
-                            }  
+                                    
+                                }  
+                            }
                         }
                     }
+                    
                 }   
             }
         }
@@ -571,7 +585,7 @@ class PairController extends Controller
         return $result;
     }
 
-    public function calculationMethod($productList, Request $request, Board $board)
+    public function calculationMethod($productList,$minMeters, Request $request, Board $board)
     {
         $widerThan820 = $this->getArrays('widerThan820',$request,$board);
         // dd($widerThan820);
@@ -580,18 +594,26 @@ class PairController extends Controller
         $all = [$widerThan820,$lessThan821,$singles];
         $pairs = [];
         $maxWidth = $this->params()['maxWidth'];
+        $minMetersParam = $this->params()['minMeters'];
         $length = count($productList);
         for ($i=0; $i < $length; $i++) {
             $i == $length - 1 ? $minWidth = 2140 : $minWidth = $this->params()['minWidth'];
             if($i){
                 // dd('taip',$i,$remainingProducts);
                 $merge = array_merge_recursive($remainingProducts,$productList[$i]);
-                $result = $this->calculator($merge,$minWidth,0,$request,$board);
+                $result = $this->calculator($merge,$minWidth,$minMeters,$request,$board);
+                if(!$result) return $this->calculationMethod($productList,$minMetersParam,$request,$board);
+                // if($i == 2){
+                //     dd($result);
+                // }
+                
                 $pairs = array_merge_recursive($pairs,$result[1]);
-            }
+            } 
             else{
-                $result = $this->calculator($productList[$i],$minWidth,0,$request,$board);
+                $result = $this->calculator($productList[$i],$minWidth,$minMeters,$request,$board);
+                if(!$result) return $this->calculationMethod($productList,$minMetersParam,$request,$board);
                 $pairs = $result[1];
+                // dd($pairs);
             }
             $remainingProducts = $result[0];
             // dd($result);
@@ -620,10 +642,11 @@ class PairController extends Controller
         $productList2 = [$exceptSingles,$singles];
         $productList3 = [$this->getProductsList($request, $board)];
         
-        $result1 = $this->calculationMethod($productList1, $request, $board);
-        $result2 = $this->calculationMethod($productList2, $request, $board);
-        $result3 = $this->calculationMethod($productList3, $request, $board);
-        
+        $result1 = $this->calculationMethod($productList1,0, $request, $board);
+        $result2 = $this->calculationMethod($productList2,0, $request, $board);
+        $result3 = $this->calculationMethod($productList3,0, $request, $board);
+        // dd($result2);
+
         $all = [$result1,$result2,$result3];
         $result = [];
         foreach ($all as $key => $value) 
@@ -643,7 +666,9 @@ class PairController extends Controller
                     
             } 
         }
+        $quantity = $this->quantityTest($result);
         dd($result);
+        
     }
 
 
