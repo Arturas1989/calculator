@@ -52,6 +52,27 @@
                                 <input type="date" class="form-control" name="load_date_till" value="{{old('load_date_till')}}">
                             </div>
                         </div>
+                        <h4>Vėlesni užsakymai. Bus skaičiuojami, jei gausis didelės atliekos</h4>
+                        <div class="input-row">
+                            <div class="form-group flex-row">
+                                <label>Gamybos data: nuo</label>
+                                <input type="date" class="form-control" name="future_manufactury_date_from" value="{{old('manufactury_date_from')}}">
+                            </div>
+                            <div class="form-group flex-row">
+                                <label>Gamybos data: iki</label>
+                                <input type="date" class="form-control" name="future_manufactury_date_till" value="{{old('manufactury_date_till')}}">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="form-group flex-row">
+                                <label>Krovimo data: nuo</label>
+                                <input type="date" class="form-control" name="future_load_date_from" value="{{old('load_date_from')}}">
+                            </div>
+                            <div class="form-group flex-row">
+                                <label>Krovimo data: iki</label>
+                                <input type="date" class="form-control" name="future_load_date_till" value="{{old('load_date_till')}}">
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
