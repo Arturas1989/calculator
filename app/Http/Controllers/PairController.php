@@ -63,11 +63,8 @@ class PairController extends Controller
         ];
     }
 
-    public function getOrders ($request, $mark_id)
-    {
-        
-    }
-    public function getProductsList($request,$isFuture, Board $board)
+    
+    public function getProductsList($from, $to, $from2, $to2, $request, Board $board)
     {
         $productsList = [];
         isset($request->boards) ? $boards = $request->boards : 
@@ -87,12 +84,8 @@ class PairController extends Controller
                     }
                     
                     $mark_id = $mark->id;
-                    $from = $request->manufactury_date_from;
-                    $to = $request->manufactury_date_till;
-                    if(isset($request->load_date_from) && isset($request->load_date_till))
+                    if($from2 && $to2)
                     {
-                        $from2 = $request->load_date_from;
-                        $to2 = $request->load_date_till;
                         $orders = Order::whereBetween('manufactury_date', [$from, $to])
                         ->whereBetween('load_date', [$from2, $to2])
                         ->whereHas('product', function ($q) use ($mark_id)
@@ -105,7 +98,7 @@ class PairController extends Controller
                          })
                         ->values()->all();
                     }
-                    else
+                    else if($from && $to)
                     {
                         $orders = Order::whereBetween('manufactury_date', [$from, $to])
                         ->whereHas('product', function ($q) use ($mark_id)
@@ -117,6 +110,10 @@ class PairController extends Controller
                             return $q->product()->get()->first()->sheet_width;
                          })
                         ->values()->all();
+                    }
+                    else
+                    {
+                        return [];
                     }
 
                     foreach ($orders as $order) 
@@ -171,9 +168,61 @@ class PairController extends Controller
         return $productsList;
     }
 
-    public function getArrays($widthType,$isFuture, Request $request, Board $board)
+    public function dates(Request $request)
     {
-        $productsList = $this->getProductsList($request,$isFuture, $board);
+        $from = $request->manufactury_date_from;
+        $to = $request->manufactury_date_till;
+        $from2 = null;
+        $to2 = null;
+        $from3 = null;
+        $to3 = null;
+        $from4 = null;
+        $to4 = null;
+
+        if(isset($request->load_date_from) && isset($request->load_date_till))
+        {
+            $from2 = $request->load_date_from;
+            $to2 = $request->load_date_till;
+        }
+        if(isset($request->future_manufactury_date_from) && isset($request->future_manufactury_date_till))
+        {
+            $from3 = $request->future_manufactury_date_from;
+            $to3 = $request->future_manufactury_date_till;
+        }
+        if(isset($request->future_load_date_from) && isset($request->future_load_date_till))
+        {
+            $from4 = $request->future_load_date_from;
+            $to4 = $request->future_load_date_till;
+        }
+        return 
+        [
+            'manufactury_date_from' => $from,
+            'manufactury_date_till' => $to,
+            'load_date_from' => $from2,
+            'load_date_till' => $to2,
+            'future_manufactury_date_from' => $from3,
+            'future_manufactury_date_till' => $to3,
+            'future_load_date_from' => $from3,
+            'future_load_date_till' => $to3,
+        ];
+
+    }
+
+    public function getArrays($widthType, Request $request, Board $board)
+    {
+        $from = $this->dates($request)['manufactury_date_from'];
+        $to = $this->dates($request)['manufactury_date_till'];
+        $from2 = $this->dates($request)['load_date_from'];
+        $to2 = $this->dates($request)['load_date_till'];
+        $from3 = $this->dates($request)['future_manufactury_date_from'];
+        $to3 = $this->dates($request)['future_manufactury_date_till'];
+        $from4 = $this->dates($request)['future_load_date_from'];
+        $to4 = $this->dates($request)['future_load_date_till'];
+
+
+        $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
+        $futureProductsList = $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
+        dd($futureProductsList);
         $array = [];
         // dd($productsList);
 
@@ -250,13 +299,11 @@ class PairController extends Controller
         {
             return $maxMilimeters;
         }
-        
-        
+
         $quantity = round($milimeters * $checkMetersProduct['rows'] 
         / $checkMetersProduct['sheet_length'],0);
         $quantityLeft = $checkMetersProduct['quantity'] - $quantity;
-        
-        
+
         if($checkMetersProduct['sheet_width'] > $maxWidth) $maxWidth = 2500;
 
         $rows = floor($maxWidth/$checkMetersProduct['sheet_width']);
@@ -266,10 +313,6 @@ class PairController extends Controller
         $productMeters = round($quantityLeft * $checkMetersProduct['sheet_length'] 
         /$rows/1000,0);
 
-        // if($searchProduct['sheet_width'] == 1500 && $pairedProduct['sheet_width'] == 950){
-        //     dd($quantityLeft,$checkMetersProduct['sheet_length'],$maxRows,
-        //     $productMeters,$minMeters);
-        // }
         return $productMeters>=$minMeters ? $milimeters : false;
     }
 
@@ -407,6 +450,7 @@ class PairController extends Controller
                     }
                     else
                     {
+                        $largeWasteSingles[$board][$mark][] = 0;
                         $singles[$board][$mark][] = 
                         [
                             'waste' => $waste,
@@ -664,14 +708,18 @@ class PairController extends Controller
 
     public function store(Request $request, Board $board)
     {
-        $isFuture = false;
-        $widerThan820 = $this->getArrays('widerThan820', $isFuture, $request, $board);
-        $lessThan821 = $this->getArrays('lessThan821', $isFuture, $request, $board);
-        $singles = $this->getArrays('singles', $isFuture, $request, $board);
-        $exceptSingles = $this->getArrays('exceptSingles', $isFuture, $request, $board);
+        $from = $this->dates($request)['manufactury_date_from'];
+        $to = $this->dates($request)['manufactury_date_till'];
+        $from2 = $this->dates($request)['load_date_from'];
+        $to2 = $this->dates($request)['load_date_till'];
+
+        $widerThan820 = $this->getArrays('widerThan820', $request, $board);
+        $lessThan821 = $this->getArrays('lessThan821', $request, $board);
+        $singles = $this->getArrays('singles', $request, $board);
+        $exceptSingles = $this->getArrays('exceptSingles', $request, $board);
         $productList1 = [$widerThan820, $lessThan821, $singles];
         $productList2 = [$exceptSingles, $singles];
-        $productList3 = [$this->getProductsList($request, $isFuture, $board)];
+        $productList3 = [$this->getProductsList($from, $to, $from2, $to2, $request, $board)];
         
         $result1 = $this->calculationMethod($productList1, 0, $request, $board);
         $result2 = $this->calculationMethod($productList2, 0, $request, $board);
@@ -680,6 +728,7 @@ class PairController extends Controller
 
         $resultArr = [$result1, $result2, $result3];
         $result = [];
+        $largeWasteSingles = [];
             foreach ($resultArr as $key =>$array) 
             {
                 // dd($all);
@@ -693,6 +742,10 @@ class PairController extends Controller
                         if(!isset($result[$board][$mark]['waste']))
                         {
                             $result[$board][$mark] = $pairs;
+                            if(isset($array[1][$board][$mark]))
+                            {
+                                $largeWasteSingles[$board][$mark] = $array[1][$board][$mark];
+                            }
                             
                             $result[$board][$mark]['waste'] = $pairs['waste'];
                             // dd($result[$board][$mark]['waste']);
@@ -701,6 +754,10 @@ class PairController extends Controller
                         {
                             // dd($array[1]);
                             $result[$board][$mark] = $pairs;
+                            if(isset($array[1][$board][$mark]))
+                            {
+                                $largeWasteSingles[$board][$mark] = $array[1][$board][$mark];
+                            }
                             $result[$board][$mark]['waste'] = $pairs['waste'];
                         }
                     }   
@@ -709,10 +766,11 @@ class PairController extends Controller
             
         }
         
-        // $quantity = $this->quantityTest($result);
         
-       
-        // dd($result3);
+        $merge = array_merge_recursive($result,$largeWasteSingles);
+        $quantity = $this->quantityTest($merge);
+        
+        dd($quantity);
         
     }
 
