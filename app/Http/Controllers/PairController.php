@@ -74,7 +74,13 @@ class PairController extends Controller
             {
                 $board = Board::find($board_id);
                 $board_name = $board->board_name;
-                $marks = $board->marks()->get();
+                $marks = $board->marks()->get()->sort(function ($a, $b) {
+                    $mark_nameA = $a->mark_name;
+                    $mark_nameB = $b->mark_name;
+                    strpos($mark_nameA,'R') ? $posA = strpos($mark_nameA,'R') : $posA = strpos($mark_nameA,'W');
+                    strpos($mark_nameB,'R') ? $posB = strpos($mark_nameB,'R') : $posB = strpos($mark_nameB,'W');
+                    return intval(substr($mark_nameB,$posB-2,2)) <=> intval(substr($mark_nameA,$posA-2,2));
+                });
 
                 foreach ($marks as $mark) 
                 {
@@ -458,21 +464,21 @@ class PairController extends Controller
         return [$productsArray,$singles,$largeWasteSingles];
     }
 
+    
+
     public function calculator($productsArray, $minWidth, $minMeters, Request $request, Board $board, $isLast = false)
     {
+        // dd($productsArray);
         $from3 = $this->dates($request)['future_manufactury_date_from'];
         $to3 = $this->dates($request)['future_manufactury_date_till'];
         $from4 = $this->dates($request)['future_load_date_from'];
         $to4 = $this->dates($request)['future_load_date_till'];
-
         
         $futureProducts= $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
 
         $pairs = [];
         $productsCopy = $productsArray;
 
-       
-        
         $minMetersParam = $this->params()['minMeters'];
         // dd($productsArray);
         foreach ($productsArray as $boards => &$marks) 
@@ -493,6 +499,8 @@ class PairController extends Controller
                     while (isset($products[$key]) 
                     && $maxWidthArr = $this->maxWidthPair($minWidth,$minMeters,$searchProductWidth,$key,$products)) 
                     {
+                       
+
                         $pairedIndex = $maxWidthArr['pairIndex'];
                         $pairedProduct = $products[$pairedIndex];
                         $milimeters = $maxWidthArr['milimeters'];
@@ -623,11 +631,11 @@ class PairController extends Controller
                             if($searchProduct['quantity']<=0){
                                 unset($products[$key]);
                                 if($futureProductsList[$pairedIndex]['quantity']<=0){
-                                    unset($futureProducts[$boards][$mark][$pairedIndex]);
+                                    unset($futureProductsList[$pairedIndex]);
                                 }
                             }
                             else{
-                                unset($futureProducts[$boards][$mark][$pairedIndex]);
+                                unset($futureProductsList[$pairedIndex]);
                             }           
                         }
                     } 
