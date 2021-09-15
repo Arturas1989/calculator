@@ -406,7 +406,6 @@ class PairController extends Controller
     public function calculatorSingle($productsArray, $maxWidth,  Request $request, Board $board)
     {
         $singles = [];
-        $largeWasteSingles = [];
         foreach ($productsArray as $board => &$marks) 
         {
             foreach ($marks as $mark => &$products) 
@@ -461,7 +460,7 @@ class PairController extends Controller
             }  
         }
         // dd($singles);
-        return [$productsArray,$singles,$largeWasteSingles];
+        return [$productsArray,$singles];
     }
 
     
@@ -473,7 +472,7 @@ class PairController extends Controller
         $to3 = $this->dates($request)['future_manufactury_date_till'];
         $from4 = $this->dates($request)['future_load_date_from'];
         $to4 = $this->dates($request)['future_load_date_till'];
-        
+
         $futureProducts= $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
 
         $pairs = [];
@@ -792,9 +791,28 @@ class PairController extends Controller
             $remainingProducts = $singleProducts[0];
         }
         $wasteSumArr = $this->wasteSum($pairs);
-        $largeWasteSingles = $singleProducts[2];
         return array_merge_recursive($pairs,$wasteSumArr);
         
+    }
+
+    public function passOneByOne ($productArray, $count, $request, $board)
+    {
+        $productList = [];
+        $result = [];
+
+        foreach ($productArray[0] as $key => $marks) 
+        {
+            foreach ($marks as $mark => $products) 
+            {
+                for ($i=0; $i < $count; ++$i) 
+                { 
+                    $productList[$i][$key][$mark] = $productArray[$i][$key][$mark];
+                }
+                $result = array_merge_recursive($result,$this->calculationMethod($productList, 0, $request, $board));
+                $productList = [];
+            }
+        }
+        return $result;
     }
 
     public function store(Request $request, Board $board)
@@ -811,15 +829,14 @@ class PairController extends Controller
         $productList1 = [$widerThan820, $lessThan821, $singles];
         $productList2 = [$exceptSingles, $singles];
         $productList3 = [$this->getProductsList($from, $to, $from2, $to2, $request, $board)];
-        
-        $result1 = $this->calculationMethod($productList1, 0, $request, $board);
-        $result2 = $this->calculationMethod($productList2, 0, $request, $board);
-        $result3 = $this->calculationMethod($productList3, 0, $request, $board);
-        // dd($result2);
+        // dd($productList1);
+        $result1 = $this->passOneByOne($productList1, 3, $request, $board);
+        $result2 = $this->passOneByOne($productList2, 2, $request, $board);
+        $result3 = $this->passOneByOne($productList3, 1, $request, $board);
+        dd($result3);
 
         $resultArr = [$result1, $result2, $result3];
         $result = [];
-        $largeWasteSingles = [];
             foreach ($resultArr as $key =>$array) 
             {
                 // dd($all);
@@ -832,6 +849,7 @@ class PairController extends Controller
                         
                         if(!isset($result[$board][$mark]['waste']))
                         {
+                            $result[$board][$mark] = $pairs;
                             $result[$board][$mark]['waste'] = $pairs['waste'];
                             // dd($result[$board][$mark]['waste']);
                         }
