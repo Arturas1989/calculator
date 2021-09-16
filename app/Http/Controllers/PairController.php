@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Response;
 
 class PairController extends Controller
 {
@@ -51,7 +52,32 @@ class PairController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function params(){
+    public function data()
+    {
+        $boards = Board::all();
+        $markData = [];
+
+        foreach ($boards as $board) {
+            $board_name = $board->board_name;
+            $marks = $board->marks()->get();
+            foreach ($marks as $mark) 
+            {
+                $mark_name = $mark->mark_name;
+                $mark_id = $mark->id;
+                $markData[$board_name][] = 
+                [
+                   'mark_name' => $mark_name,
+                   'mark_id' => $mark_id,
+                ];
+            }
+        }
+            
+        return Response::json($markData);
+    
+    }
+
+    public function params()
+    {
         return 
         [
             'quantityRatio' => 0,
@@ -833,7 +859,7 @@ class PairController extends Controller
         $result1 = $this->passOneByOne($productList1, 3, $request, $board);
         $result2 = $this->passOneByOne($productList2, 2, $request, $board);
         $result3 = $this->passOneByOne($productList3, 1, $request, $board);
-        dd($result3);
+        // dd($result3);
 
         $resultArr = [$result1, $result2, $result3];
         $result = [];

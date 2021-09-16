@@ -8,7 +8,6 @@ window.onload=function(){
     rowContainer.addEventListener('click', function(e){
         if(e.target && e.target.matches(".click")){
             const rowNum = parseInt(e.target.classList[3]);
-            console.log(rowNum);
             axios.get(getCompany)
                 .then(response =>
                 {

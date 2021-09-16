@@ -57,6 +57,7 @@ Route::group(['middleware'=>['auth']], function(){
         Route::post('/destroy/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('order.destroy');
     });
     Route::group(['prefix'=>'pair'], function(){
+        Route::get('/data', [App\Http\Controllers\PairController::class, 'data'])->name('pair.data');
         Route::get('/create', [App\Http\Controllers\PairController::class, 'create'])->name('pair.create');
         Route::post('/store', [App\Http\Controllers\PairController::class, 'store'])->name('pair.store');
     });
