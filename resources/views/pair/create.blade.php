@@ -5,9 +5,9 @@
 @push('select-scripts')
     <script src="../../resources/js/multiselect.js" defer></script>
     <script src="../../resources/js/jquery.quicksearch.js" defer></script>
-    <script src="../../resources/js/multi-select/jquery.multi-select.js" type="text/javascript" defer>
-        
-    </script>
+    <script src="../../resources/js/multi-select/jquery.multi-select.js" type="text/javascript" defer></script>
+    <script id ="script" src="../../resources/js/show.js" data-getmarks="{{route('pair.data')}}" defer></script>
+    
 @endpush
 
 <div class="container">
@@ -20,9 +20,9 @@
                         @csrf
                         <h4>Pasirinkite gofras, jei reikia, ir markes</h4>
                         <div class="form-group" style="display:flex">
-                            <select multiple="multiple" id="boards" name="boards[]">
+                            <select multiple="multiple" id="boards" class="select" name="boards[]">
                                 @foreach ( $boards as $board)
-                                    <option value='{{$board->id}}'>{{$board->board_name}}</option>
+                                    <option id="board" value='{{$board->id}}'>{{$board->board_name}}</option>
                                 @endforeach
                             </select>
                             <select multiple="multiple" id="marks" name="marks[]">
@@ -72,6 +72,22 @@
                                 <label>Krovimo data: iki</label>
                                 <input type="date" class="form-control" name="future_load_date_till" value="{{old('load_date_till')}}">
                             </div>
+                        </div>
+                        <h4>Pasirinkite markes kurias galima jungti ir kurias galima prijungti</h4>
+                        <div class="form-group" style="display:flex">
+                            <div>
+                                <h5>Originalios markės</h5>
+                                <select multiple="multiple" id="marks_origin" class="select" name="marks_origin[]">
+                                    
+                                </select>
+                            </div>
+                            <div>
+                                <h5>Jungiamos markės</h5>
+                                <select multiple="multiple" id="marks_join" name="marks_join[]">
+                                   
+                                </select>
+                            </div>
+                            
                         </div>
                     </form>
                 </div>

@@ -24,7 +24,8 @@
   float: right;
 }
 
-.ms-container:nth-child(even){
+
+.ms-container{
   margin-right: 50px;
 }
 .ms-container .ms-list{

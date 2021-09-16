@@ -14,6 +14,16 @@ window.onload=function()
         selectableHeader: "<div class='custom-header'>Markių sąrašas</div>",
         selectionHeader: "<div class='custom-header'>Pasirinkta</div>",
     });
+    $('#marks_origin').multiSelect
+    ({
+        selectableHeader: "<div class='custom-header'>Markių sąrašas</div>",
+        selectionHeader: "<div class='custom-header'>Pasirinkta</div>",
+    });
+    $('#marks_join').multiSelect
+    ({
+        selectableHeader: "<div class='custom-header'>Markių sąrašas</div>",
+        selectionHeader: "<div class='custom-header'>Pasirinkta</div>",
+    });
 }
 
 
