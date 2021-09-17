@@ -6,7 +6,6 @@
     <script src="../../resources/js/multiselect.js" defer></script>
     <script src="../../resources/js/jquery.quicksearch.js" defer></script>
     <script src="../../resources/js/multi-select/jquery.multi-select.js" type="text/javascript" defer></script>
-    <script id ="script" src="../../resources/js/show.js" data-getmarks="{{route('pair.data')}}" defer></script>
     
 @endpush
 

@@ -52,29 +52,7 @@ class PairController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function data()
-    {
-        $boards = Board::all();
-        $markData = [];
-
-        foreach ($boards as $board) {
-            $board_name = $board->board_name;
-            $marks = $board->marks()->get();
-            foreach ($marks as $mark) 
-            {
-                $mark_name = $mark->mark_name;
-                $mark_id = $mark->id;
-                $markData[$board_name][] = 
-                [
-                   'mark_name' => $mark_name,
-                   'mark_id' => $mark_id,
-                ];
-            }
-        }
-            
-        return Response::json($markData);
     
-    }
 
     public function params()
     {
