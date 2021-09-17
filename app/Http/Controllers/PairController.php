@@ -21,8 +21,7 @@ class PairController extends Controller
      */
     public function marks()
     {
-        return Mark::where(\DB::raw("substr(mark_name, 1, 2)"),'=','BC')
-        ->orderBy('mark_name','desc')->limit(2)->get();
+        return Mark::all();
     }
 
     public function allBoards()
@@ -67,9 +66,16 @@ class PairController extends Controller
         ];
     }
 
+    public function gradeNum($mark)
+    {
+        $pos = strpos($mark,'R') ? strpos($mark,'R') : strpos($mark,'W');
+        return intval(substr($mark,$pos-2,2));
+    }
+
     
     public function getProductsList($from, $to, $from2, $to2, $request, Board $board)
     {
+        // dd($request);
         $productsList = [];
         isset($request->boards) ? $boards = $request->boards : 
         $boards = [Board::where('board_name','BC')->get()->first()->id];
@@ -78,14 +84,10 @@ class PairController extends Controller
             {
                 $board = Board::find($board_id);
                 $board_name = $board->board_name;
-                $marks = $board->marks()->get()->sort(function ($a, $b) {
-                    $mark_nameA = $a->mark_name;
-                    $mark_nameB = $b->mark_name;
-                    strpos($mark_nameA,'R') ? $posA = strpos($mark_nameA,'R') : $posA = strpos($mark_nameA,'W');
-                    strpos($mark_nameB,'R') ? $posB = strpos($mark_nameB,'R') : $posB = strpos($mark_nameB,'W');
-                    return intval(substr($mark_nameB,$posB-2,2)) <=> intval(substr($mark_nameA,$posA-2,2));
+                $marks = $board->marks()->get()->sort(function ($a, $b){
+                    return $this->gradeNum($b->mark_name) <=> $this->gradeNum($a->mark_name);
                 });
-
+                
                 foreach ($marks as $mark) 
                 {
                     $mark_name = $mark->mark_name;

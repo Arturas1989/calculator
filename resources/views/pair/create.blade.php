@@ -25,9 +25,17 @@
                                 @endforeach
                             </select>
                             <select multiple="multiple" id="marks" name="marks[]">
-                                @foreach ( $marks as $mark)
-                                    <option value='{{$mark->id}}'>{{$mark->mark_name}}</option>
-                                @endforeach
+                                @php
+                                    $marksOptions1 = '';
+                                    $marksOptions2 = '';
+                                    foreach($marks as $mark)
+                                    {
+                                        $mark_name = $mark->mark_name;
+                                        $marksOptions1 .= "<option value='$mark->id'>$mark_name</option>";
+                                        $marksOptions2 .= "<option value='$mark_name'>$mark_name</option>";
+                                    }
+                                @endphp
+                                {!!$marksOptions1!!}
                             </select>
                         </div>
                         <input class="btn btn-primary" type="submit" value="Skaičiuoti">
@@ -77,13 +85,13 @@
                             <div>
                                 <h5>Originalios markės</h5>
                                 <select multiple="multiple" id="marks_origin" class="select" name="marks_origin[]">
-                                    
+                                    {!!$marksOptions2!!}
                                 </select>
                             </div>
                             <div>
                                 <h5>Jungiamos markės</h5>
                                 <select multiple="multiple" id="marks_join" name="marks_join[]">
-                                   
+                                    {!!$marksOptions2!!}
                                 </select>
                             </div>
                             
