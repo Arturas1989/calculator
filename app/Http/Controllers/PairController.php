@@ -474,13 +474,21 @@ class PairController extends Controller
     public function calculator($productsArray, $minWidth, $minMeters, Request $request, Board $board, $isLast = false)
     {
         // dd($productsArray);
+        $from = $this->dates($request)['manufactury_date_from'];
+        $to = $this->dates($request)['manufactury_date_till'];
+        $from2 = $this->dates($request)['load_date_from'];
+        $to2 = $this->dates($request)['load_date_till'];
         $from3 = $this->dates($request)['future_manufactury_date_from'];
         $to3 = $this->dates($request)['future_manufactury_date_till'];
         $from4 = $this->dates($request)['future_load_date_from'];
         $to4 = $this->dates($request)['future_load_date_till'];
 
-        $futureProducts= $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
 
+        $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
+        $futureProducts= $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
+        $allProducts = array_merge_recursive($productsList,$futureProducts);
+
+        dd($allProducts);
         $pairs = [];
         $productsCopy = $productsArray;
 
