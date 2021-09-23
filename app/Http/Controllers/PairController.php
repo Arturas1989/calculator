@@ -180,6 +180,17 @@ class PairController extends Controller
         return $productsList;
     }
 
+    public function marksJoin(Request $request)
+    {
+        $marksJoin = [];
+        if(isset($request->marks_origin))
+        {
+            $marksJoin['marks_origin'] = $request->marks_origin;
+            $marksJoin['marks_join'] = $request->marks_join;
+        }
+        return $marksJoin;
+    }
+
     public function dates(Request $request)
     {
         $from = $request->manufactury_date_from;
@@ -488,7 +499,7 @@ class PairController extends Controller
         $futureProducts= $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
         $allProducts = array_merge_recursive($productsList,$futureProducts);
 
-        dd($allProducts);
+        // dd($allProducts);
         $pairs = [];
         $productsCopy = $productsArray;
 
@@ -809,24 +820,77 @@ class PairController extends Controller
         
     }
 
-    public function passOneByOne ($productArray, $count, $request, $board)
-    {
-        $productList = [];
-        $result = [];
+    // public function passOneByOne ($productArray, $count, $request, $board)
+    // {
+    //     $productList = [];
+    //     $result = [];
 
-        foreach ($productArray[0] as $key => $marks) 
+    //     foreach ($productArray[0] as $key => $marks) 
+    //     {
+    //         foreach ($marks as $mark => $products) 
+    //         {
+    //             for ($i=0; $i < $count; ++$i) 
+    //             { 
+    //                 $productList[$i][$key][$mark] = $productArray[$i][$key][$mark];
+    //             }
+    //             $result = array_merge_recursive($result,$this->calculationMethod($productList, 0, $request, $board));
+    //             $productList = [];
+    //         }
+    //     }
+    //     return $result;
+    // }
+
+    public function getSeperateList($list,Request $request)
+    {
+        $seperateProductsList = [];
+        $productsOrigin = [];
+        $productsJoin = [];
+        if(count($this->marksJoin($request)))
         {
-            foreach ($marks as $mark => $products) 
+            $marks_origin = $this->marksJoin($request)['marks_origin'];
+            $marks_join = $this->marksJoin($request)['marks_join'];
+        }
+        else
+        {
+            return
+            [
+                'productsOrigin' => $productsOrigin,
+                'productsJoin' => $productsJoin,
+                'seperateProductList' => $list 
+            ];
+        }
+        // dd($array);
+        foreach ($list as $key => $productList) 
+        {
+            foreach ($productList as $board => $marks) 
             {
-                for ($i=0; $i < $count; ++$i) 
-                { 
-                    $productList[$i][$key][$mark] = $productArray[$i][$key][$mark];
+                foreach ($marks as $mark => $products) 
+                {
+                    if(in_array($mark,$marks_origin)) 
+                    {
+                        $productsOrigin[][$board][$mark] = $products;
+                    }
+                        
+                    else if(in_array($mark,$marks_join))
+                    {
+                        $productsJoin[][$board][$mark] = $products;
+                    } 
+                    else
+                    {
+                        $seperateProductsList[][$board][$mark] = $products;
+                    }
                 }
-                $result = array_merge_recursive($result,$this->calculationMethod($productList, 0, $request, $board));
-                $productList = [];
             }
         }
-        return $result;
+        return
+        [
+            'allowedJoins' =>
+            [
+                'productsOrigin' => $productsOrigin,
+                'productsJoin' => $productsJoin
+            ],
+            'seperateProductList' => $seperateProductsList
+        ];
     }
 
     public function store(Request $request, Board $board)
@@ -840,13 +904,18 @@ class PairController extends Controller
         $lessThan821 = $this->getArrays('lessThan821', $request, $board);
         $singles = $this->getArrays('singles', $request, $board);
         $exceptSingles = $this->getArrays('exceptSingles', $request, $board);
-        $productList1 = [$widerThan820, $lessThan821, $singles];
-        $productList2 = [$exceptSingles, $singles];
-        $productList3 = [$this->getProductsList($from, $to, $from2, $to2, $request, $board)];
-        // dd($productList1);
-        $result1 = $this->passOneByOne($productList1, 3, $request, $board);
-        $result2 = $this->passOneByOne($productList2, 2, $request, $board);
-        $result3 = $this->passOneByOne($productList3, 1, $request, $board);
+        $products1 = [$widerThan820, $lessThan821, $singles];
+        $products2 = [$exceptSingles, $singles];
+        $products3 = [$this->getProductsList($from, $to, $from2, $to2, $request, $board)];
+
+        $productList1 = $this->getSeperateList($products1,$request)['seperateProductList'];
+        $productList2 = $this->getSeperateList($products2,$request)['seperateProductList'];
+        $productList3 = $this->getSeperateList($products3,$request)['seperateProductList'];
+        
+
+        $result1 = $this->calculationMethod($productList1, 0 , $request , $board);
+        $result2 = $this->calculationMethod($productList2, 0 , $request , $board);
+        $result3 = $this->calculationMethod($productList3, 0 , $request , $board);
         // dd($result3);
 
         $resultArr = [$result1, $result2, $result3];
