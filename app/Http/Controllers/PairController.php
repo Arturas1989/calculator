@@ -53,6 +53,7 @@ class PairController extends Controller
      */
     
 
+    //skaičiuoklės parametrai
     public function params()
     {
         return 
@@ -66,22 +67,27 @@ class PairController extends Controller
         ];
     }
 
+    //profilio numeris iš markės
     public function gradeNum($mark)
     {
         $pos = strpos($mark,'R') ? strpos($mark,'R') : strpos($mark,'W');
         return intval(substr($mark,$pos-2,2));
     }
 
-    
+    //DUOMENU FUNKCIJOS
+    //-----------------
+
     public function getProductsList($from, $to, $from2, $to2, $request, Board $board)
     {
         // dd($request);
         $productsList = [];
+
         isset($request->boards) ? $boards = $request->boards : 
         $boards = [Board::where('board_name','BC')->get()->first()->id];
-        
+        // dd($boards);
             foreach ($boards as $board_id) 
             {
+                 
                 $board = Board::find($board_id);
                 $board_name = $board->board_name;
                 $marks = $board->marks()->get()->sort(function ($a, $b){
@@ -231,6 +237,7 @@ class PairController extends Controller
 
     }
 
+    
     public function getArrays($widthType, Request $request, Board $board)
     {
         $from = $this->dates($request)['manufactury_date_from'];
@@ -283,6 +290,8 @@ class PairController extends Controller
         
         return $array;
     }
+
+    
 
     public function checkMetersQuantity($maxWidth, $minMeters, $searchProduct, $pairedProduct, $rows1, $rows2)
     {
@@ -1099,7 +1108,7 @@ class PairController extends Controller
         {
             foreach ($joinList as $joinType => $productArray) 
             {   
-                // dd($joinList['join']);
+                
                 
                 $result = $this->calculationMethod($joinList['origin'], 0 , $request , $board, $isLast, $joinList['join']);
                 $pairs = array_merge_recursive($pairs,$result['pairs']);
@@ -1121,33 +1130,34 @@ class PairController extends Controller
 
         $reversedList = array_reverse($productListCopy);
         $pairs2 = [];
-        foreach ($reversedList as $mark => &$joinList) 
-        {
-            foreach ($joinList as $joinType => $productArray) 
-            {   
-                // dd($joinList);
+        // foreach ($reversedList as $mark => &$joinList) 
+        // {
+        //     foreach ($joinList as $joinType => $productArray) 
+        //     {   
+        //         // dd($joinList);
                 
-                $result = $this->calculationMethod($joinList['join'], 0 , $request , $board, $isLast, $joinList['origin']);
-                $pairs2 = array_merge_recursive($pairs2,$result['pairs']);
-                $originProductList = $result['joinList'];
-                // dd($result);
-                $joinMark = $result['joinMark'];
-                $mark_key = array_search($joinMark,$marks_join);
-                if($mark_key!==false)
-                {
-                    $reversedList[$joinMark]['origin'] = $originProductList;
-                }
-                else
-                {
-                    $result = $this->calculationMethod($originProductList, 0 , $request , $board, $isLast, []);
-                    // dd($reversedList,$result['pairs']);
-                    $pairs2 = array_merge_recursive($pairs2,$result['pairs']);
-                }
-                break;
-            }
-        }
+        //         $result = $this->calculationMethod($joinList['join'], 0 , $request , $board, $isLast, $joinList['origin']);
+        //         $pairs2 = array_merge_recursive($pairs2,$result['pairs']);
+        //         $originProductList = $result['joinList'];
+        //         // dd($result);
+        //         $joinMark = $result['joinMark'];
+        //         $mark_key = array_search($joinMark,$marks_join);
+        //         if($mark_key!==false)
+        //         {
+        //             $reversedList[$joinMark]['origin'] = $originProductList;
+        //         }
+        //         else
+        //         {
+        //             $result = $this->calculationMethod($originProductList, 0 , $request , $board, $isLast, []);
+        //             // dd($reversedList,$result['pairs']);
+        //             $pairs2 = array_merge_recursive($pairs2,$result['pairs']);
+        //         }
+        //         dd($result);
+        //         break;
+        //     }
+        // }
         
-        dd($pairs2);
+        dd($pairs);
     }
 
     public function store(Request $request, Board $board)
@@ -1187,19 +1197,17 @@ class PairController extends Controller
         $result = [];
             foreach ($resultArr as $key =>$array) 
             {
-                // dd($all);
-                foreach ($array as $board => $marks) 
+                // dd($resultArr);
+                foreach ($array['pairs'] as $board => $marks) 
                 {
-                    // dd($array);
+                    // dd($array['pairs'] );
                     foreach ($marks as $mark => $pairs) 
                     {
-                        // dd($pairs);
-                        
                         if(!isset($result[$board][$mark]['waste']))
                         {
+                            // dd($pairs);
                             $result[$board][$mark] = $pairs;
                             $result[$board][$mark]['waste'] = $pairs['waste'];
-                            // dd($result[$board][$mark]['waste']);
                         }
                         else if($pairs['waste'] < $result[$board][$mark]['waste'])
                         {
@@ -1207,12 +1215,16 @@ class PairController extends Controller
                             $result[$board][$mark] = $pairs;
                             $result[$board][$mark]['waste'] = $pairs['waste'];
                         }
+                        
+                        // dd($pairs);
+                        
+                        
                     }   
                 }
             
             
         }
-        
+        // dd($result);
         $quantity = $this->quantityTest($result);
         
     }
