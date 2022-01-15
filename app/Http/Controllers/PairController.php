@@ -237,59 +237,90 @@ class PairController extends Controller
 
     }
 
-    
-    public function getArrays($widthType, Request $request, Board $board)
+    public function filterByProductWidth($MarkProducts, $widthType, Request $request, Board $board)
     {
-        $from = $this->dates($request)['manufactury_date_from'];
-        $to = $this->dates($request)['manufactury_date_till'];
-        $from2 = $this->dates($request)['load_date_from'];
-        $to2 = $this->dates($request)['load_date_till'];
-        $from3 = $this->dates($request)['future_manufactury_date_from'];
-        $to3 = $this->dates($request)['future_manufactury_date_till'];
-        $from4 = $this->dates($request)['future_load_date_from'];
-        $to4 = $this->dates($request)['future_load_date_till'];
+        
 
+        switch ($widthType){
+            case 'widerThan820':
+            return array_filter($MarkProducts,function($product){
+                return $product['sheet_width'] > 820;
+            });
+            break;
 
-        $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
-        $futureProductsList = $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
-        // dd($futureProductsList);
-        $array = [];
-        // dd($productsList);
+            case 'lessThan821':
+            return array_filter($MarkProducts,function($product){
+                return $product['sheet_width'] < 821;
+            });
+            break;
 
-        foreach ($productsList as $board => $marks) 
-        {
-            foreach ($marks as $mark => $markProducts) 
-            {
-                switch ($widthType)
-                {
-                    case 'widerThan820':
-                        $array[$board][$mark] = array_filter($markProducts, function($el) {
-                            return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
-                        });
-                    break;
-                    case 'lessThan821':
-                        $array[$board][$mark] = array_filter($markProducts, function($el) {
-                            return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
-                        });
-                    break;
-                    case 'exceptSingles':
-                        $array[$board][$mark] = array_filter($markProducts, function($el) {
-                            return !$this->isSingle($el['sheet_width']);
-                        });
-                    break;
-                    case 'singles':
-                        $array[$board][$mark] = array_filter($markProducts, function($el) {
-                            return $this->isSingle($el['sheet_width']);
-                        });
-                    break;
-                    default:
-                    $array = [];
-                }  
-            } 
+            case 'singles':
+            return array_filter($MarkProducts,function($product){
+                return $this->isSingle($product['sheet_width']);
+            });
+            break;
+
+            default:
+            return [];
+
         }
         
-        return $array;
     }
+
+
+    
+    // public function getArrays($widthType, Request $request, Board $board)
+    // {
+    //     $from = $this->dates($request)['manufactury_date_from'];
+    //     $to = $this->dates($request)['manufactury_date_till'];
+    //     $from2 = $this->dates($request)['load_date_from'];
+    //     $to2 = $this->dates($request)['load_date_till'];
+    //     // $from3 = $this->dates($request)['future_manufactury_date_from'];
+    //     // $to3 = $this->dates($request)['future_manufactury_date_till'];
+    //     // $from4 = $this->dates($request)['future_load_date_from'];
+    //     // $to4 = $this->dates($request)['future_load_date_till'];
+
+
+    //     $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
+    //     // $futureProductsList = $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
+    //     // dd($futureProductsList);
+    //     $array = [];
+    //     // dd($productsList);
+
+    //     foreach ($productsList as $board => $marks) 
+    //     {
+    //         foreach ($marks as $mark => $markProducts) 
+    //         {
+    //             switch ($widthType)
+    //             {
+    //                 case 'widerThan820':
+    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
+    //                         return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
+    //                     });
+    //                 break;
+    //                 case 'lessThan821':
+    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
+    //                         return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
+    //                     });
+    //                 break;
+    //                 case 'exceptSingles':
+    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
+    //                         return !$this->isSingle($el['sheet_width']);
+    //                     });
+    //                 break;
+    //                 case 'singles':
+    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
+    //                         return $this->isSingle($el['sheet_width']);
+    //                     });
+    //                 break;
+    //                 default:
+    //                 $array = [];
+    //             }  
+    //         } 
+    //     }
+        
+    //     return $array;
+    // }
 
     
 
@@ -569,6 +600,44 @@ class PairController extends Controller
             'pairs' => $pairs,
             'products' =>$products
         ];
+    }
+
+    public function calculator2(Request $request, Board $board)
+    {
+        $from = $this->dates($request)['manufactury_date_from'];
+        $to = $this->dates($request)['manufactury_date_till'];
+        $from2 = $this->dates($request)['load_date_from'];
+        $to2 = $this->dates($request)['load_date_till'];
+        $from3 = $this->dates($request)['future_manufactury_date_from'];
+        $to3 = $this->dates($request)['future_manufactury_date_till'];
+        $from4 = $this->dates($request)['future_load_date_from'];
+        $to4 = $this->dates($request)['future_load_date_till'];
+
+        $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
+        $futureProducts= $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
+        // dd($futureProducts);
+
+        $joinList = $this->marksJoin($request);
+
+        foreach ($productsList as $boardKey => $marks) 
+        {
+            foreach ($marks as $mark => $products) 
+            {
+                $MarkProducts = $productsList[$boardKey][$mark];
+                $widerThan820 = $this->filterByProductWidth($MarkProducts, 'widerThan820', $request, $board);
+                $lessThan821 = $this->filterByProductWidth($MarkProducts, 'lessThan821', $request, $board);
+                $singles = $this->filterByProductWidth($MarkProducts, 'singles', $request, $board);
+                dd($singles);
+            }
+        }
+
+
+        
+        // $widerThan820 = $this->getArrays('widerThan820', $request, $board);
+        // $lessThan821 = $this->getArrays('lessThan821', $request, $board);
+        // $singles = $this->getArrays('singles', $request, $board);
+       
+
     }
 
     public function calculator($productsArray, $minWidth, $minMeters, 
@@ -1157,11 +1226,12 @@ class PairController extends Controller
         //     }
         // }
         
-        dd($pairs);
+        
     }
 
     public function store(Request $request, Board $board)
     {
+        $this->calculator2($request, $board);
         $from = $this->dates($request)['manufactury_date_from'];
         $to = $this->dates($request)['manufactury_date_till'];
         $from2 = $this->dates($request)['load_date_from'];
