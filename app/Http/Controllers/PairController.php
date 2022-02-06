@@ -453,54 +453,154 @@ class PairController extends Controller
     //     return ($maxSumArr['maxSum'] ) ? $maxSumArr : false;
     // }
 
-    public function maxWidthPair2($searchProduct, $products)
+    public function maxWidthPair2($searchProduct, $index, $products, $minWidth)
     {
 
-        // dd()
+        // dd($searchProduct);
         $maxSumArr = ['maxSum' => 0];
-        $maxRows = $this->params()['maxRows'];
+        $maxRowsSum = $this->params()['maxRows'];
 
         $maxWidth = $this->params()['maxWidth'];
-        $productWidth = $searchProduct['sheet_width'];
+        $searchProductWidth = $searchProduct['sheet_width'];
 
-        if($productWidth > $maxWidth){
+        if($searchProductWidth > $maxWidth){
             $maxWidth = 2500;
         }
-        $rows = floor($maxWidth/$productWidth);
-        if($rows>$maxRows){
-            $rows = $maxRows;
+        $maxRows1 = floor($maxWidth/$searchProductWidth);
+        if($maxRows1 > $maxRowsSum){
+            $maxRows1 = $maxRowsSum;
         }
-        
-        foreach ($products as $key => $product) {
-        
-            for ($i=1; $i <= $rows; ++$i) {
-                $width_left = $maxWidth - $i * $productWidth;
-                $rows2 = floor($width_left/$product['sheet_width']);
-                if($i + $rows2 > $maxRows){
-                    $rows2 = $maxRows - $i;
-                } 
-                    for ($j=1; $j <= $rows2 ; ++$j) 
-                    {
-                        $widthSum =  $productWidth * $i + $product['sheet_width'] * $j;
-                        if($this->isLargerWidth($productWidth,$product['sheet_width'],$maxWidth,$maxRows,$widthSum)) continue;
 
-                        if($widthSum >= $minWidth 
-                        && $widthSum <= $maxWidth 
-                        && $widthSum > $maxSumArr['maxSum']
-                        && $milimeters = $this->checkMetersQuantity($maxWidth,$minMeters,$searchProduct,$products[$key],$i,$j))
+        // remaining second products
+        $pairProducts2 = $products;
+        unset($pairProducts2[$index]);
+
+        // dd($pairProducts2);
+        
+        foreach ($pairProducts2 as $key2 => $pairProduct2) 
+        {
+            // dd($products);
+
+            for ($rows1 = 1; $rows1 <= $maxRows1; ++$rows1) 
+            {
+                $remaining_width = $maxWidth - $rows1 * $searchProductWidth;
+
+                // calculating second product maximum rows
+                $maxRows2 = floor($remaining_width / $pairProduct2['sheet_width']);
+                if($rows1 + $maxRows2 > $maxRowsSum){
+                    $maxRows2 = $maxRowsSum - $rows1;
+                }
+                // two product width sum
+                $widthSum = $maxRows2 * $pairProduct2['sheet_width'] + $rows1 * $searchProductWidth;
+                if($widthSum > $maxSumArr['maxSum'])
+                {
+                    $maxSumArr = 
+                    [
+                        'maxSum' => $widthSum,
+                        'rows1' => $rows1,
+                        'rows2' => $maxRows2,
+                        'rows3' => null,
+                        'pairIndex2' => $key2,
+                        'pairIndex3' => null
+                    ];
+                }
+
+                $pairProducts3 = $pairProducts2;
+                unset($pairProducts3[$key2]);
+                if($pairProduct2['sheet_length'] == $searchProduct['sheet_length'])
+                {
+                    //three product width sum
+                    for ($rows2=1; $rows2 <= $maxRows2 ; ++$rows2)
+                    {
+                        $remaining_width -= $rows2 * $pairProduct2['sheet_width'];
+
+                        // remaining third products
+                        foreach ($pairProducts3 as $key3 => $pairProduct3) 
                         {
-                            $maxSumArr = 
-                            [
-                                'maxSum' => $widthSum,
-                                'milimeters' => $milimeters,
-                                'pairIndex' => $key,
-                                'rows1' => $i,
-                                'rows2' => $j
-                            ];
-                        }  
+                            //calculating third product rows
+                            $rows3 = floor($remaining_width / $pairProduct3['sheet_width']);
+                            if($rows1 + $rows2 + $rows3 > $maxRowsSum)
+                            {
+                                $rows3 = $maxRowsSum - $rows2 - $rows1;
+                            }
+                            $widthSum = $rows1 * $searchProductWidth + $rows2 * $pairProduct2['sheet_width'] + $rows3 * $pairProduct3['sheet_width'];
+
+                            if($widthSum > $maxSumArr['maxSum']){
+                                $maxSumArr = 
+                                [
+                                    'maxSum' => $widthSum,
+                                    'rows1' => $rows1,
+                                    'rows2' => $rows2,
+                                    'rows3' => $rows3,
+                                    'pairIndex2' => $key2,
+                                    'pairIndex3' => $key3
+                                ];
+                            }
+                        }   
                     }
+                }
+                else{
+
+                    for ($rows2=1; $rows2 <= $maxRows2 ; ++$rows2)
+                    {
+                        $remaining_width -= $rows2 * $pairProduct2['sheet_width'];
+
+                        // remaining third products
+                        foreach ($pairProducts3 as $key3 => $pairProduct3) 
+                        {
+                            //calculating third product rows
+                            if($pairProduct2['sheet_length'] == $pairProduct3['sheet_length'])
+                            {
+                                $rows3 = floor($remaining_width / $pairProduct3['sheet_width']);
+                                if($rows1 + $rows2 + $rows3 > $maxRowsSum)
+                                {
+                                    $rows3 = $maxRowsSum - $rows2 - $rows1;
+                                }
+                                $widthSum = $rows1 * $searchProductWidth + $rows2 * $pairProduct2['sheet_width'] + $rows3 * $pairProduct3['sheet_width'];
+
+                                if($widthSum > $maxSumArr['maxSum']){
+                                    $maxSumArr = 
+                                    [
+                                        'maxSum' => $widthSum,
+                                        'rows1' => $rows1,
+                                        'rows2' => $rows2,
+                                        'rows3' => $rows3,
+                                        'pairIndex2' => $key2,
+                                        'pairIndex3' => $key3
+                                    ];
+                                }
+                            } 
+                        }   
+                    }
+
+                }
+                
+                //     for ($j=1; $j <= $rows2 ; ++$j) 
+                //     {
+                //         $remaining_width -= $i * $searchProductWidth;
+                //         $rows2 = floor($remaining_width / $secondPairProduct['sheet_width']);
+
+                //         $widthSum =  $productWidth * $i + $product['sheet_width'] * $j;
+                //         if($this->isLargerWidth($productWidth,$product['sheet_width'],$maxWidth,$maxRows,$widthSum)) continue;
+
+                //         if($widthSum >= $minWidth 
+                //         && $widthSum <= $maxWidth 
+                //         && $widthSum > $maxSumArr['maxSum']
+                //         && $milimeters = $this->checkMetersQuantity($maxWidth,$minMeters,$searchProduct,$products[$key],$i,$j))
+                //         {
+                //             $maxSumArr = 
+                //             [
+                //                 'maxSum' => $widthSum,
+                //                 'milimeters' => $milimeters,
+                //                 'pairIndex' => $key,
+                //                 'rows1' => $i,
+                //                 'rows2' => $j
+                //             ];
+                //         }  
+                //     }
             }  
         }
+        dd($maxSumArr);
         return ($maxSumArr['maxSum'] ) ? $maxSumArr : false;
     }
 
@@ -776,7 +876,7 @@ class PairController extends Controller
         $maxRowsParam = $this->params()['maxRows'];
         $largeWasteParam = $this->params()['largeWasteRatio'];
 
-        dd($productsList);
+        // dd($productsList);
         foreach ($productsList as $boards => &$marks) 
         {
             foreach ($marks as $mark => &$products) 
@@ -785,7 +885,6 @@ class PairController extends Controller
                 foreach ($products as $key => &$searchProduct) 
                 {
                     
-                    // dd($searchProduct);
                     if($this->isSingle($searchProduct['sheet_width'])){
                         continue;
                     }
@@ -800,7 +899,7 @@ class PairController extends Controller
                     
 
                         while (isset($products[$key]) 
-                        && $maxWidthArr = $this->maxWidthPair2($searchProduct,$products)) 
+                        && $maxWidthArr = $this->maxWidthPair2($searchProduct,$key,$products,$minWidth)) 
                         {
                             $pairedIndex = $maxWidthArr['pairIndex'];
                             $pairedProduct = $products[$pairedIndex];
