@@ -166,6 +166,26 @@ class PairControllerTest extends TestCase
      * @return void
      */
 
+    public function test_pairController_method_maxWidthPair_2_3_products_maxSum_is_greater_or_equal_to_minWidth()
+    {
+        $data2 = $this->data2();
+        $data3 = $this->data3();
+        $products2 = $data2['products'];
+        $products3 = $data3['products'];
+        $searchProduct2 = $data2['searchProduct'];
+        $searchProduct3 = $data3['searchProduct'];
+        $index = 0;
+        $minWidth = $this->pairController->params()['absoluteMinWidth'];
+        $maxWidth = $this->pairController->params()['maxWidth'];
+        
+        $result2 = $this->pairController->maxWidthPair2($searchProduct2, $index, $products2, $minWidth);
+        $result3 = $this->pairController->maxWidthPair2($searchProduct3, $index, $products3, $minWidth);
+
+        
+        $this->assertGreaterThanOrEqual($minWidth, $result2['maxSum']);
+        $this->assertGreaterThanOrEqual($minWidth, $result3['maxSum']);
+    }
+
     public function test_pairController_method_maxWidthPair_2_products_maxSum_is_less_or_equal_to_maxWidth()
     {
         $data = $this->data2();
@@ -181,18 +201,19 @@ class PairControllerTest extends TestCase
         $this->assertLessThanOrEqual($maxWidth, $result['maxSum']);
     }
 
-    public function test_pairController_method_maxWidthPair_2_products_rows_sum_is_less_or_equal_8()
+    public function test_pairController_method_maxWidthPair_2_products_rows_sum_is_less_or_equal_maximum_rows()
     {
         $data = $this->data2();
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
         $minWidth = $this->pairController->params()['minWidth'];
+        $maxRows = $this->pairController->params()['maxRows'];
         
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
 
         $rowSum = $result['rows1'] + $result['rows2'];
-        $this->assertLessThanOrEqual(8, $rowSum);
+        $this->assertLessThanOrEqual($maxRows, $rowSum);
     }
     
     public function test_pairController_method_maxWidthPair_should_be_able_to_return_array_with_2_products()
@@ -263,18 +284,19 @@ class PairControllerTest extends TestCase
     }
 
 
-    public function test_pairController_method_maxWidthPair_3_products_rows_sum_is_less_or_equal_8()
+    public function test_pairController_method_maxWidthPair_3_products_rows_sum_is_less_or_equal_maximum_rows()
     {
         $data = $this->data3();
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
         $minWidth = $this->pairController->params()['minWidth'];
+        $maxRows = $this->pairController->params()['maxRows'];
         
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
 
         $rowSum = $result['rows1'] + $result['rows2'] + $result['rows3'];
-        $this->assertLessThanOrEqual(8, $rowSum);
+        $this->assertLessThanOrEqual($maxRows, $rowSum);
     }
 
     public function test_pairController_method_maxWidthPair_3_products_maxSum_is_less_or_equal_to_maxWidth()
