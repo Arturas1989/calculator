@@ -88,6 +88,166 @@ class PairControllerTest extends TestCase
         
     }
 
+    public function data3_1(){
+        return 
+        [
+            'products' =>
+            [
+                0 => 
+                [
+                    "code" => "G20BE0R8",
+                    "description" => "Airuslita",
+                    "sheet_width" => 489,
+                    "sheet_length" => 1200,
+                    "quantity" => 900,
+                    "totalQuantity" => 900,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 203
+                ],
+                1 => 
+                [
+                    "code" => "G20BE0R7",
+                    "description" => "Airuslita",
+                    "sheet_width" => 492,
+                    "sheet_length" => 1200,
+                    "quantity" => 800,
+                    "totalQuantity" => 800,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 202
+                ],
+                2 => 
+                [
+                    "code" => "G20BE0R9",
+                    "description" => "Airuslita",
+                    "sheet_width" => 488,
+                    "sheet_length" => 1200,
+                    "quantity" => 1000,
+                    "totalQuantity" => 1000,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 204
+                ],
+                3 => 
+                [
+                    "code" => "G20BE0R5",
+                    "description" => "Airuslita",
+                    "sheet_width" => 500,
+                    "sheet_length" => 1500,
+                    "quantity" => 700,
+                    "totalQuantity" => 700,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 200
+                ],   
+            ],
+            'searchProduct' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 489,
+                "sheet_length" => 1200,
+                "quantity" => 900,
+                "totalQuantity" => 900,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203
+            ],
+            'pairedList' =>
+            [
+                "maxSum" => 2457,
+                "rows1" => 1,
+                "rows2" => 4,
+                "rows3" => null,
+                "pairIndex2" => 1,
+                "pairIndex3" => null
+            ]
+        ];
+         
+        
+    }
+
+    public function data3_2(){
+        return 
+        [
+            'products' =>
+            [
+                0 => 
+                [
+                    "code" => "G20BE0R8",
+                    "description" => "Airuslita",
+                    "sheet_width" => 1240,
+                    "sheet_length" => 1200,
+                    "quantity" => 900,
+                    "totalQuantity" => 900,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 203
+                ],
+                1 => 
+                [
+                    "code" => "G20BE0R7",
+                    "description" => "Airuslita",
+                    "sheet_width" => 840,
+                    "sheet_length" => 1200,
+                    "quantity" => 800,
+                    "totalQuantity" => 800,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 202
+                ],
+                2 => 
+                [
+                    "code" => "G20BE0R9",
+                    "description" => "Airuslita",
+                    "sheet_width" => 120,
+                    "sheet_length" => 1200,
+                    "quantity" => 1000,
+                    "totalQuantity" => 1000,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 204
+                ],
+                3 => 
+                [
+                    "code" => "G20BE0R5",
+                    "description" => "Airuslita",
+                    "sheet_width" => 500,
+                    "sheet_length" => 1500,
+                    "quantity" => 700,
+                    "totalQuantity" => 700,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 200
+                ],   
+            ],
+            'searchProduct' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 1240,
+                "sheet_length" => 1200,
+                "quantity" => 900,
+                "totalQuantity" => 900,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203
+            ],
+            'pairedList' =>
+            [
+                "maxSum" => 2440,
+                "rows1" => 1,
+                "rows2" => 1,
+                "rows3" => 3,
+                "pairIndex2" => 1,
+                "pairIndex3" => 2
+            ]
+        ];
+         
+        
+    }
+
     public function data2()
     {
         return 
@@ -166,7 +326,33 @@ class PairControllerTest extends TestCase
      * @return void
      */
 
-    public function test_pairController_method_maxWidthPair_2_3_products_maxSum_is_greater_or_equal_to_minWidth()
+
+    //isLargerWidth tests
+    public function test_pairController_method_isRowsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum(){
+        $data = $this->data3_2();
+        $products = $data['products'];
+        $pairedList = $data['pairedList'];
+        $searchProduct = $data['searchProduct'];
+        $result = $this->pairController->isRowsEqual($products, $pairedList, $searchProduct);
+
+        $this->assertFalse(false);
+    }
+
+    public function test_pairController_method_isRowsEqual_assert_true_when_single_rows_sum_is_equal_to_paired_products_rows_sum(){
+        $data = $this->data3_1();
+        $products = $data['products'];
+        $pairedList = $data['pairedList'];
+        $searchProduct = $data['searchProduct'];
+        $result = $this->pairController->isRowsEqual($products, $pairedList, $searchProduct);
+
+        // dd($products,$pairedList,$searchProduct);
+        $this->assertTrue($result);
+    }
+
+
+
+    // maxWidthPair2 tests
+     public function test_pairController_method_maxWidthPair_2_3_products_maxSum_is_greater_or_equal_to_minWidth()
     {
         $data2 = $this->data2();
         $data3 = $this->data3();

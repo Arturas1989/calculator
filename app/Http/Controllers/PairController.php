@@ -392,10 +392,11 @@ class PairController extends Controller
     //     return ($maxWidth1+$maxWidth2)/2 >= $maxWidthSum;
     // }
 
-    public function isLargerWidth2($products, $pairedList, $searchProduct)
+    //checks for rows equality, because there is no point in joining products, where this condition is true:
+    //example (pairedRow1 + pairedRow2)*2 == singleRows1 + singleRows2;
+    public function isRowsEqual($products, $pairedList, $searchProduct)
     {
-        
-
+        // dd($products,$pairedList,$searchProduct);
         $maxWidth = $this->params()['maxWidth'];
         $maxRows = $this->params()['maxRows'];
 
@@ -407,20 +408,23 @@ class PairController extends Controller
         $singleRows2 = floor($maxWidth / $width2);
 
         $pairedIndex3 = $pairedList['pairIndex3'];
-        if($pairedIndex3){
+        if($pairedIndex3 !== null){
             $width3 = $products[$pairedIndex3]['sheet_width'];
             $singleRows3 = floor($maxWidth / $width3);
+            $rows3 = $pairedList['rows3'];
             $pairedProductsCount = 3;
         }
         else{
             $width3 = 0;
             $singleRows3 = 0;
+            $rows3 = 0;
             $pairedProductsCount = 2;
         }
         
-        $productsWidthSum = $width1 * $singleRows1 + $width2 * $singleRows2 + $width3 * $singleRows3;
+        $singleRowsSum = $singleRows1 + $singleRows2 + $singleRows3;
+        $pairedProductsSum = ($pairedList['rows1'] + $pairedList['rows2'] + $rows3) * $pairedProductsCount;
 
-        return $productsWidthSum / $pairedProductsCount >= $pairedList['maxSum'];
+        return $pairedProductsSum == $singleRowsSum;
     }
 
     // public function maxWidthPair($minWidth,$minMeters,$productWidth,$index,$products,$futureProducts = null)
@@ -527,7 +531,7 @@ class PairController extends Controller
                     'pairIndex3' => null
                 ];
 
-                // if($this->isLargerWidth2($products, $maxWidthSumChecked, $searchProduct)) continue;
+                if($this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
 
                 if($widthSum > $maxSumArr['maxSum'])
                 {
@@ -548,11 +552,18 @@ class PairController extends Controller
                         {
                             //calculating third product rows
                             $rows3 = (int)floor($remaining_width / $pairProduct3['sheet_width']);
+
                             if($rows1 + $rows2 + $rows3 > $maxRowsSum)
                             {
                                 $rows3 = $maxRowsSum - $rows2 - $rows1;
                             }
                             $widthSum = $rows1 * $searchProductWidth + $rows2 * $pairProduct2['sheet_width'] + $rows3 * $pairProduct3['sheet_width'];
+
+                            if($rows3 == 0)
+                            {
+                                $rows3 = null;
+                                $key3 = null; 
+                            }
                             $maxWidthSumChecked = 
                             [
                                 'maxSum' => $widthSum,
@@ -563,7 +574,7 @@ class PairController extends Controller
                                 'pairIndex3' => $key3
                             ];
 
-                            if($this->isLargerWidth2($products, $maxWidthSumChecked, $searchProduct)) continue;
+                            if($this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
 
                             if($widthSum > $maxSumArr['maxSum']){
                                 $maxSumArr = $maxWidthSumChecked;
@@ -600,9 +611,9 @@ class PairController extends Controller
                                     'pairIndex3' => $key3
                                 ];
 
-                                if($this->isLargerWidth2($products, $maxWidthSumChecked, $searchProduct)) continue;
+                                if($this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
 
-                                if($widthSum > $maxSumArr['maxSum'] && $this->isLargerWidth2($products, $maxWidthSumChecked, $searchProduct)){
+                                if($widthSum > $maxSumArr['maxSum'] && $this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)){
                                     $maxSumArr = $maxWidthSumChecked;
                                 }
                             } 
