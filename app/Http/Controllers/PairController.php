@@ -402,15 +402,18 @@ class PairController extends Controller
 
         $width1 = $searchProduct['sheet_width'];
         $singleRows1 = floor($maxWidth / $width1);
+        if($singleRows1 > $maxRows) $singleRows1 = $maxRows;
 
         $pairedIndex2 = $pairedList['pairIndex2'];
         $width2 = $products[$pairedIndex2]['sheet_width'];
         $singleRows2 = floor($maxWidth / $width2);
+        if($singleRows2 > $maxRows) $singleRows2 = $maxRows;
 
         $pairedIndex3 = $pairedList['pairIndex3'];
         if($pairedIndex3 !== null){
             $width3 = $products[$pairedIndex3]['sheet_width'];
             $singleRows3 = floor($maxWidth / $width3);
+            if($singleRows3 > $maxRows) $singleRows3 = $maxRows;
             $rows3 = $pairedList['rows3'];
             $pairedProductsCount = 3;
         }
@@ -424,7 +427,7 @@ class PairController extends Controller
         $singleRowsSum = $singleRows1 + $singleRows2 + $singleRows3;
         $pairedProductsSum = ($pairedList['rows1'] + $pairedList['rows2'] + $rows3) * $pairedProductsCount;
 
-        return $pairedProductsSum == $singleRowsSum;
+        return $pairedProductsSum <= $singleRowsSum;
     }
 
     // public function maxWidthPair($minWidth,$minMeters,$productWidth,$index,$products,$futureProducts = null)
