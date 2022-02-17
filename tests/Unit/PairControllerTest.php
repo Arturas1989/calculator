@@ -156,7 +156,10 @@ class PairControllerTest extends TestCase
             ],
             'pairedList' =>
             [
-                "maxSum" => 2457,
+                "wasteRatio" => 0.017,
+                "maximumWidth" => 2500,
+                "maxWidth" => 2460,
+                "widthSum" => 2457,
                 "rows1" => 1,
                 "rows2" => 4,
                 "rows3" => null,
@@ -236,7 +239,10 @@ class PairControllerTest extends TestCase
             ],
             'pairedList' =>
             [
-                "maxSum" => 2440,
+                "wasteRatio" => 0.024,
+                "maximumWidth" => 2500,
+                "maxWidth" => 2460,
+                "widthSum" => 2440,
                 "rows1" => 1,
                 "rows2" => 1,
                 "rows3" => 3,
@@ -361,15 +367,16 @@ class PairControllerTest extends TestCase
         $searchProduct2 = $data2['searchProduct'];
         $searchProduct3 = $data3['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['absoluteMinWidth'];
-        $maxWidth = $this->pairController->params()['maxWidth'];
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
+         
         
-        $result2 = $this->pairController->maxWidthPair2($searchProduct2, $index, $products2, $minWidth);
-        $result3 = $this->pairController->maxWidthPair2($searchProduct3, $index, $products3, $minWidth);
-
+        $result2 = $this->pairController->maxWidthPair2($searchProduct2, $index, $products2);
+        $result3 = $this->pairController->maxWidthPair2($searchProduct3, $index, $products3);
+        $minWidth2 = (1 - $maxWasteRatio) * $result2['maximumWidth'];
+        $minWidth3 = (1 - $maxWasteRatio) * $result3['maximumWidth'];
         
-        $this->assertGreaterThanOrEqual($minWidth, $result2['maxSum']);
-        $this->assertGreaterThanOrEqual($minWidth, $result3['maxSum']);
+        $this->assertGreaterThanOrEqual($minWidth2, $result2['widthSum']);
+        $this->assertGreaterThanOrEqual($minWidth3, $result3['widthSum']);
     }
 
     public function test_pairController_method_maxWidthPair_2_products_maxSum_is_less_or_equal_to_maxWidth()
@@ -378,13 +385,10 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['minWidth'];
-        $maxWidth = $this->pairController->params()['maxWidth'];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
 
-        
-        $this->assertLessThanOrEqual($maxWidth, $result['maxSum']);
+        $this->assertLessThanOrEqual($result['maxWidth'], $result['widthSum']);
     }
 
     public function test_pairController_method_maxWidthPair_2_products_rows_sum_is_less_or_equal_maximum_rows()
@@ -393,10 +397,9 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['minWidth'];
         $maxRows = $this->pairController->params()['maxRows'];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
 
         $rowSum = $result['rows1'] + $result['rows2'];
         $this->assertLessThanOrEqual($maxRows, $rowSum);
@@ -408,11 +411,12 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['minWidth'];
-        // dd($searchProduct);
         $expectedResult =
         [
-            "maxSum" => 2460,
+            'wasteRatio' => 0.016,
+            'maximumWidth' => 2500,
+            'maxWidth' => 2460,
+            'widthSum' => 2460,
             "rows1" => 1,
             "rows2" => 1,
             "rows3" => null,
@@ -420,7 +424,7 @@ class PairControllerTest extends TestCase
             "pairIndex3" => null
         ];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
         
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
@@ -432,11 +436,12 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['minWidth'];
-        // dd($searchProduct);
         $expectedResult =
         [
-            "maxSum" => 2440,
+            'wasteRatio' => 0.024,
+            'maximumWidth' => 2500,
+            'maxWidth' => 2460,
+            'widthSum' => 2440,
             "rows1" => 1,
             "rows2" => 1,
             "rows3" => 3,
@@ -444,7 +449,7 @@ class PairControllerTest extends TestCase
             "pairIndex3" => 9
         ];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
         
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
@@ -456,10 +461,8 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['minWidth'];
-        // dd($searchProduct);
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
         $index2 = $result['pairIndex2'];
         $index3 = $result['pairIndex3'];
 
@@ -476,10 +479,9 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['minWidth'];
         $maxRows = $this->pairController->params()['maxRows'];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
 
         $rowSum = $result['rows1'] + $result['rows2'] + $result['rows3'];
         $this->assertLessThanOrEqual($maxRows, $rowSum);
@@ -491,12 +493,9 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $minWidth = $this->pairController->params()['minWidth'];
-        $maxWidth = $this->pairController->params()['maxWidth'];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, $minWidth);
-
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
         
-        $this->assertLessThanOrEqual($maxWidth, $result['maxSum']);
+        $this->assertLessThanOrEqual($result['maximumWidth'], $result['widthSum']);
     }
 }
