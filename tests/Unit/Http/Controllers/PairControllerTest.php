@@ -17,6 +17,54 @@ class PairControllerTest extends TestCase
         $this->pairController = new PairController;
     }
 
+    public function inputGenerator($width, $widthList)
+    {
+        $data = 
+        [
+            'products' =>
+            [
+                0 => 
+                [
+                    "code" => "G20BE0R8",
+                    "description" => "Airuslita",
+                    "sheet_width" => 1240,
+                    "sheet_length" => 1200,
+                    "quantity" => 900,
+                    "totalQuantity" => 900,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 203
+                ]  
+            ],
+            'searchProduct' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 1240,
+                "sheet_length" => 1200,
+                "quantity" => 900,
+                "totalQuantity" => 900,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203
+            ]
+        ];
+
+        $minWasteRate = 0.025;
+        $maxWasteRate = 0.03;
+        $product = $data['searchProduct'];
+
+        foreach ($widthList as $maximumWidth) {
+            $product['sheet_width'] = $maximumWidth == $width ? 
+            $maximumWidth * (1 - $minWasteRate)  - $data['searchProduct']['sheet_width']: 
+            $maximumWidth * (1 - $maxWasteRate)  - $data['searchProduct']['sheet_width'];
+            $product['sheet_length'] = rand(570,1100);
+            $data['products'][] = $product;
+        }
+
+        return $data;
+    }
+
     public function data3(){
         return 
         [
@@ -254,8 +302,7 @@ class PairControllerTest extends TestCase
         
     }
 
-    public function data2()
-    {
+    public function data2(){
         return 
         [
             'products' =>
@@ -358,6 +405,18 @@ class PairControllerTest extends TestCase
 
 
     // maxWidthPair2 tests
+     public function test_pairController_method_maxWidthPair_works_with_diferent_maximum_widths()
+    {
+        $widthList = $this->pairController->params()['possibleMaxWidths'];
+        $index = 0;
+
+        foreach ($widthList as $maximumWidth) {
+            $data = $this->inputGenerator($maximumWidth, $widthList);
+            $result = $this->pairController->maxWidthPair2($data['searchProduct'], $index, $data['products']);
+            $this->assertEquals($maximumWidth, $result['maximumWidth']);
+        }
+    }
+
      public function test_pairController_method_maxWidthPair_2_3_products_maxSum_is_greater_or_equal_to_minWidth()
     {
         $data2 = $this->data2();
