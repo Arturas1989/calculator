@@ -489,6 +489,17 @@ class PairController extends Controller
     //     return ($maxSumArr['maxSum'] ) ? $maxSumArr : false;
     // }
 
+    public function calculateMeters($quantity, $rows, $sheet_length)
+    {
+        return round($quantity * $sheet_length / $rows / 1000, 0);
+    }
+
+    // public function checkMeters($searchProduct, $pairedList, $products)
+    // {
+    //     $minMetersParam = $this->params()['minMeters'];
+    //     $meters1 = $searchProduct['quantity'] * $searchProduct['quantity']
+    // }
+
     public function maxWidthPair2($searchProduct, $index, $products)
     {
         $maxSumArr = ['wasteRatio' => 1];

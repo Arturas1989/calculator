@@ -381,6 +381,27 @@ class PairControllerTest extends TestCase
 
 
     //isLargerWidth tests
+    public function test_pairController_method_calculateMeters()
+    {
+        $quantity1 = 800;
+        $rows1 = 3;
+        $sheet_length1 = 1000;
+        $result1 = $this->pairController->calculateMeters($quantity1, $rows1, $sheet_length1);
+        $this->assertEquals($result1, 267);
+
+        $quantity2 = 500;
+        $rows2 = 4;
+        $sheet_length2 = 1100;
+        $result2 = $this->pairController->calculateMeters($quantity2, $rows2, $sheet_length2);
+        $this->assertEquals($result2, 138);
+
+        $quantity3 = 1490;
+        $rows3 = 2;
+        $sheet_length3 = 1220;
+        $result3 = $this->pairController->calculateMeters($quantity3, $rows3, $sheet_length3);
+        $this->assertEquals($result3, 909);
+    }
+
     public function test_pairController_method_isRowsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum(){
         $data = $this->data3_2();
         $products = $data['products'];
@@ -401,8 +422,6 @@ class PairControllerTest extends TestCase
         // dd($products,$pairedList,$searchProduct);
         $this->assertTrue($result);
     }
-
-
 
     // maxWidthPair2 tests
      public function test_pairController_method_maxWidthPair_works_with_diferent_maximum_widths()
