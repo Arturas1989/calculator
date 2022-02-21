@@ -494,11 +494,34 @@ class PairController extends Controller
         return round($quantity * $sheet_length / $rows / 1000, 0);
     }
 
-    // public function checkMeters($searchProduct, $pairedList, $products)
-    // {
-    //     $minMetersParam = $this->params()['minMeters'];
-    //     $meters1 = $searchProduct['quantity'] * $searchProduct['quantity']
-    // }
+    public function calculateQuantity($meters, $rows, $sheet_length)
+    {
+        return round($meters * $rows * 1000 / $sheet_length, 0);
+    }
+
+    public function checkMeters($searchProduct, $pairedList, $products)
+    {
+        $minMetersParam = $this->params()['minMeters'];
+        $meters1 = $this->calculateMeters($searchProduct['quantity'], $pairedList['rows1'], $searchProduct['sheet_length']);
+        
+        $index2 = $pairedList['pairIndex2'];
+        $product2 = $products[$index2];
+        $meters2 = $this->calculateMeters($product2['quantity'], $pairedList['rows2'], $product2['sheet_length']);
+        
+        if($pairedList['rows3'])
+        {
+            $index3 = $pairedList['pairIndex3'];
+            $product3 = $products[$index3];
+            $meters3 = $this->calculateMeters($product3['quantity'], $pairedList['rows3'], $product3['sheet_length']);
+
+            $meters = min($meters1, $meters2, $meters3); 
+        }
+        else
+        {
+            $meters = min($meters1, $meters2);
+        }
+
+    }
 
     public function maxWidthPair2($searchProduct, $index, $products)
     {
