@@ -380,26 +380,46 @@ class PairControllerTest extends TestCase
      */
 
 
-    //isLargerWidth tests
+    public function test_pairController_method_calculateQuantity()
+    {
+        $meters1 = 100;
+        $rows1 = 3;
+        $sheet_length1 = 1470;
+        $quantity1 = $this->pairController->calculateQuantity($meters1, $rows1, $sheet_length1);
+        $this->assertEquals($quantity1, 204);
+
+        $meters2 = 300;
+        $rows2 = 2;
+        $sheet_length2 = 1430;
+        $quantity2 = $this->pairController->calculateQuantity($meters2, $rows2, $sheet_length2);
+        $this->assertEquals($quantity2, 420);
+
+        $meters3 = 500;
+        $rows3 = 2;
+        $sheet_length3 = 1620;
+        $quantity3 = $this->pairController->calculateQuantity($meters3, $rows3, $sheet_length3);
+        $this->assertEquals($quantity3, 617);
+    }
+
     public function test_pairController_method_calculateMeters()
     {
         $quantity1 = 800;
         $rows1 = 3;
         $sheet_length1 = 1000;
-        $result1 = $this->pairController->calculateMeters($quantity1, $rows1, $sheet_length1);
-        $this->assertEquals($result1, 267);
+        $meters1 = $this->pairController->calculateMeters($quantity1, $rows1, $sheet_length1);
+        $this->assertEquals($meters1, 267);
 
         $quantity2 = 500;
         $rows2 = 4;
         $sheet_length2 = 1100;
-        $result2 = $this->pairController->calculateMeters($quantity2, $rows2, $sheet_length2);
-        $this->assertEquals($result2, 138);
+        $meters2 = $this->pairController->calculateMeters($quantity2, $rows2, $sheet_length2);
+        $this->assertEquals($meters2, 138);
 
         $quantity3 = 1490;
         $rows3 = 2;
         $sheet_length3 = 1220;
-        $result3 = $this->pairController->calculateMeters($quantity3, $rows3, $sheet_length3);
-        $this->assertEquals($result3, 909);
+        $meters3 = $this->pairController->calculateMeters($quantity3, $rows3, $sheet_length3);
+        $this->assertEquals($meters3, 909);
     }
 
     public function test_pairController_method_isRowsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum(){
@@ -423,7 +443,6 @@ class PairControllerTest extends TestCase
         $this->assertTrue($result);
     }
 
-    // maxWidthPair2 tests
      public function test_pairController_method_maxWidthPair_works_with_diferent_maximum_widths()
     {
         $widthList = $this->pairController->params()['possibleMaxWidths'];
