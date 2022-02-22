@@ -380,6 +380,29 @@ class PairControllerTest extends TestCase
      */
 
 
+    public function test_pairController_method_minSingleRows_should_work_with_diferent_width()
+    {
+        $maxRows = $this->pairController->params()['maxRows'];
+        $minWidth = 2100;
+        $sheet_width = 270;
+        $singleRows = $this->pairController->minSingleRows($sheet_width, $minWidth, $maxRows);
+        $this->assertEquals($singleRows, 7);
+
+        $minWidth = 2300;
+        $sheet_width = 270;
+        $singleRows = $this->pairController->minSingleRows($sheet_width, $minWidth, $maxRows);
+        $this->assertEquals($singleRows, 8);
+    }
+
+     public function test_pairController_method_minSingleRows_should_return_max_rows_if_exceeds_single_rows()
+    {
+        $maxRows = $this->pairController->params()['maxRows'];
+        $minWidth = 2500;
+        $sheet_width = 270;
+        $singleRows = $this->pairController->minSingleRows($sheet_width, $minWidth, $maxRows);
+        $this->assertEquals($singleRows, $maxRows);
+    }
+
     public function test_pairController_method_calculateQuantity()
     {
         $meters1 = 100;

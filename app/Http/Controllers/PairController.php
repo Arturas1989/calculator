@@ -499,10 +499,24 @@ class PairController extends Controller
         return round($meters * $rows * 1000 / $sheet_length, 0);
     }
 
+    public function minSingleRows($product_width, $minWidth, $maxRows)
+    {
+        $singleRows = floor($minWidth / $product_width);
+        return $singleRows > $maxRows ? $maxRows : $singleRows;
+    }
+
     public function checkMeters($searchProduct, $pairedList, $products)
     {
+
+        $maximumWidths = $this->params()['possibleMaxWidths'];
+        $minWidth = count($maximumWidths) == 1 ? $maximumWidths[0] : min($maximumWidths);
+
         $minMetersParam = $this->params()['minMeters'];
+        $maxRows = $this->params()['maxRows'];
+
         $meters1 = $this->calculateMeters($searchProduct['quantity'], $pairedList['rows1'], $searchProduct['sheet_length']);
+        $singleRows1 = floor($minWidth / $searchProduct['sheet_width']);
+        if($singleRows1 > $maxRows)
         
         $index2 = $pairedList['pairIndex2'];
         $product2 = $products[$index2];
