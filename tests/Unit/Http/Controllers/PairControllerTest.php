@@ -297,9 +297,64 @@ class PairControllerTest extends TestCase
                 "pairIndex2" => 1,
                 "pairIndex3" => 2
             ]
+        ];  
+    }
+
+    public function data3_3(){
+        return 
+        [
+            'products' =>
+            [
+                0 => 
+                [
+                    "code" => "G20BE0R8",
+                    "description" => "Airuslita",
+                    "sheet_width" => 1240,
+                    "sheet_length" => 1200,
+                    "quantity" => 900,
+                    "totalQuantity" => 900,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 203
+                ],
+                1 => 
+                [
+                    "code" => "G20BE0R7",
+                    "description" => "Airuslita",
+                    "sheet_width" => 470,
+                    "sheet_length" => 1200,
+                    "quantity" => 800,
+                    "totalQuantity" => 800,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 202
+                ]  
+            ],
+            'searchProduct' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 1240,
+                "sheet_length" => 1200,
+                "quantity" => 900,
+                "totalQuantity" => 900,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203
+            ],
+            'pairedList' =>
+            [
+                "wasteRatio" => 0.128,
+                "maximumWidth" => 2500,
+                "maxWidth" => 2460,
+                "widthSum" => 2180,
+                "rows1" => 1,
+                "rows2" => 2,
+                "rows3" => null,
+                "pairIndex2" => 1,
+                "pairIndex3" => null
+            ]
         ];
-         
-        
     }
 
     public function data2(){
@@ -445,22 +500,52 @@ class PairControllerTest extends TestCase
         $this->assertEquals($meters3, 909);
     }
 
-    public function test_pairController_method_isRowsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum(){
+    public function test_pairController_method_widthDif_test_with_input(){
+        $maxWidth = 2460;
+        $widthSum = 2390;
+
+        $width1 = 600;
+        $pairedRows1 = 2;
+        $result1 = $this->pairController->widthDif($width1, $maxWidth, $widthSum, $pairedRows1);
+        $this->assertEquals(round($result1, 2), 5.00);
+
+        $width2 = 400;
+        $pairedRows2 = 2;
+        $result2 = $this->pairController->widthDif($width2, $maxWidth, $widthSum, $pairedRows2);
+        $this->assertEquals(round($result2, 2), 3.33);
+
+        $width3 = 390;
+        $pairedRows3 = 1;
+        $result3 = $this->pairController->widthDif($width3, $maxWidth, $widthSum, $pairedRows3);
+        $this->assertEquals(round($result3, 2), -8.33);
+    }
+
+    public function test_pairController_method_isWidthsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum2(){
+        $data = $this->data3_3();
+        $products = $data['products'];
+        $pairedList = $data['pairedList'];
+        $searchProduct = $data['searchProduct'];
+        $result = $this->pairController->isWidthsEqual($products, $pairedList, $searchProduct);
+        
+        $this->assertFalse($result);
+    }
+
+    public function test_pairController_method_isWidthsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum(){
         $data = $this->data3_2();
         $products = $data['products'];
         $pairedList = $data['pairedList'];
         $searchProduct = $data['searchProduct'];
-        $result = $this->pairController->isRowsEqual($products, $pairedList, $searchProduct);
+        $result = $this->pairController->isWidthsEqual($products, $pairedList, $searchProduct);
 
-        $this->assertFalse(false);
+        $this->assertFalse($result);
     }
 
-    public function test_pairController_method_isRowsEqual_assert_true_when_single_rows_sum_is_equal_to_paired_products_rows_sum(){
+    public function test_pairController_method_isWidthsEqual_assert_true_when_single_rows_sum_is_equal_to_paired_products_rows_sum(){
         $data = $this->data3_1();
         $products = $data['products'];
         $pairedList = $data['pairedList'];
         $searchProduct = $data['searchProduct'];
-        $result = $this->pairController->isRowsEqual($products, $pairedList, $searchProduct);
+        $result = $this->pairController->isWidthsEqual($products, $pairedList, $searchProduct);
 
         // dd($products,$pairedList,$searchProduct);
         $this->assertTrue($result);

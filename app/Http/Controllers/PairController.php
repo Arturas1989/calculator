@@ -395,41 +395,41 @@ class PairController extends Controller
 
     //checks for rows equality, because there is no point in joining products, where this condition is true:
     //example (pairedRow1 + pairedRow2)*2 == singleRows1 + singleRows2;
-    public function isRowsEqual($products, $pairedList, $searchProduct)
+    public function widthDif($width, $maxWidth, $widthSum, $pairedRows)
     {
-        // dd($products,$pairedList,$searchProduct);
-        // $maxWidth = $this->params()['maxWidth'];
         $maxRows = $this->params()['maxRows'];
-        $maxWidth = $pairedList['maxWidth'];
 
-        $width1 = $searchProduct['sheet_width'];
-        $singleRows1 = floor($maxWidth / $width1);
-        if($singleRows1 > $maxRows) $singleRows1 = $maxRows;
+        $singleRows = floor($maxWidth / $width);
+        if($singleRows > $maxRows) $singleRows = $maxRows;
+
+        $singleWidth = $singleRows * $width;
+        $widthDif = $singleWidth - $widthSum;
+
+        return $widthDif / $singleRows * $pairedRows;
+    }
+
+
+
+    public function isWidthsEqual($products, $pairedList, $searchProduct)
+    {
+        $maxWidth = $pairedList['maxWidth'];
+        $widthSum = $pairedList['widthSum'];
+        $widthDif1 = $this->widthDif($searchProduct['sheet_width'], $maxWidth, $widthSum, $pairedList['rows1']);
 
         $pairedIndex2 = $pairedList['pairIndex2'];
         $width2 = $products[$pairedIndex2]['sheet_width'];
-        $singleRows2 = floor($maxWidth / $width2);
-        if($singleRows2 > $maxRows) $singleRows2 = $maxRows;
+        $widthDif2 = $this->widthDif($width2, $maxWidth, $widthSum, $pairedList['rows2']);
 
         $pairedIndex3 = $pairedList['pairIndex3'];
         if($pairedIndex3 !== null){
             $width3 = $products[$pairedIndex3]['sheet_width'];
-            $singleRows3 = floor($maxWidth / $width3);
-            if($singleRows3 > $maxRows) $singleRows3 = $maxRows;
-            $rows3 = $pairedList['rows3'];
-            $pairedProductsCount = 3;
+            $widthDif3 = $this->widthDif($width3, $maxWidth, $widthSum, $pairedList['rows3']);
         }
         else{
-            $width3 = 0;
-            $singleRows3 = 0;
-            $rows3 = 0;
-            $pairedProductsCount = 2;
+            $widthDif3 = 0;
         }
         
-        $singleRowsSum = $singleRows1 + $singleRows2 + $singleRows3;
-        $pairedProductsSum = ($pairedList['rows1'] + $pairedList['rows2'] + $rows3) * $pairedProductsCount;
-
-        return $pairedProductsSum <= $singleRowsSum;
+        return $widthDif1 + $widthDif2 + $widthDif3 == 0;
     }
 
     // public function maxWidthPair($minWidth,$minMeters,$productWidth,$index,$products,$futureProducts = null)
@@ -515,24 +515,45 @@ class PairController extends Controller
         $maxRows = $this->params()['maxRows'];
 
         $meters1 = $this->calculateMeters($searchProduct['quantity'], $pairedList['rows1'], $searchProduct['sheet_length']);
-        $singleRows1 = floor($minWidth / $searchProduct['sheet_width']);
-        if($singleRows1 > $maxRows)
+        $singleRows1 = $this->minSingleRows($searchProduct['sheet_width'], $minWidth, $maxRows);
         
         $index2 = $pairedList['pairIndex2'];
         $product2 = $products[$index2];
         $meters2 = $this->calculateMeters($product2['quantity'], $pairedList['rows2'], $product2['sheet_length']);
+        $singleRows2 = $this->minSingleRows($product2['sheet_width'], $minWidth, $maxRows);
         
         if($pairedList['rows3'])
         {
             $index3 = $pairedList['pairIndex3'];
             $product3 = $products[$index3];
             $meters3 = $this->calculateMeters($product3['quantity'], $pairedList['rows3'], $product3['sheet_length']);
+            $singleRows3 = $this->minSingleRows($product3['sheet_width'], $minWidth, $maxRows);
 
-            $meters = min($meters1, $meters2, $meters3); 
+            $meters = min($meters1, $meters2, $meters3);
+
+            $quantity1 = $this->calculateQuantity($meters, $pairedList['rows1'], $searchProduct['sheet_length']);
+            $quantityLeft1 = $searchProduct['quantity'] - $quantity1;
+            $rate1 = $quantityLeft1 / $searchProduct['quantity'];
+            
+            $quantity2 = $this->calculateQuantity($meters, $pairedList['rows2'], $product2['sheet_length']);
+            $quantityLeft2 = $product2['quantity'] - $quantity2;
+            $rate2 = $quantityLeft2 / $product2['quantity'];
+            
+            $quantity3 = $this->calculateQuantity($meters, $pairedList['rows3'], $product3['sheet_length']);
+            $quantityLeft3 = $product3['quantity'] - $quantity3;
+            $rate3 = $quantityLeft3 / $product3['quantity'];
         }
         else
         {
             $meters = min($meters1, $meters2);
+
+            $quantity1 = $this->calculateQuantity($meters, $pairedList['rows1'], $searchProduct['sheet_length']);
+            $quantityLeft1 = $searchProduct['quantity'] - $quantity1;
+
+            $quantity2 = $this->calculateQuantity($meters, $pairedList['rows2'], $product2['sheet_length']);
+            $quantityLeft2 = $product2['quantity'] - $quantity2;
+
+            
         }
 
     }
@@ -592,7 +613,7 @@ class PairController extends Controller
                         'pairIndex3' => null
                     ];
 
-                    if($this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
+                    if($this->isWidthsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
 
                     if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio)
                     {
@@ -644,7 +665,7 @@ class PairController extends Controller
                                     'pairIndex3' => $key3
                                 ];
 
-                                if($this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
+                                if($this->isWidthsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
 
                                 if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio ){
                                     $maxSumArr = $maxWidthSumChecked;
@@ -686,10 +707,10 @@ class PairController extends Controller
                                         'pairIndex3' => $key3
                                     ];
 
-                                    if($this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
+                                    if($this->isWidthsEqual($products, $maxWidthSumChecked, $searchProduct)) continue;
 
                                     if($wasteRatio < $maxSumArr['wasteRatio'] 
-                                    && $this->isRowsEqual($products, $maxWidthSumChecked, $searchProduct)
+                                    && $this->isWidthsEqual($products, $maxWidthSumChecked, $searchProduct)
                                     && $wasteRatio <= $maxWasteRatio){
                                         $maxSumArr = $maxWidthSumChecked;
                                     }
