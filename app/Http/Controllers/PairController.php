@@ -272,129 +272,67 @@ class PairController extends Controller
         return $productList;
     }
 
-
-    
-    // public function getArrays($widthType, Request $request, Board $board)
+    // public function checkMetersQuantity($maxWidth, $minMeters, $searchProduct, $pairedProduct, $rows1, $rows2)
     // {
-    //     $from = $this->dates($request)['manufactury_date_from'];
-    //     $to = $this->dates($request)['manufactury_date_till'];
-    //     $from2 = $this->dates($request)['load_date_from'];
-    //     $to2 = $this->dates($request)['load_date_till'];
-    //     // $from3 = $this->dates($request)['future_manufactury_date_from'];
-    //     // $to3 = $this->dates($request)['future_manufactury_date_till'];
-    //     // $from4 = $this->dates($request)['future_load_date_from'];
-    //     // $to4 = $this->dates($request)['future_load_date_till'];
-
-
-    //     $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
-    //     // $futureProductsList = $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
-    //     $array = [];
-
-    //     foreach ($productsList as $board => $marks) 
-    //     {
-    //         foreach ($marks as $mark => $markProducts) 
-    //         {
-    //             switch ($widthType)
-    //             {
-    //                 case 'widerThan820':
-    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
-    //                         return $el['sheet_width'] > 820 && !$this->isSingle($el['sheet_width']);
-    //                     });
-    //                 break;
-    //                 case 'lessThan821':
-    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
-    //                         return $el['sheet_width'] < 821 && !$this->isSingle($el['sheet_width']);
-    //                     });
-    //                 break;
-    //                 case 'exceptSingles':
-    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
-    //                         return !$this->isSingle($el['sheet_width']);
-    //                     });
-    //                 break;
-    //                 case 'singles':
-    //                     $array[$board][$mark] = array_filter($markProducts, function($el) {
-    //                         return $this->isSingle($el['sheet_width']);
-    //                     });
-    //                 break;
-    //                 default:
-    //                 $array = [];
-    //             }  
-    //         } 
-    //     }
         
-    //     return $array;
+    //     $searchProduct['rows'] = $rows1;
+    //     $pairedProduct['rows'] = $rows2;
+
+    //     $searchProductMilimeters = $searchProduct['sheet_length'] 
+    //     * $searchProduct['quantity'] / $rows1; 
+
+    //     $pairedProductMilimeters = $pairedProduct['sheet_length'] 
+    //     * $pairedProduct['quantity']/$rows2;
+
+    //     if($searchProductMilimeters <= $pairedProductMilimeters){
+    //         $checkMetersProduct = $pairedProduct;
+    //         $checkQuantityProduct = $searchProduct;
+    //         $minMilimeters = $searchProductMilimeters;
+    //         $maxMilimeters = $pairedProductMilimeters;
+    //     }
+    //     else{
+    //         $checkMetersProduct = $searchProduct;
+    //         $checkQuantityProduct = $pairedProduct;
+    //         $minMilimeters = $pairedProductMilimeters;
+    //         $maxMilimeters = $searchProductMilimeters;
+    //     }
+    //     $difMilimeters = $maxMilimeters - $minMilimeters;
+    //     $additionalQuantity =  round($difMilimeters * $checkQuantityProduct['rows'] 
+    //     / $checkQuantityProduct['sheet_length'],0);
+    //     $quantityRatio = $this->params()['quantityRatio'];
+
+    //     if($additionalQuantity / $checkQuantityProduct['totalQuantity'] > $quantityRatio
+    //     || strpos($checkQuantityProduct['description'],'tikslus'))
+    //     {
+    //         $milimeters = $minMilimeters;
+    //     }
+    //     else
+    //     {
+    //         return $maxMilimeters;
+    //     }
+
+    //     $quantity = round($milimeters * $checkMetersProduct['rows'] 
+    //     / $checkMetersProduct['sheet_length'],0);
+    //     $quantityLeft = $checkMetersProduct['quantity'] - $quantity;
+
+    //     if($checkMetersProduct['sheet_width'] > $maxWidth) $maxWidth = 2500;
+
+    //     $rows = floor($maxWidth/$checkMetersProduct['sheet_width']);
+    //     $maxRows = $this->params()['maxRows'];
+    //     if($rows > $maxRows) $rows = $maxRows;
+
+    //     $productMeters = round($quantityLeft * $checkMetersProduct['sheet_length'] 
+    //     /$rows/1000,0);
+
+    //     return $productMeters>=$minMeters ? $milimeters : false;
     // }
 
-    
-
-    public function checkMetersQuantity($maxWidth, $minMeters, $searchProduct, $pairedProduct, $rows1, $rows2)
+    public function checkMetersQuantity($pairedList)
     {
-        
-        $searchProduct['rows'] = $rows1;
-        $pairedProduct['rows'] = $rows2;
-
-        $searchProductMilimeters = $searchProduct['sheet_length'] 
-        * $searchProduct['quantity'] / $rows1; 
-
-        $pairedProductMilimeters = $pairedProduct['sheet_length'] 
-        * $pairedProduct['quantity']/$rows2;
-
-        if($searchProductMilimeters <= $pairedProductMilimeters){
-            $checkMetersProduct = $pairedProduct;
-            $checkQuantityProduct = $searchProduct;
-            $minMilimeters = $searchProductMilimeters;
-            $maxMilimeters = $pairedProductMilimeters;
-        }
-        else{
-            $checkMetersProduct = $searchProduct;
-            $checkQuantityProduct = $pairedProduct;
-            $minMilimeters = $pairedProductMilimeters;
-            $maxMilimeters = $searchProductMilimeters;
-        }
-        $difMilimeters = $maxMilimeters - $minMilimeters;
-        $additionalQuantity =  round($difMilimeters * $checkQuantityProduct['rows'] 
-        / $checkQuantityProduct['sheet_length'],0);
-        $quantityRatio = $this->params()['quantityRatio'];
-
-        if($additionalQuantity / $checkQuantityProduct['totalQuantity'] > $quantityRatio
-        || strpos($checkQuantityProduct['description'],'tikslus'))
-        {
-            $milimeters = $minMilimeters;
-        }
-        else
-        {
-            return $maxMilimeters;
-        }
-
-        $quantity = round($milimeters * $checkMetersProduct['rows'] 
-        / $checkMetersProduct['sheet_length'],0);
-        $quantityLeft = $checkMetersProduct['quantity'] - $quantity;
-
-        if($checkMetersProduct['sheet_width'] > $maxWidth) $maxWidth = 2500;
-
-        $rows = floor($maxWidth/$checkMetersProduct['sheet_width']);
-        $maxRows = $this->params()['maxRows'];
-        if($rows > $maxRows) $rows = $maxRows;
-
-        $productMeters = round($quantityLeft * $checkMetersProduct['sheet_length'] 
-        /$rows/1000,0);
-
-        return $productMeters>=$minMeters ? $milimeters : false;
+       
     }
 
-    // public function isLargerWidth($width1,$width2,$maxWidth,$maxRows,$maxWidthSum)
-    // {
-    //     $rows1 = floor($maxWidth/$width1);
-    //     if($rows1>$maxRows) $rows1 = $maxRows;
-    //     $rows2 = floor($maxWidth/$width2);
-    //     if($rows2>$maxRows) $rows2 = $maxRows;
-    //     $maxWidth1 = $rows1 * $width1;
-    //     $maxWidth2 = $rows2 * $width2;
-    //     return ($maxWidth1+$maxWidth2)/2 >= $maxWidthSum;
-    // }
-
-    //checks for rows equality, because there is no point in joining products, where this condition is true:
-    //example (pairedRow1 + pairedRow2)*2 == singleRows1 + singleRows2;
+    
     public function widthDif($width, $maxWidth, $widthSum, $pairedRows)
     {
         $maxRows = $this->params()['maxRows'];
@@ -432,62 +370,21 @@ class PairController extends Controller
         return $widthDif1 + $widthDif2 + $widthDif3 == 0;
     }
 
-    // public function maxWidthPair($minWidth,$minMeters,$productWidth,$index,$products,$futureProducts = null)
-    // {
-    //     $searchProduct = $products[$index];
-    //     if(!$futureProducts)
-    //     {
-    //         unset($products[$index]);
-    //     }
-    //     else
-    //     {
-    //         $products = $futureProducts;
-    //     }
+    public function calculatePairedMeters($pairedList)
+    {
+        $meters1 = $this->calculateMeters($pairedList['quantity1'], $pairedList['rows1'], $pairedList['sheet_length1']);
+        $meters2 = $this->calculateMeters($pairedList['quantity2'], $pairedList['rows2'], $pairedList['sheet_length2']);
         
-    //     $maxSumArr = ['maxSum' => 0];
-    //     $maxRows = $this->params()['maxRows'];
-
-    //     $maxWidth = $this->params()['maxWidth'];
-    //     if($productWidth > $maxWidth){
-    //         $maxWidth = 2500;
-    //     }
-    //     $rows = floor($maxWidth/$productWidth);
-    //     if($rows>$maxRows){
-    //         $rows = $maxRows;
-    //     }
+        if($pairedList['rows3'] != null){
+            $meters3 = $this->calculateMeters($pairedList['quantity3'], $pairedList['rows3'], $pairedList['sheet_length3']);
+            $meters = min($meters1, $meters2, $meters3);
+        }
+        else{
+            $meters = min($meters1, $meters2);
+        }
         
-    //     foreach ($products as $key => $product) {
-        
-    //         for ($i=1; $i <= $rows; ++$i) {
-    //             $width_left = $maxWidth - $i * $productWidth;
-    //             $rows2 = floor($width_left/$product['sheet_width']);
-    //             if($i + $rows2 > $maxRows){
-    //                 $rows2 = $maxRows - $i;
-    //             } 
-    //                 for ($j=1; $j <= $rows2 ; ++$j) 
-    //                 {
-    //                     $widthSum =  $productWidth * $i + $product['sheet_width'] * $j;
-    //                     if($this->isLargerWidth($productWidth,$product['sheet_width'],$maxWidth,$maxRows,$widthSum)) continue;
-
-    //                     if($widthSum >= $minWidth 
-    //                     && $widthSum <= $maxWidth 
-    //                     && $widthSum > $maxSumArr['maxSum']
-    //                     && $milimeters = $this->checkMetersQuantity($maxWidth,$minMeters,$searchProduct,$products[$key],$i,$j))
-    //                     {
-    //                         $maxSumArr = 
-    //                         [
-    //                             'maxSum' => $widthSum,
-    //                             'milimeters' => $milimeters,
-    //                             'pairIndex' => $key,
-    //                             'rows1' => $i,
-    //                             'rows2' => $j
-    //                         ];
-    //                     }  
-    //                 }
-    //         }  
-    //     }
-    //     return ($maxSumArr['maxSum'] ) ? $maxSumArr : false;
-    // }
+        return $meters;
+    }
 
     public function calculateMeters($quantity, $rows, $sheet_length)
     {
