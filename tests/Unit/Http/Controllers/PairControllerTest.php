@@ -435,6 +435,48 @@ class PairControllerTest extends TestCase
      */
 
 
+    public function test_pairController_method_calculatePairedMeters_should_work_with_three_products()
+    {
+        $pairedList = 
+        [
+            'quantity1' => 1300,
+            'sheet_length1' => 1548,
+            'rows1' => 2,
+
+            'quantity2' => 1630,
+            'sheet_length2' => 1240,
+            'rows2' => 3,
+
+            'quantity3' => 500,
+            'sheet_length3' => 1240,
+            'rows3' => 2
+        ];
+
+        $result = $this->pairController->calculatePairedMeters($pairedList);
+        $this->assertEquals($result, 310);
+    }
+
+    public function test_pairController_method_calculatePairedMeters_should_work_with_two_products()
+    {
+        $pairedList = 
+        [
+            'quantity1' => 1300,
+            'sheet_length1' => 1548,
+            'rows1' => 2,
+
+            'quantity2' => 1630,
+            'sheet_length2' => 1240,
+            'rows2' => 3,
+
+            'quantity3' => null,
+            'sheet_length3' => null,
+            'rows3' => null
+        ];
+
+        $result = $this->pairController->calculatePairedMeters($pairedList);
+        $this->assertEquals($result, 674);
+    }
+
     public function test_pairController_method_minSingleRows_should_work_with_diferent_width()
     {
         $maxRows = $this->pairController->params()['maxRows'];
