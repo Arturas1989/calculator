@@ -58,7 +58,9 @@ class PairController extends Controller
     {
         return 
         [
-            'quantityRatio' => 0,
+            'description' => 'tikslus',
+            'quantityMore' => 20,
+            'quantityRatio' => 0.05,
             'largeWasteRatio' => 0.12,
             'minMeters' => 70,
             'possibleMaxWidths' => [2500, 2300, 2100],
@@ -151,7 +153,7 @@ class PairController extends Controller
                             'description' => $description,
                             'sheet_width' => $product->sheet_width,
                             'sheet_length' => $product->sheet_length,
-                            'quantity' => $order->quantity,
+                            'quantityLeft' => $order->quantity,
                             'totalQuantity' => $order->quantity,
                             'dates' => $dates,
                             'bending' => $bending,
@@ -329,7 +331,7 @@ class PairController extends Controller
 
     public function checkMetersQuantity($pairedList)
     {
-       
+       $meters = calculatePairedMeters($pairedList);
     }
 
     
@@ -370,19 +372,65 @@ class PairController extends Controller
         return $widthDif1 + $widthDif2 + $widthDif3 == 0;
     }
 
+    // check if quantityLeft doesnt exceed minimum requirements. If so add meters that it takes all quantity.
+    public function correctMeters($productList, &$meters)
+    {
+        $params = $this->params();
+        $adMetr = 0;
+        foreach ($productList as $info)
+        {
+            $product = $info['product'];
+            if( strpos($product['description'], $params['description']) ) return;
+
+            if ($product['quantityLeft'] <= $params['quantityMore'] 
+                || $product['quantityLeft'] / $product['totalQuantity'] <= $params['quantityRatio']
+                && !strpos($product['description'], $params['description'])
+                && $product['quantityLeft'] != 0)
+                {
+                    $adMetr2 = $this->calculateMeters($product['quantityLeft'], $info['rows'], $product['sheet_length']);
+                    if($adMetr2 > $adMetr) $adMetr = $adMetr2;
+                }
+            else{
+                $adMetr = 0;
+                break;
+            }
+        }
+
+        $meters += $adMetr;
+    }
+
     public function calculatePairedMeters($pairedList)
     {
-        $meters1 = $this->calculateMeters($pairedList['quantity1'], $pairedList['rows1'], $pairedList['sheet_length1']);
-        $meters2 = $this->calculateMeters($pairedList['quantity2'], $pairedList['rows2'], $pairedList['sheet_length2']);
         
-        if($pairedList['rows3'] != null){
-            $meters3 = $this->calculateMeters($pairedList['quantity3'], $pairedList['rows3'], $pairedList['sheet_length3']);
+
+        // 'description' => 'tikslus',
+        //     'quantityMore' => 20,
+        //     'quantityRatio' => 0.05,
+        $product1 = &$pairedList['product1'];
+        $product2 = &$pairedList['product2'];
+        $product3 = &$pairedList['product3'];
+
+        $meters1 = $this->calculateMeters($product1['quantityLeft'], $pairedList['rows1'], $product1['sheet_length']);
+        $meters2 = $this->calculateMeters($product2['quantityLeft'], $pairedList['rows2'], $product2['sheet_length']);
+        $productList = [];
+        
+        if($product3 != null){
+            $meters3 = $this->calculateMeters($product3['quantityLeft'], $pairedList['rows3'], $product3['sheet_length']);
             $meters = min($meters1, $meters2, $meters3);
+            $product3['quantityLeft'] -= $this->calculateQuantity($meters, $pairedList['rows3'], $product3['sheet_length']);
+            $productList[] = ['product' => $product3, 'rows' => $pairedList['rows3']];
         }
         else{
             $meters = min($meters1, $meters2);
         }
+
+        $product1['quantityLeft'] -= $this->calculateQuantity($meters, $pairedList['rows1'], $product1['sheet_length']);
+        $product2['quantityLeft'] -= $this->calculateQuantity($meters, $pairedList['rows2'], $product2['sheet_length']);
+        $productList[] = ['product' => $product1, 'rows' => $pairedList['rows1']];
+        $productList[] = ['product' => $product2, 'rows' => $pairedList['rows2']];
         
+        $this->correctMeters($productList, $meters);
+
         return $meters;
     }
 
