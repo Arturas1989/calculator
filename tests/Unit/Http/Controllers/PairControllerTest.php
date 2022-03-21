@@ -367,52 +367,157 @@ class PairControllerTest extends TestCase
      */
     
 
+    public function test_pairController_method_checkMetersQuantity_should_return_pairedList_when_meters_above_70()
+    {
+        $pairedList = 
+        [
+            'product1' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 1200,
+                "sheet_length" => 1200,
+                "quantityLeft" => 750,
+                "totalQuantity" => 750,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 1,
+                'meters' => 300
+            ],
+
+            'product2' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 390,
+                "sheet_length" => 1200,
+                "quantityLeft" => 1851,
+                "totalQuantity" => 1851,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 2
+            ],
+
+            'product3' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 400,
+                "sheet_length" => 1500,
+                "quantityLeft" => 600,
+                "totalQuantity" => 600,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 1
+            ]
+        ];
+
+        $result = $this->pairController->checkMetersQuantity($pairedList, 70);
+        $this->assertIsArray($result);
+    }
+
+    public function test_pairController_method_checkMetersQuantity_assert_false_when_min_meters_below_70()
+    {
+        $pairedList = 
+        [
+            'product1' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 1200,
+                "sheet_length" => 1200,
+                "quantityLeft" => 750,
+                "totalQuantity" => 750,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 1,
+                'meters' => 300
+            ],
+
+            'product2' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 390,
+                "sheet_length" => 1200,
+                "quantityLeft" => 1615,
+                "totalQuantity" => 1615,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 2
+            ],
+
+            'product3' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 400,
+                "sheet_length" => 1500,
+                "quantityLeft" => 600,
+                "totalQuantity" => 600,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 1
+            ]
+        ];
+
+        $result = $this->pairController->checkMetersQuantity($pairedList, 70);
+
+        $this->assertEquals(false, $result);
+    }
+
     public function test_pairController_method_correctMeters_shouldnt_correct_when_1_product_dont_meet_quantity_requirements()
     {
         $meters = 900;
         $pairedList = 
         [
-                'product1' =>
-                [
-                    "code" => "G20BE0R8",
-                    "description" => "Airuslita",
-                    "sheet_width" => 1200,
-                    "sheet_length" => 1200,
-                    "quantityLeft" => 5,
-                    "totalQuantity" => 750,
-                    "dates" => "08 (09)",
-                    "bending" => "",
-                    "order_id" => 203,
-                    'rows' => 1
-                ],
+            'product1' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 1200,
+                "sheet_length" => 1200,
+                "quantityLeft" => 5,
+                "totalQuantity" => 750,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 1
+            ],
 
-                'product2' =>
-                [
-                    "code" => "G20BE0R8",
-                    "description" => "Airuslita",
-                    "sheet_width" => 390,
-                    "sheet_length" => 1200,
-                    "quantityLeft" => 82,
-                    "totalQuantity" => 1500,
-                    "dates" => "08 (09)",
-                    "bending" => "",
-                    "order_id" => 203,
-                    'rows' => 2
-                ],
+            'product2' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 390,
+                "sheet_length" => 1200,
+                "quantityLeft" => 82,
+                "totalQuantity" => 1500,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 2
+            ],
 
-                'product3' =>
-                [
-                    "code" => "G20BE0R8",
-                    "description" => "Airuslita",
-                    "sheet_width" => 400,
-                    "sheet_length" => 1500,
-                    "quantityLeft" => 1,
-                    "totalQuantity" => 600,
-                    "dates" => "08 (09)",
-                    "bending" => "",
-                    "order_id" => 203,
-                    'rows' => 1
-                ]
+            'product3' =>
+            [
+                "code" => "G20BE0R8",
+                "description" => "Airuslita",
+                "sheet_width" => 400,
+                "sheet_length" => 1500,
+                "quantityLeft" => 1,
+                "totalQuantity" => 600,
+                "dates" => "08 (09)",
+                "bending" => "",
+                "order_id" => 203,
+                'rows' => 1
+            ]
         ];
 
         $this->pairController->correctMeters($pairedList, $meters);
@@ -680,7 +785,7 @@ class PairControllerTest extends TestCase
         ];
 
         $result = $this->pairController->calculatePairedMeters($pairedList);
-        $this->assertEquals(310, $result['meters']);
+        $this->assertEquals(310, $result['product1']['meters']);
     }
 
     public function test_pairController_method_calculatePairedMeters_should_work_with_two_products()
@@ -719,7 +824,7 @@ class PairControllerTest extends TestCase
         ];
 
         $result = $this->pairController->calculatePairedMeters($pairedList);
-        $this->assertEquals(674, $result['meters']);
+        $this->assertEquals(674, $result['product1']['meters']);
     }
 
     public function test_pairController_method_minSingleRows_should_work_with_diferent_width()
@@ -739,9 +844,9 @@ class PairControllerTest extends TestCase
      public function test_pairController_method_minSingleRows_should_return_max_rows_if_exceeds_single_rows()
     {
         $maxRows = $this->pairController->params()['maxRows'];
-        $minWidth = 2500;
+        $minWidth = 2500 - $this->pairController->params()['minusfromMaxWidth'];
         $sheet_width = 270;
-        $singleRows = $this->pairController->minSingleRows($sheet_width, $minWidth, $maxRows);
+        $singleRows = $this->pairController->minSingleRows($sheet_width, $minWidth);
         $this->assertEquals($singleRows, $maxRows);
     }
 
@@ -905,8 +1010,8 @@ class PairControllerTest extends TestCase
         $index = 0;
         $expectedResult =
         [
-            "pairedList" =>  [
-                "product1" =>  [
+            "pairedList" => [
+                "product1" => [
                   "code" => "G20BE0R8",
                   "description" => "Airuslita",
                   "sheet_width" => 1240,
@@ -919,21 +1024,21 @@ class PairControllerTest extends TestCase
                   "index" => 0,
                   "rows" => 1
                 ],
-                "product2" =>  [
-                  "code" => "G20BE0R5",
+                "product2" => [
+                  "code" => "G20BE0R11",
                   "description" => "Airuslita",
-                  "sheet_width" => 500,
-                  "sheet_length" => 1500,
-                  "quantityLeft" => 700,
-                  "totalQuantity" => 700,
+                  "sheet_width" => 1220,
+                  "sheet_length" => 1220,
+                  "quantityLeft" => 1000,
+                  "totalQuantity" => 1000,
                   "dates" => "08 (09)",
                   "bending" => "",
-                  "order_id" => 200,
+                  "order_id" => 206,
                   "rows" => 1,
-                  "index" => 4
+                  "index" => 1
                 ]
                 ],
-              "widthInfo" =>  [
+              "widthInfo" => [
                 "wasteRatio" => 0.016,
                 "maximumWidth" => 2500,
                 "maxWidth" => 2460,
@@ -969,31 +1074,43 @@ class PairControllerTest extends TestCase
                   "rows" => 1
                 ],
                 "product2" => [
-                  "code" => "G20BE0R5",
+                  "code" => "G20BE0R7",
                   "description" => "Airuslita",
-                  "sheet_width" => 500,
-                  "sheet_length" => 1500,
-                  "quantityLeft" => 700,
-                  "totalQuantity" => 700,
+                  "sheet_width" => 840,
+                  "sheet_length" => 1200,
+                  "quantityLeft" => 800,
+                  "totalQuantity" => 800,
                   "dates" => "08 (09)",
                   "bending" => "",
-                  "order_id" => 200,
+                  "order_id" => 202,
                   "rows" => 1,
-                  "index" => 4
+                  "index" => 2
+                ],
+                "product3" => [
+                  "code" => "G20BE0R9",
+                  "description" => "Airuslita",
+                  "sheet_width" => 120,
+                  "sheet_length" => 1200,
+                  "quantityLeft" => 1000,
+                  "totalQuantity" => 1000,
+                  "dates" => "08 (09)",
+                  "bending" => "",
+                  "order_id" => 204,
+                  "rows" => 3,
+                  "index" => 9
                 ]
-            ],
+                ],
               "widthInfo" => [
                 "wasteRatio" => 0.024,
                 "maximumWidth" => 2500,
                 "maxWidth" => 2460,
                 "widthSum" => 2440,
                 "pairIndex2" => 2,
-                "pairIndex3" => 9,
+                "pairIndex3" => 9
               ]
         ];
         
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products);
-        // dd($result);
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
     }

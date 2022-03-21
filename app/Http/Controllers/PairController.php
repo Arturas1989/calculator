@@ -329,12 +329,24 @@ class PairController extends Controller
     //     return $productMeters>=$minMeters ? $milimeters : false;
     // }
 
-    public function checkMetersQuantity($pairedList)
+    public function checkMetersQuantity($pairedList, $minMeters)
     { 
-        $meters = $this->calculatePairedMeters($pairedList)['meters'];
-        $minFullWidth = min($this->params()['possibleMaxWidths']);
-        // dd($pairedList);
-        // return $meters >= $this->params()['minMeters'] ? $meters : false;
+        $pairedList = $this->calculatePairedMeters($pairedList);
+
+        $minWidth = min($this->params()['possibleMaxWidths']) - $this->params()['minusfromMaxWidth'];
+
+        foreach ($pairedList as $product) 
+        {
+            if($product['quantityLeft'] == 0) continue;
+
+            $singleRows = $this->minSingleRows($product['sheet_width'], $minWidth);
+            $metersToCheck = $this->calculateMeters($product['quantityLeft'], $singleRows, $product['sheet_length']);
+            if($metersToCheck < $minMeters){
+                return false;
+            } 
+        }
+
+        return $pairedList;
     }
 
     
@@ -426,7 +438,7 @@ class PairController extends Controller
         if($product2['quantityLeft'] < 0) $product2['quantityLeft'] = 0;
         
         $this->correctMeters($pairedList, $meters);
-        $pairedList['meters'] = $meters;
+        $pairedList['product1']['meters'] = $meters;
 
         return $pairedList;
     }
@@ -441,8 +453,9 @@ class PairController extends Controller
         return round($meters * $rows * 1000 / $sheet_length, 0);
     }
 
-    public function minSingleRows($product_width, $minWidth, $maxRows)
+    public function minSingleRows($product_width, $minWidth)
     {
+        $maxRows = $this->params()['maxRows'];
         $singleRows = floor($minWidth / $product_width);
         return $singleRows > $maxRows ? $maxRows : $singleRows;
     }
