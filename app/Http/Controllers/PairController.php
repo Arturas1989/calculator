@@ -334,7 +334,7 @@ class PairController extends Controller
         $pairedList = $this->calculatePairedMeters($pairedList);
 
         $minWidth = min($this->params()['possibleMaxWidths']) - $this->params()['minusfromMaxWidth'];
-
+        
         foreach ($pairedList as $product) 
         {
             if($product['quantityLeft'] == 0) continue;
@@ -414,14 +414,14 @@ class PairController extends Controller
     {
         $product1 = &$pairedList['product1'];
         $product2 = &$pairedList['product2'];
-        $product3 = &$pairedList['product3'];
 
         $meters1 = $this->calculateMeters($product1['quantityLeft'], $product1['rows'], $product1['sheet_length']);
         $meters2 = $this->calculateMeters($product2['quantityLeft'], $product2['rows'], $product2['sheet_length']);
         $productList = [];
 
 
-        if($product3 != null){
+        if(isset($pairedList['product3'])){
+            $product3 = &$pairedList['product3'];
             $meters3 = $this->calculateMeters($product3['quantityLeft'], $product3['rows'], $product3['sheet_length']);
             $meters = min($meters1, $meters2, $meters3);
             $product3['quantityLeft'] -= $this->calculateQuantity($meters, $product3['rows'], $product3['sheet_length']);
@@ -462,7 +462,7 @@ class PairController extends Controller
 
     
 
-    public function maxWidthPair2($searchProduct, $index, $products)
+    public function maxWidthPair2($searchProduct, $index, $products, $minMeters)
     {
         $maxSumArr = ['wasteRatio' => 1];
         $maxRowsSum = $this->params()['maxRows'];
@@ -523,6 +523,8 @@ class PairController extends Controller
                         'product2' => $pairProduct2
                     ];
 
+                    
+
                     if($this->isWidthsEqual($pairedList, $maxWidthSumChecked)) continue;
 
                     // $meters = $this->checkMetersQuantity($products, $maxWidthSumChecked);
@@ -532,7 +534,11 @@ class PairController extends Controller
                     if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio)
                     {
                         $maxSumArr = $maxWidthSumChecked;
-                        $result = ['pairedList' => $pairedList, 'widthInfo' => $maxSumArr];
+
+                        $checkPairedList = $this->checkMetersQuantity($pairedList, $minMeters);
+                        if($checkPairedList === false) continue;
+
+                        $result = ['pairedList' => $checkPairedList, 'widthInfo' => $maxSumArr];
                     }
 
                     $pairProducts3 = $pairProducts2;
@@ -618,7 +624,11 @@ class PairController extends Controller
 
                                 if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio ){
                                     $maxSumArr = $maxWidthSumChecked;
-                                    $result = ['pairedList' => $pairedList, 'widthInfo' => $maxSumArr];
+                        
+                                    $checkPairedList = $this->checkMetersQuantity($pairedList, $minMeters);
+                                    if($checkPairedList === false) continue;
+
+                                    $result = ['pairedList' => $checkPairedList, 'widthInfo' => $maxSumArr];
                                 }
                             }   
                         }
@@ -671,7 +681,11 @@ class PairController extends Controller
 
                                     if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio){
                                         $maxSumArr = $maxWidthSumChecked;
-                                        $result = ['pairedList' => $pairedList, 'widthInfo' => $maxSumArr];
+                        
+                                        $checkPairedList = $this->checkMetersQuantity($pairedList, $minMeters);
+                                        if($checkPairedList === false) continue;
+
+                                        $result = ['pairedList' => $checkPairedList, 'widthInfo' => $maxSumArr];
                                     }
                                 } 
                             }   
