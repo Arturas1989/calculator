@@ -334,7 +334,7 @@ class PairController extends Controller
         $pairedList = $this->calculatePairedMeters($pairedList);
 
         $minWidth = min($this->params()['possibleMaxWidths']) - $this->params()['minusfromMaxWidth'];
-        
+
         foreach ($pairedList as $product) 
         {
             if($product['quantityLeft'] == 0) continue;
@@ -488,7 +488,7 @@ class PairController extends Controller
             unset($pairProducts2[$index]);
             
             $searchProduct['index'] = $index;
-            foreach ($pairProducts2 as $key2 => $pairProduct2) 
+            foreach ($pairProducts2 as $key2 => &$pairProduct2) 
             {
 
                 for ($rows1 = 1; $rows1 <= $maxRows1; ++$rows1) 
@@ -861,7 +861,7 @@ class PairController extends Controller
         $pairs = [];
         $minMetersParam = $this->params()['minMeters'];
         
-        $result = $this->calculation($productsRSortByWidth, 0);
+        $result = $this->pairing($productsRSortByWidth, 0);
         if(!$result) return $this->calculationMethod1($productsRSortByWidth, $minMetersParam);
         $pairs = $result['pairs'];
 
@@ -951,17 +951,17 @@ class PairController extends Controller
 
     }
 
-    public function calculation($productsList, $minMeters)
+    public function pairing($productList, $minMeters)
     {
 
         $pairs = [];
-        $productsCopy = $productsList;
+        $productCopy = $productList;
 
         $minMetersParam = $this->params()['minMeters'];
         $maxRowsParam = $this->params()['maxRows'];
         $largeWasteParam = $this->params()['largeWasteRatio'];
 
-        foreach ($productsList as $boards => &$marks) 
+        foreach ($productList as $boards => &$marks) 
         {
             foreach ($marks as $mark => &$products) 
             {
@@ -969,99 +969,31 @@ class PairController extends Controller
                 foreach ($products as $key => &$searchProduct) 
                 {
                     
-                    if($this->isSingle($searchProduct['sheet_width'])){
-                        continue;
-                    }
+                    if($this->isSingle($searchProduct['sheet_width'])) continue;
                     
-                    // $pairsProducts = $this->pairing($searchProduct,$products,$minWidth,$minMeters,
-                    // $searchProductWidth,$key,$pairs,$boards,$mark,$minMetersParam);
-                    // if(!$pairsProducts) return false;
-                    // $pairs = $pairsProducts['pairs'];
-                    // $products = $pairsProducts['products'];
-                    
-
-                    
-
-                        while (isset($products[$key]) 
-                        && $maxWidthArr = $this->maxWidthPair2($searchProduct,$key,$products)) 
+                    while (isset($products[$key]) 
+                    && $maxWidthArr = $this->maxWidthPair2($searchProduct, $key, $products, $minMeters)) 
+                    {
+                        if($maxWidthArr['pairedList']['product1']['meters'] < $minMetersParam) return false;
+                        
+                        $pairs[] = $maxWidthArr['pairedList'];
+                        foreach($maxWidthArr['pairedList'] as $product)
                         {
-                            $pairedIndex = $maxWidthArr['pairIndex2'];
-                            $pairedProduct = $products[$pairedIndex];
-                            $milimeters = $maxWidthArr['milimeters'];
-                        
-                            
-                            if($milimeters/1000 < $minMetersParam){
-                                return false;
+                            if($product['quantityLeft'] == 0)
+                            {
+                                unset($products[$product['index']]);
                             }
-                            
-                            $searchProductQuantity = round($milimeters * $maxWidthArr['rows1'] 
-                            / $searchProduct['sheet_length'],0);
-                            $pairedProductQuantity = round($milimeters * $maxWidthArr['rows2'] 
-                            / $pairedProduct['sheet_length'],0);
-
-                            $searchProduct['quantity'] -= $searchProductQuantity;
-                            $futureProductsList[$pairedIndex]['quantity'] -= $pairedProductQuantity;
-
-                            $wasteM2 = $milimeters * (2500-$maxWidthArr['maxSum'])/1000000;   
-                                
-                            $product1 = 
-                            [
-                                'code' => $searchProduct['code'],
-                                'description' => $searchProduct['description'],
-                                'rows' => $maxWidthArr['rows1'],
-                                'sheet_width' => $searchProduct['sheet_width'],
-                                'sheet_length' => $searchProduct['sheet_length'],
-                                'quantity' => $searchProductQuantity,
-                                'dates' => $searchProduct['dates'],
-                                'order_id' => $searchProduct['order_id']
-                            ];
-                            
-                            $product2 = 
-                            [
-                                'code' => $pairedProduct['code'],
-                                'description' => $pairedProduct['description'],
-                                'rows' => $maxWidthArr['rows2'],
-                                'sheet_width' => $pairedProduct['sheet_width'],
-                                'sheet_length' => $pairedProduct['sheet_length'],
-                                'quantity' => $pairedProductQuantity,
-                                'dates' => $pairedProduct['dates'],
-                                'order_id' => $pairedProduct['order_id']
-                            ];
-                            if($product1['rows'] * $product1['sheet_width']<$product2['rows'] * $product2['sheet_width']){
-                                list($product1,$product2) = [$product2,$product1];
-                            }
-                            
-                            $pairs[$boards][$mark][] = 
-                            [
-                                'waste' => round($wasteM2,2),
-                                'meters' => round($milimeters/1000,0),
-                                'product1' => $product1,
-                                'product2' => $product2
-                            ];
-                        
-                            if($searchProduct['quantity']<=0){
-                                unset($products[$key]);
-                                if($futureProductsList[$pairedIndex]['quantity']<=0){
-                                    unset($futureProductsList[$pairedIndex]);
-                                }
-                            }
-                            else{
-                                unset($futureProductsList[$pairedIndex]);
-                            }           
                         }
                     
-                    
-
-                    
+                    } 
                 }  
             }
-        }
+        }           
+
             return 
             [
-                'remaining_products' => $productsList,
-                'pairs' => $pairs,
-                'joinList' => $joinList,
-                'joinMark' => $joinMark
+                'remaining_products' => $products,
+                'pairs' => $pairs
             ];
     }
 
