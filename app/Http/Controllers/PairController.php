@@ -424,17 +424,23 @@ class PairController extends Controller
             $product3 = &$pairedList['product3'];
             $meters3 = $this->calculateMeters($product3['quantityLeft'], $product3['rows'], $product3['sheet_length']);
             $meters = min($meters1, $meters2, $meters3);
-            $product3['quantityLeft'] -= $this->calculateQuantity($meters, $product3['rows'], $product3['sheet_length']);
+            $pairedQuantity3 = $this->calculateQuantity($meters, $product3['rows'], $product3['sheet_length']);
+            $product3['quantityLeft'] -= $pairedQuantity3;
+            $product3['pairedQuantity'] = $pairedQuantity3;
             if($product3['quantityLeft'] < 0) $product3['quantityLeft'] = 0; 
         }
         else{
             $meters = min($meters1, $meters2);
         }
 
-        $product1['quantityLeft'] -= $this->calculateQuantity($meters, $product1['rows'], $product1['sheet_length']);
+        $pairedQuantity1 = $this->calculateQuantity($meters, $product1['rows'], $product1['sheet_length']);
+        $product1['pairedQuantity'] = $pairedQuantity1;
+        $product1['quantityLeft'] -= $pairedQuantity1;
         if($product1['quantityLeft'] < 0) $product1['quantityLeft'] = 0;
 
-        $product2['quantityLeft'] -= $this->calculateQuantity($meters, $product2['rows'], $product2['sheet_length']);
+        $pairedQuantity2 = $this->calculateQuantity($meters, $product2['rows'], $product2['sheet_length']);
+        $product2['pairedQuantity'] = $pairedQuantity2;
+        $product2['quantityLeft'] -= $pairedQuantity2;
         if($product2['quantityLeft'] < 0) $product2['quantityLeft'] = 0;
         
         $this->correctMeters($pairedList, $meters);
@@ -974,6 +980,8 @@ class PairController extends Controller
                     while (isset($products[$key]) 
                     && $maxWidthArr = $this->maxWidthPair2($searchProduct, $key, $products, $minMeters)) 
                     {
+                        $maxWidthArr['pairedList']['product1']['maximum_width'] = $maxWidthArr['widthInfo']['maximumWidth'];
+
                         if($maxWidthArr['pairedList']['product1']['meters'] < $minMetersParam) return false;
                         
                         $pairs[] = $maxWidthArr['pairedList'];

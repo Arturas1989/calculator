@@ -65,6 +65,45 @@ class PairControllerTest extends TestCase
         return $data;
     }
 
+    public function productData2()
+    {
+        $minMeters = $this->pairController->params()['minMeters'];
+        $sheet_length = 1200;
+        $rows = 1;
+        $minQuantity = $this->pairController->calculateQuantity($minMeters, $rows, $sheet_length) - 1;
+        return 
+        [ 
+            'BE' =>
+            [
+                'BE20R' => 
+                [
+                    [
+                        "code" => "G20BE0R8",
+                        "description" => "Airuslita",
+                        "sheet_width" => 1600,
+                        "sheet_length" => $sheet_length,
+                        "quantityLeft" => $minQuantity,
+                        "totalQuantity" => $minQuantity,
+                        "dates" => "08 (09)",
+                        "bending" => "",
+                        "order_id" => 203
+                    ], 
+                    [
+                        "code" => "G20BE0R7",
+                        "description" => "Airuslita",
+                        "sheet_width" => 840,
+                        "sheet_length" => $sheet_length,
+                        "quantityLeft" => $minQuantity,
+                        "totalQuantity" => $minQuantity,
+                        "dates" => "08 (09)",
+                        "bending" => "",
+                        "order_id" => 202
+                    ]
+                ] 
+            ] 
+        ];
+    }
+
     public function productData()
     {
         return 
@@ -423,7 +462,13 @@ class PairControllerTest extends TestCase
      * @return void
      */
     
+    public function test_pairController_method_pairing_should_return_false_when_meters_below_min_meters_parameter()
+    {
+        $productList = $this->productData2();
+        $result = $this->pairController->pairing($productList, 0);
 
+        $this->assertEquals(false, $result);
+    }
     public function test_pairController_method_pairing_should_return_pairs()
     {
         $productList = $this->productData();
@@ -432,7 +477,7 @@ class PairControllerTest extends TestCase
         [
             "remaining_products" => [],
             "pairs" => [
-                0 => [
+                    0 => [
                     "product1" => [
                         "code" => "G20BE0R8",
                         "description" => "Airuslita",
@@ -445,7 +490,9 @@ class PairControllerTest extends TestCase
                         "order_id" => 203,
                         "index" => 0,
                         "rows" => 1,
-                        "meters" => 1080.0
+                        "pairedQuantity" => 900.0,
+                        "meters" => 1080.0,
+                        "maximum_width" => 2500
                     ],
                     "product2" => [
                         "code" => "G20BE0R7",
@@ -458,10 +505,11 @@ class PairControllerTest extends TestCase
                         "bending" => "",
                         "order_id" => 202,
                         "rows" => 1,
-                        "index" => 1
-                    ]
+                        "index" => 1,
+                        "pairedQuantity" => 900.0
+                    ],
                 ],
-                1 => [
+                    1 => [
                     "product1" => [
                         "code" => "G20BE0R9",
                         "description" => "Airuslita",
@@ -474,7 +522,9 @@ class PairControllerTest extends TestCase
                         "order_id" => 204,
                         "index" => 2,
                         "rows" => 1,
+                        "pairedQuantity" => 1000.0,
                         "meters" => 1200.0,
+                        "maximum_width" => 2500,
                     ],
                     "product2" => [
                         "code" => "G20BE0R5",
@@ -487,7 +537,8 @@ class PairControllerTest extends TestCase
                         "bending" => "",
                         "order_id" => 200,
                         "rows" => 1,
-                        "index" => 3
+                        "index" => 3,
+                        "pairedQuantity" => 1000.0,
                     ]
                 ]
             ]
@@ -1141,39 +1192,41 @@ class PairControllerTest extends TestCase
         [
             "pairedList" => [
                 "product1" => [
-                  "code" => "G20BE0R8",
-                  "description" => "Airuslita",
-                  "sheet_width" => 1240,
-                  "sheet_length" => 1200,
-                  "quantityLeft" => 0.0,
-                  "totalQuantity" => 900,
-                  "dates" => "08 (09)",
-                  "bending" => "",
-                  "order_id" => 203,
-                  "index" => 0,
-                  "rows" => 1,
-                  "meters" => 1080.0,
+                    "code" => "G20BE0R8",
+                    "description" => "Airuslita",
+                    "sheet_width" => 1240,
+                    "sheet_length" => 1200,
+                    "quantityLeft" => 0.0,
+                    "totalQuantity" => 900,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 203,
+                    "index" => 0,
+                    "rows" => 1,
+                    "pairedQuantity" => 900.0,
+                    "meters" => 1080.0
                 ],
                 "product2" => [
-                  "code" => "G20BE0R11",
-                  "description" => "Airuslita",
-                  "sheet_width" => 1220,
-                  "sheet_length" => 1220,
-                  "quantityLeft" => 115.0,
-                  "totalQuantity" => 1000,
-                  "dates" => "08 (09)",
-                  "bending" => "",
-                  "order_id" => 206,
-                  "rows" => 1,
-                  "index" => 1
-                ],
+                    "code" => "G20BE0R11",
+                    "description" => "Airuslita",
+                    "sheet_width" => 1220,
+                    "sheet_length" => 1220,
+                    "quantityLeft" => 115.0,
+                    "totalQuantity" => 1000,
+                    "dates" => "08 (09)",
+                    "bending" => "",
+                    "order_id" => 206,
+                    "rows" => 1,
+                    "index" => 1,
+                    "pairedQuantity" => 885.0
+                ]
             ],
-              "widthInfo" => [
-                "wasteRatio" => 0.016,
-                "maximumWidth" => 2500,
-                "maxWidth" => 2460,
-                "widthSum" => 2460
-              ]
+            "widthInfo" => [
+            "wasteRatio" => 0.016,
+            "maximumWidth" => 2500,
+            "maxWidth" => 2460,
+            "widthSum" => 2460
+            ]
         ];
         
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
@@ -1202,6 +1255,7 @@ class PairControllerTest extends TestCase
                   "order_id" => 203,
                   "index" => 0,
                   "rows" => 1,
+                  "pairedQuantity" => 333.0,
                   "meters" => 400.0
                 ],
                 "product2" => [
@@ -1215,7 +1269,8 @@ class PairControllerTest extends TestCase
                   "bending" => "",
                   "order_id" => 202,
                   "rows" => 1,
-                  "index" => 2
+                  "index" => 2,
+                  "pairedQuantity" => 333.0
                 ],
                 "product3" => [
                   "code" => "G20BE0R9",
@@ -1229,8 +1284,9 @@ class PairControllerTest extends TestCase
                   "order_id" => 204,
                   "rows" => 3,
                   "index" => 9,
+                  "pairedQuantity" => 1000.0,
                 ]
-                ],
+            ],
               "widthInfo" => [
                 "wasteRatio" => 0.024,
                 "maximumWidth" => 2500,
