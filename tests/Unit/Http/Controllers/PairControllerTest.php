@@ -15,6 +15,7 @@ class PairControllerTest extends TestCase
         parent::setUp();
 
         $this->pairController = new PairController;
+        $this->possibleWidths = $this->pairController->params()['possibleMaxWidths'];
     }
 
     public function inputGenerator($width, $widthList)
@@ -465,14 +466,14 @@ class PairControllerTest extends TestCase
     public function test_pairController_method_pairing_should_return_false_when_meters_below_min_meters_parameter()
     {
         $productList = $this->productData2();
-        $result = $this->pairController->pairing($productList, 0);
+        $result = $this->pairController->pairing($productList, 0, $this->possibleWidths);
 
         $this->assertEquals(false, $result);
     }
     public function test_pairController_method_pairing_should_return_pairs()
     {
         $productList = $this->productData();
-        $result = $this->pairController->pairing($productList, 0);
+        $result = $this->pairController->pairing($productList, 0, $this->possibleWidths);
         $expected_result = 
         [
             "remaining_products" => [],
@@ -595,7 +596,7 @@ class PairControllerTest extends TestCase
             ]
         ];
 
-        $result = $this->pairController->checkMetersQuantity($pairedList, 70);
+        $result = $this->pairController->checkMetersQuantity($pairedList, 70, $this->possibleWidths);
         $this->assertIsArray($result);
     }
 
@@ -647,7 +648,7 @@ class PairControllerTest extends TestCase
             ]
         ];
 
-        $result = $this->pairController->checkMetersQuantity($pairedList, 70);
+        $result = $this->pairController->checkMetersQuantity($pairedList, 70, $this->possibleWidths, $this->possibleWidths);
 
         $this->assertEquals(false, $result);
     }
@@ -1126,7 +1127,7 @@ class PairControllerTest extends TestCase
 
         foreach ($widthList as $maximumWidth) {
             $data = $this->inputGenerator($maximumWidth, $widthList);
-            $result = $this->pairController->maxWidthPair2($data['searchProduct'], $index, $data['products'], 0);
+            $result = $this->pairController->maxWidthPair2($data['searchProduct'], $index, $data['products'], 0, $this->possibleWidths);
             $this->assertEquals($maximumWidth, $result['widthInfo']['maximumWidth']);
         }
     }
@@ -1143,8 +1144,8 @@ class PairControllerTest extends TestCase
         $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
          
         
-        $result2 = $this->pairController->maxWidthPair2($searchProduct2, $index, $products2, 0);
-        $result3 = $this->pairController->maxWidthPair2($searchProduct3, $index, $products3, 0);
+        $result2 = $this->pairController->maxWidthPair2($searchProduct2, $index, $products2, 0, $this->possibleWidths);
+        $result3 = $this->pairController->maxWidthPair2($searchProduct3, $index, $products3, 0, $this->possibleWidths);
         $minWidth2 = (1 - $maxWasteRatio) * $result2['widthInfo']['maximumWidth'];
         $minWidth3 = (1 - $maxWasteRatio) * $result3['widthInfo']['maximumWidth'];
         
@@ -1159,7 +1160,7 @@ class PairControllerTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths);
 
         $this->assertLessThanOrEqual($result['widthInfo']['maxWidth'], $result['widthInfo']['widthSum']);
     }
@@ -1172,7 +1173,7 @@ class PairControllerTest extends TestCase
         $index = 0;
         $maxRows = $this->pairController->params()['maxRows'];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths);
 
         $rowSum = 0;
         foreach($result['pairedList'] as $product){
@@ -1229,7 +1230,7 @@ class PairControllerTest extends TestCase
             ]
         ];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths);
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
     }
@@ -1295,9 +1296,9 @@ class PairControllerTest extends TestCase
                 "pairIndex2" => 2,
                 "pairIndex3" => 9
               ]
-        ];
+            ];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths);
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
     }
@@ -1309,7 +1310,7 @@ class PairControllerTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths);
         $product1 = $result['pairedList']['product1'];
         $product2 = $result['pairedList']['product2'];
         $product3 = $result['pairedList']['product3'];
@@ -1329,7 +1330,7 @@ class PairControllerTest extends TestCase
         $index = 0;
         $maxRows = $this->pairController->params()['maxRows'];
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths);
         $rowsSum = 0;
         // dd($result['pairedList']);
         foreach ($result['pairedList'] as $product) {
@@ -1345,7 +1346,7 @@ class PairControllerTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         
-        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0);
+        $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths);
         
         
         $this->assertLessThanOrEqual($result['widthInfo']['maximumWidth'], $result['widthInfo']['widthSum']);
