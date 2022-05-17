@@ -360,10 +360,6 @@ class PairController extends Controller
         $singleWidth = $singleRows * $width;
         $widthDif = $singleWidth - $widthSum;
 
-        if($singleRows == 0){
-            dd($maxWidth, $width);
-        }
-
         return $widthDif / $singleRows * $pairedRows;
     }
 
@@ -533,9 +529,7 @@ class PairController extends Controller
                     $pairProduct2['rows'] = $maxRows2;
                     $pairProduct2['index'] = $key2;
 
-                    // if($pairProduct2['sheet_width'] == 2173){
-                    //     dd($searchProduct);
-                    // }
+
                     $pairedList = 
                     [
                         'product1' => $searchProduct,
@@ -717,8 +711,7 @@ class PairController extends Controller
                 }  
             }
         }
-        
-        // dd($result);
+
         return $maxSumArr['wasteRatio'] != 1 ? $result : false;
     }
 
@@ -885,55 +878,33 @@ class PairController extends Controller
         if($result === false){
             $result = $this->pairing($productsRSortByWidth, $minMetersParam, $possibleWidths);
         }
-        dd($result);
-
-        // $singles = $this->single($result['remaining_products'], $possibleWidths);
         return $result;
+    }
 
-        
-        
+    public function calculationMethod2($productList, $minMetersParam, $possibleWidths)
+    {
+        $minMetersParam = $this->params()['minMeters'];
+        $remainingProducts = [];
+        $pairs = [];
 
-        // for ($i=0; $i < $length; $i++) 
-        // {
-        //     if($i == $length - 1)
-        //     {
-        //         $minWidth = 2140;
-        //         $isLast = true;
-        //     }
-        //     else
-        //     {
-        //         $minWidth = $this->params()['minWidth'];
-        //     }
-        //     if($i){
-        //         $merge = array_merge_recursive($remainingProducts,$productList[$i]);
-        //         $result = $this->calculator($merge,$minWidth,$minMeters,$request,$board,$isLast,$joinList);
-        //         if(!$result) return $this->calculationMethod($productList,$minMetersParam,$request,$board,$isLast,$joinList);
-                
-        //         $pairs = array_merge_recursive($pairs,$result['pairs']);
-        //     } 
-        //     else{
-        //         $result = $this->calculator($productList[$i],$minWidth,$minMeters,$request,$board,$isLast,$joinList);
-        //         if(!$result) return $this->calculationMethod($productList,$minMetersParam,$request,$board,$isLast,$joinList);
-        //         $pairs = $result['pairs'];
-        //     }
-        //     $remainingProducts = $result['remaining_products'];
-        // }
+        foreach($productList as $key => $products)
+        {
+            $productsMerge = array_merge_recursive($remainingProducts,$products);
+            // if($key == 2){
+            //     dd($productsMerge);
+            // }
+            
+            $result = $this->pairing($productsMerge, 0, $possibleWidths);
+            if($result === false){
+                $result = $this->pairing($productsMerge, $minMetersParam, $possibleWidths);
+            }
+            $pairs = array_merge_recursive($result['pairs'],$pairs);
 
-        // $joinList = $result['joinList'];
-        // $joinMark = $result['joinMark'];
-        // if(count($remainingProducts))
-        // {
-        //     $singleProducts = $this->calculatorSingle($remainingProducts,$maxWidth,$request,$board);
-        //     $pairs = array_merge_recursive($pairs,$singleProducts);
-        // }
-        // $wasteSumArr = $this->wasteSum($pairs);
-        // $pairs = array_merge_recursive($pairs,$wasteSumArr);
-        // return 
-        // [
-        //     'pairs' => $pairs,
-        //     'joinList' => $joinList,
-        //     'joinMark' => $joinMark
-        // ];
+            $remainingProducts = $result['remaining_products'];
+        }
+        $result['pairs'] = $pairs;
+        dd($result);
+        return $result;
     }
 
     public function mainCalculator(Request $request, Board $board)
@@ -966,7 +937,8 @@ class PairController extends Controller
                 $allProducts[$boardKey][$markKey] = $products;
 
                 
-                $result = $this->calculationMethod1($allProducts, 0, $possibleWidths);
+                $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
+                $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths);
             }
         }
 
@@ -1034,7 +1006,7 @@ class PairController extends Controller
         }
             return 
             [
-                'remaining_products' => $products,
+                'remaining_products' => $productList,
                 'pairs' => $pairs
             ];
     }

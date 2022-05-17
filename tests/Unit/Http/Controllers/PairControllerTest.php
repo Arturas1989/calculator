@@ -480,7 +480,11 @@ class PairControllerTest extends TestCase
         $result = $this->pairController->pairing($productList, 0, $this->possibleWidths);
         $expected_result = 
         [
-            "remaining_products" => [],
+            "remaining_products" => [
+                "BE" => [
+                  "BE20R" => []
+                ]
+              ],
             "pairs" => [
               "BE" => [
                 "BE20R" => [
@@ -552,7 +556,6 @@ class PairControllerTest extends TestCase
               ]
             ]
         ];
-
         $this->assertEquals($expected_result, $result);
 
     }
