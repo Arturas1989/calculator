@@ -63,10 +63,10 @@ class PairController extends Controller
             'quantityRatio' => 0.05,
             'largeWasteRatio' => 0.12,
             'minMeters' => 70,
-            'possibleMaxWidths' => [2500, 2300, 2100],
+            'possibleMaxWidths' => [2500],
             'minusfromMaxWidth' => 40,
+            'maxWasteRatio' => 0.08,
             'maxSingleWasteRatio' => 0.068,
-            'maxWasteRatio' => 0.1,
             'absoluteMaxWasteRatio' => 0.144,
             'maxRows' => 8
         ];
@@ -470,13 +470,12 @@ class PairController extends Controller
 
     
 
-    public function maxWidthPair2($searchProduct, $index, $products, $minMeters, $possibleWidths)
+    public function maxWidthPair2($searchProduct, $index, $products, $minMeters, $possibleWidths, $maxWasteRatio)
     {
         $maxSumArr = ['wasteRatio' => 1];
         $maxRowsSum = $this->params()['maxRows'];
 
         $minusFromWidth = $this->params()['minusfromMaxWidth'];
-        $maxWasteRatio = $this->params()['maxWasteRatio'];
         $searchProductWidth = $searchProduct['sheet_width'];
 
         
@@ -881,12 +880,19 @@ class PairController extends Controller
     public function calculationMethod1($productsRSortByWidth, $minMetersParam, $possibleWidths)
     {
         $minMetersParam = $this->params()['minMeters'];
+        $maxWasteRatio = $this->params()['maxWasteRatio'];
         
-        $result = $this->pairing($productsRSortByWidth, 0, $possibleWidths);
+        $result = $this->pairing($productsRSortByWidth, 0, $possibleWidths, $maxWasteRatio);
+
         if($result === false){
-            $result = $this->pairing($productsRSortByWidth, $minMetersParam, $possibleWidths);
+            $result = $this->pairing($productsRSortByWidth, $minMetersParam, $possibleWidths, $maxWasteRatio);
         }
-        return $result;
+
+        $maxWasteRatio = $this->params()['absoluteMaxWasteRatio'];
+        $result2 =  $this->pairing($result['remaining_products'], $minMetersParam, $possibleWidths, $maxWasteRatio);
+        $result2['pairs'] = array_merge_recursive($result['pairs'],$result2['pairs']);
+
+        return $result2;
     }
 
     public function calculationMethod2($productList, $minMetersParam, $possibleWidths)
@@ -894,23 +900,26 @@ class PairController extends Controller
         $minMetersParam = $this->params()['minMeters'];
         $remainingProducts = [];
         $pairs = [];
+        $maxWasteRatio = $this->params()['maxWasteRatio'];
 
         
         foreach($productList as $key => $products)
         {
             $productsMerge = array_merge_recursive($remainingProducts,$products);
             
-            $result = $this->pairing($productsMerge, 0, $possibleWidths);
+            $result = $this->pairing($productsMerge, 0, $possibleWidths, $maxWasteRatio);
             if($result === false){
-                $result = $this->pairing($productsMerge, $minMetersParam, $possibleWidths);
+                $result = $this->pairing($productsMerge, $minMetersParam, $possibleWidths, $maxWasteRatio);
             }
             $pairs = array_merge_recursive($result['pairs'],$pairs);
 
             $remainingProducts = $result['remaining_products'];
         }
-        $result['pairs'] = $pairs;
-        dd($productList, $result);
-        return $result;
+        $maxWasteRatio = $this->params()['absoluteMaxWasteRatio'];
+        $result2 =  $this->pairing($result['remaining_products'], $minMetersParam, $possibleWidths, $maxWasteRatio);
+        $result2['pairs'] = array_merge_recursive($pairs,$result2['pairs']);
+        dd($result2);
+        return $result2;
     }
 
     public function mainCalculator(Request $request, Board $board)
@@ -957,7 +966,7 @@ class PairController extends Controller
 
     }
 
-    public function pairing($productList, $minMeters, $possibleWidths)
+    public function pairing($productList, $minMeters, $possibleWidths, $maxWasteRatio)
     {
 
         $pairs = [];
@@ -980,7 +989,7 @@ class PairController extends Controller
                     || $searchProduct['quantityLeft'] == 0) continue;
                     
                     while (isset($products[$key]) 
-                    && $maxWidthArr = $this->maxWidthPair2($searchProduct, $key, $products, $minMeters, $possibleWidths)) 
+                    && $maxWidthArr = $this->maxWidthPair2($searchProduct, $key, $products, $minMeters, $possibleWidths, $maxWasteRatio)) 
                     {
                         
                         $maxWidthArr['pairedList']['product1']['maximum_width'] = $maxWidthArr['widthInfo']['maximumWidth'];
