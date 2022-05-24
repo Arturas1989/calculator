@@ -65,7 +65,8 @@ class PairController extends Controller
             'minMeters' => 70,
             'possibleMaxWidths' => [2500, 2300, 2100],
             'minusfromMaxWidth' => 40,
-            'maxWasteRatio' => 0.068,
+            'maxSingleWasteRatio' => 0.068,
+            'maxWasteRatio' => 0.1,
             'absoluteMaxWasteRatio' => 0.144,
             'maxRows' => 8
         ];
@@ -370,7 +371,6 @@ class PairController extends Controller
         $maxWidth = $widthInfo['maxWidth'];
         $widthSum = $widthInfo['widthSum'];
 
-        // dd($pairedList);
         $product1 = $pairedList['product1'];
         $widthDif1 = $this->widthDif($product1['sheet_width'], $maxWidth, $widthSum, $product1['rows']);
 
@@ -452,6 +452,7 @@ class PairController extends Controller
 
     public function calculateMeters($quantity, $rows, $sheet_length)
     {
+        
         return ceil($quantity * $sheet_length / $rows / 1000);
     }
 
@@ -464,7 +465,7 @@ class PairController extends Controller
     {
         $maxRows = $this->params()['maxRows'];
         $singleRows = floor($minWidth / $product_width);
-        return $singleRows > $maxRows ? $maxRows : $singleRows;
+        return $singleRows > $maxRows ? $maxRows : max($singleRows, 1);
     }
 
     
@@ -477,6 +478,8 @@ class PairController extends Controller
         $minusFromWidth = $this->params()['minusfromMaxWidth'];
         $maxWasteRatio = $this->params()['maxWasteRatio'];
         $searchProductWidth = $searchProduct['sheet_width'];
+
+        
 
         $result = [];
         foreach ($possibleWidths as $maximumWidth) 
@@ -497,17 +500,15 @@ class PairController extends Controller
             $searchProduct['index'] = $index;
             foreach ($pairProducts2 as $key2 => &$pairProduct2) 
             {
-
+                
                 for ($rows1 = 1; $rows1 <= $maxRows1; ++$rows1) 
                 {
+                    
                     $remaining_width = $maxWidth - $rows1 * $searchProductWidth;
 
                     // calculating second product maximum rows
                     $maxRows2 = (int)floor($remaining_width / $pairProduct2['sheet_width']);
                     if($maxRows2 === 0) break;
-                    // if($maxRows2 === 0){
-                    //     dd($searchProduct, $maxSumArr);
-                    // }
 
                     if($rows1 + $maxRows2 > $maxRowsSum){
                         $maxRows2 = $maxRowsSum - $rows1;
@@ -524,6 +525,7 @@ class PairController extends Controller
                         'widthSum' => $widthSum
                     ];
 
+                    
                     $searchProduct['rows'] = $rows1;
 
                     $pairProduct2['rows'] = $maxRows2;
@@ -540,12 +542,15 @@ class PairController extends Controller
 
                     if($this->isWidthsEqual($pairedList, $maxWidthSumChecked)) continue;
 
+                    
+                    
                     // $meters = $this->checkMetersQuantity($products, $maxWidthSumChecked);
                     // if($meters === false) continue;
 
 
                     if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio)
                     {
+                        
                         $maxSumArr = $maxWidthSumChecked;
 
                         $checkPairedList = $this->checkMetersQuantity($pairedList, $minMeters, $possibleWidths);
@@ -647,17 +652,20 @@ class PairController extends Controller
                         }
                     }
                     else{
-
+                        
                         for ($rows2=1; $rows2 <= $maxRows2 ; ++$rows2)
                         {
+                            
                             $remaining_width -= $rows2 * $pairProduct2['sheet_width'];
 
                             // remaining third products
                             foreach ($pairProducts3 as $key3 => $pairProduct3) 
                             {
+                                
                                 //calculating third product rows
                                 if($pairProduct2['sheet_length'] == $pairProduct3['sheet_length'])
                                 {
+                                    
                                     $rows3 = floor($remaining_width / $pairProduct3['sheet_width']);
                                     // if($rows3 === 0) continue;
 
@@ -711,7 +719,7 @@ class PairController extends Controller
                 }  
             }
         }
-
+        
         return $maxSumArr['wasteRatio'] != 1 ? $result : false;
     }
 
@@ -719,7 +727,7 @@ class PairController extends Controller
     {
         $maxRows = $this->params()['maxRows'];
         $minusfromMaxWidth = $this->params()['minusfromMaxWidth'];
-        $maxWasteRatio = $this->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->params()['maxSingleWasteRatio'];
 
         foreach ($possibleWidths as $maximumWidth) {
             $maxWidth = $maximumWidth - $this->params()['minusfromMaxWidth'];
@@ -887,12 +895,10 @@ class PairController extends Controller
         $remainingProducts = [];
         $pairs = [];
 
+        
         foreach($productList as $key => $products)
         {
             $productsMerge = array_merge_recursive($remainingProducts,$products);
-            // if($key == 2){
-            //     dd($productsMerge);
-            // }
             
             $result = $this->pairing($productsMerge, 0, $possibleWidths);
             if($result === false){
@@ -903,7 +909,7 @@ class PairController extends Controller
             $remainingProducts = $result['remaining_products'];
         }
         $result['pairs'] = $pairs;
-        dd($result);
+        dd($productList, $result);
         return $result;
     }
 
@@ -937,7 +943,7 @@ class PairController extends Controller
                 $allProducts[$boardKey][$markKey] = $products;
 
                 
-                $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
+                // $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
                 $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths);
             }
         }
@@ -976,6 +982,7 @@ class PairController extends Controller
                     while (isset($products[$key]) 
                     && $maxWidthArr = $this->maxWidthPair2($searchProduct, $key, $products, $minMeters, $possibleWidths)) 
                     {
+                        
                         $maxWidthArr['pairedList']['product1']['maximum_width'] = $maxWidthArr['widthInfo']['maximumWidth'];
 
                         if($maxWidthArr['pairedList']['product1']['meters'] < $minMetersParam) return false;
@@ -994,16 +1001,14 @@ class PairController extends Controller
                                 $products[$product['index']]['quantityLeft'] = $product['quantityLeft'];
                             }
                         }
-
-                        // $test[] = $maxWidthArr;
-                        // if(count($test) == 31){
-                        //    dd($products,$test);
-                        // }
                     
                     } 
                 }  
             }
         }
+        
+            
+        
             return 
             [
                 'remaining_products' => $productList,
