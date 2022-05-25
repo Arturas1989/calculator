@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Http\Controllers;
 
 use PHPUnit\Framework\TestCase;
 use App\Http\Controllers\PairController;
@@ -475,6 +475,7 @@ class PairControllerTest extends TestCase
 
         $this->assertEquals(false, $result);
     }
+    
     public function test_pairController_method_pairing_should_return_pairs()
     {
         $productList = $this->productData();
@@ -608,7 +609,7 @@ class PairControllerTest extends TestCase
                 'rows' => 1
             ]
         ];
-
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         $result = $this->pairController->checkMetersQuantity($pairedList, 70, $this->possibleWidths, $maxWasteRatio);
         $this->assertIsArray($result);
     }
@@ -660,12 +661,12 @@ class PairControllerTest extends TestCase
                 'rows' => 1
             ]
         ];
-
-        $result = $this->pairController->checkMetersQuantity($pairedList, 70, $this->possibleWidths, $maxWasteRatio, $this->possibleWidths, $maxWasteRatio);
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
+        $result = $this->pairController->checkMetersQuantity($pairedList, 70, $this->possibleWidths, $maxWasteRatio);
 
         $this->assertEquals(false, $result);
     }
-
+ 
     public function test_pairController_method_correctMeters_shouldnt_correct_when_1_product_dont_meet_quantity_requirements()
     {
         $meters = 900;
@@ -1136,6 +1137,7 @@ class PairControllerTest extends TestCase
      public function test_pairController_method_maxWidthPair_works_with_diferent_maximum_widths()
     {
         $widthList = $this->pairController->params()['possibleMaxWidths'];
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         $index = 0;
 
         foreach ($widthList as $maximumWidth) {
@@ -1173,6 +1175,7 @@ class PairControllerTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
 
         $this->assertLessThanOrEqual($result['widthInfo']['maxWidth'], $result['widthInfo']['widthSum']);
@@ -1185,6 +1188,7 @@ class PairControllerTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         $maxRows = $this->pairController->params()['maxRows'];
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
 
@@ -1243,6 +1247,7 @@ class PairControllerTest extends TestCase
             ]
         ];
         
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
@@ -1311,6 +1316,7 @@ class PairControllerTest extends TestCase
               ]
             ];
         
+            $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
@@ -1323,6 +1329,7 @@ class PairControllerTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $product1 = $result['pairedList']['product1'];
         $product2 = $result['pairedList']['product2'];
@@ -1345,6 +1352,7 @@ class PairControllerTest extends TestCase
         $index = 0;
         $maxRows = $this->pairController->params()['maxRows'];
         
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $rowsSum = 0;
         // dd($result['pairedList']);
@@ -1360,6 +1368,7 @@ class PairControllerTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
+        $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
         
         $result = $this->pairController->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         
