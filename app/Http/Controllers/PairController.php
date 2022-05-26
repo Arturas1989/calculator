@@ -63,7 +63,7 @@ class PairController extends Controller
             'quantityRatio' => 0.05,
             'largeWasteRatio' => 0.12,
             'minMeters' => 70,
-            'possibleMaxWidths' => [2500,2300,2100],
+            'possibleMaxWidths' => [2500],
             'minusfromMaxWidth' => 40,
             'maxWasteRatio' => 0.08,
             'maxSingleWasteRatio' => 0.068,
@@ -801,8 +801,9 @@ class PairController extends Controller
         // dd($products);
         $singles = [];
         $remaining_products = [];
+        $product_info = [];
         $params = $this->params();
-        
+
         foreach($products as $board => $boards)
         {
             foreach ($boards as $mark => $marks) 
@@ -833,7 +834,7 @@ class PairController extends Controller
                             
                         }
                     }
-                    if(isset($product_info)){
+                    if(count($product_info)){
                        
                         $product['quantityLeft'] = 0;
                         $product['index'] = $index;
@@ -842,6 +843,7 @@ class PairController extends Controller
                         $product['meters'] = $product_info['meters'];
                         $product['maximum_width'] = $product_info['maximum_width'];
                         $singles[$board][$mark][] = $product;
+                        $product_info = [];
                     }
                     else{
                         $remaining_products[$board][$mark][] = $product;
@@ -899,8 +901,7 @@ class PairController extends Controller
         $result2['pairs'] = array_merge_recursive($pairs,$result2['pairs']);
         $result3 = $this->calculatorSingle($result2['remaining_products']);
         $result3['pairs'] = array_merge_recursive($result2['pairs'],$result3['pairs']);
-        
-        dd($result3);
+
         return $result3;
     }
 
@@ -922,11 +923,10 @@ class PairController extends Controller
 
         $joinList = $this->marksJoin($request);
         
-
+        dd($productsList);
         foreach ($productsList as $boardKey => $markProducts) 
         {
-            $reversedProducts = array_reverse($markProducts,true);
-            foreach ($reversedProducts as $markKey => $products) 
+            foreach ($markProducts as $markKey => $products) 
             {
                 $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
                 $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
@@ -936,8 +936,25 @@ class PairController extends Controller
                 
                 // $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
                 $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths);
+                dd($result2);
             }
         }
+
+        // foreach ($productsList as $boardKey => $markProducts) 
+        // {
+        //     $reversedProducts = array_reverse($markProducts,true);
+        //     foreach ($reversedProducts as $markKey => $products) 
+        //     {
+        //         $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
+        //         $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
+        //         $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
+        //         $allProducts[$boardKey][$markKey] = $products;
+
+                
+        //         // $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
+        //         $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths);
+        //     }
+        // }
 
 
         
