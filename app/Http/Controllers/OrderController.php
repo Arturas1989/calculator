@@ -216,26 +216,20 @@ class OrderController extends Controller
             
         }
 
-        Order::where('code','=',$order->code)->update(['code'=>$request->code]);
+        $order->update(
+            [
+                'code' => $request->code,
+                'quantity' => $request->quantity,
+                'load_date' => $request->load_date,
+                'manufactury_date' => $request->manufactury_date
+            ]);
+        
+        $product = $order->product()->get()->first();
 
-        $order->quantity = $request->quantity; 
-        $order->load_date = $request->load_date;
-        $order->manufactury_date = $request->manufactury_date;
-        $product = Product::where('code','=',$request->code)->get()->first();
-        if(!$product)
-        {
-            $product = $order->product()->get()->first();
-            $product->code = $request->code;
-            $product->mark_id = $this->ProductController->markId($product->code);
-            $product->save(); 
-        }
-        else
-        {
-            $product->code = $request->code;
-            $product->mark_id = $this->ProductController->markId($product->code);
-            $product->save();
-            Order::where('product_id','=',$order->product_id)->update(['product_id'=>$product->id]);
-        }
+        $product->code = $request->code;
+        $product->mark_id = $this->ProductController->markId($product->code);
+        $product->save(); 
+        
 
         $order->save();
         return redirect()->route('order.index'); 
