@@ -213,6 +213,7 @@ class OrderController extends Controller
         if($validator->fails()){
             $request->flash();
             return redirect()->back()->withErrors($validator);
+            
         }
 
         Order::where('code','=',$order->code)->update(['code'=>$request->code]);
