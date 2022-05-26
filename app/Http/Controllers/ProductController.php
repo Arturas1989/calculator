@@ -268,6 +268,10 @@ class ProductController extends Controller
             return redirect()->back()->withErrors($validator); 
         }
         
+        $order = $product->order()->get()->first();
+        $order->code = $request->code;
+        $order->save();
+        
         $product->update
         (
             [
