@@ -225,11 +225,13 @@ class OrderController extends Controller
         {
             $product = $order->product()->get()->first();
             $product->code = $request->code;
+            $product->mark_id = $this->ProductController->markId($product->code);
             $product->save(); 
         }
         else
         {
             $product->code = $request->code;
+            $product->mark_id = $this->ProductController->markId($product->code);
             $product->save();
             Order::where('product_id','=',$order->product_id)->update(['product_id'=>$product->id]);
         }
