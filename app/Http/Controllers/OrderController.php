@@ -216,11 +216,14 @@ class OrderController extends Controller
             
         }
 
-        Order::where('code','=',$order->code)->update(['code'=>$request->code]);
-
-        $order->quantity = $request->quantity; 
-        $order->load_date = $request->load_date;
-        $order->manufactury_date = $request->manufactury_date;
+        $order->update(
+            [
+                'code' => $request->code,
+                'quantity' => $request->quantity,
+                'load_date' => $request->load_date,
+                'manufactury_date' => $request->manufactury_date
+            ]);
+            
         $product = Product::where('code','=',$request->code)->get()->first();
         if(!$product)
         {
@@ -231,10 +234,7 @@ class OrderController extends Controller
         }
         else
         {
-            $product->code = $request->code;
-            $product->mark_id = $this->ProductController->markId($product->code);
-            $product->save();
-            Order::where('product_id','=',$order->product_id)->update(['product_id'=>$product->id]);
+            $order->product_id = $product->id;
         }
 
         $order->save();
