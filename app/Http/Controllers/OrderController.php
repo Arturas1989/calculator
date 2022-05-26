@@ -223,13 +223,19 @@ class OrderController extends Controller
                 'load_date' => $request->load_date,
                 'manufactury_date' => $request->manufactury_date
             ]);
-        
-        $product = $order->product()->get()->first();
-
-        $product->code = $request->code;
-        $product->mark_id = $this->ProductController->markId($product->code);
-        $product->save(); 
-        
+            
+        $product = Product::where('code','=',$request->code)->get()->first();
+        if(!$product)
+        {
+            $product = $order->product()->get()->first();
+            $product->code = $request->code;
+            $product->mark_id = $this->ProductController->markId($product->code);
+            $product->save(); 
+        }
+        else
+        {
+            $order->product_id = $product->id;
+        }
 
         $order->save();
         return redirect()->route('order.index'); 
