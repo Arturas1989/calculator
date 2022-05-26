@@ -1383,4 +1383,33 @@ class PairControllerTest extends TestCase
         
         $this->assertLessThanOrEqual($result['widthInfo']['maximumWidth'], $result['widthInfo']['widthSum']);
     }
+
+    public function test_pairController_singleCalculator_method_test_to_include_products_in_remaining_products_if_product_exceeds_maximum_waste()
+    {
+        $params = $this->pairController->params();
+        $minPossibleWidth = min($params['possibleMaxWidths']);
+        $sheet_width = floor($minPossibleWidth * (1 - $params['absoluteMaxWasteRatio'] - 0.001));
+        $product = 
+        [
+            "BE" => [
+                "BE20R" =>[
+                    [
+                        "code" => "G20BE0R754",
+                        "description" => "EcoBox",
+                        "sheet_width" => $sheet_width,
+                        "sheet_length" => 1449,
+                        "quantityLeft" => 2700,
+                        "totalQuantity" => 2700,
+                        "dates" => "06 (07)",
+                        "bending" => "",
+                        "order_id" => 13
+                    ]
+                ] 
+            ]
+        ];
+
+        $result = $this->pairController->calculatorSingle($product);
+        $this->assertEquals($result['remaining_products'],$product);
+    }
+    
 }
