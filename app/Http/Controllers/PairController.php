@@ -453,12 +453,12 @@ class PairController extends Controller
     public function calculateMeters($quantity, $rows, $sheet_length)
     {
         
-        return ceil($quantity * $sheet_length / $rows / 1000);
+        return (int)ceil($quantity * $sheet_length / $rows / 1000);
     }
 
     public function calculateQuantity($meters, $rows, $sheet_length)
     {
-        return round($meters * $rows * 1000 / $sheet_length, 0);
+        return (int)round($meters * $rows * 1000 / $sheet_length, 0);
     }
 
     public function minSingleRows($product_width, $minWidth)
@@ -1146,7 +1146,7 @@ class PairController extends Controller
         // dd($mainResult['pairs'],$resultMaxWaste['pairs'],$resultFuture['pairs'],$resultSingle['pairs']);
         $finalResult['pairs'] = array_merge_recursive($mainResult['pairs'],$resultMaxWaste['pairs'],$resultFuture['pairs'],$resultSingle['pairs']);
         $finalResult['remaining_products'] = $resultSingle['remaining_products'];
-        dd($finalResult);
+        // dd($finalResult);
         return $finalResult;
     }
 
