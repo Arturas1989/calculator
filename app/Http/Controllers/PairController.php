@@ -478,9 +478,259 @@ class PairController extends Controller
         $minusFromWidth = $this->params()['minusfromMaxWidth'];
         $searchProductWidth = $searchProduct['sheet_width'];
 
+        $result = [];
         
+        foreach ($possibleWidths as $maximumWidth) 
+        {
+            $maxWidth = $maximumWidth - $minusFromWidth;
+
+            $maxRows1 = floor($maxWidth/$searchProductWidth);
+            if($maxRows1 === 0) continue;
+
+            if($maxRows1 > $maxRowsSum){
+                $maxRows1 = $maxRowsSum;
+            }
+
+            // remaining second products
+            $pairProducts2 = $products;
+            unset($pairProducts2[$index]);
+            
+            $searchProduct['index'] = $index;
+            foreach ($pairProducts2 as $key2 => &$pairProduct2) 
+            {
+                
+                for ($rows1 = 1; $rows1 <= $maxRows1; ++$rows1) 
+                {
+                    
+                    $remaining_width = $maxWidth - $rows1 * $searchProductWidth;
+
+                    // calculating second product maximum rows
+                    $maxRows2 = (int)floor($remaining_width / $pairProduct2['sheet_width']);
+                    if($maxRows2 === 0) break;
+
+                    if($rows1 + $maxRows2 > $maxRowsSum){
+                        $maxRows2 = $maxRowsSum - $rows1;
+                    }
+                    // two product width sum
+                    $widthSum = $maxRows2 * $pairProduct2['sheet_width'] + $rows1 * $searchProductWidth;
+                    $wasteRatio = round(1 - $widthSum / $maximumWidth, 3);
+
+                    $maxWidthSumChecked = 
+                    [
+                        'wasteRatio' => $wasteRatio,
+                        'maximumWidth' => $maximumWidth,
+                        'maxWidth' => $maxWidth,
+                        'widthSum' => $widthSum
+                    ];
+
+                    
+                    $searchProduct['rows'] = $rows1;
+
+                    $pairProduct2['rows'] = $maxRows2;
+                    $pairProduct2['index'] = $key2;
+
+
+                    $pairedList = 
+                    [
+                        'product1' => $searchProduct,
+                        'product2' => $pairProduct2
+                    ];
+
+                    
+
+                    if($this->isWidthsEqual($pairedList, $maxWidthSumChecked)) continue;
+
+                    
+                    
+                    // $meters = $this->checkMetersQuantity($products, $maxWidthSumChecked);
+                    // if($meters === false) continue;
+
+
+                    if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio)
+                    {
+                        
+                        $maxSumArr = $maxWidthSumChecked;
+
+                        $checkPairedList = $this->checkMetersQuantity($pairedList, $minMeters, $possibleWidths);
+                        if($checkPairedList === false) continue;
+
+                        $result = ['pairedList' => $checkPairedList, 'widthInfo' => $maxSumArr];
+                    }
+
+                    $pairProducts3 = $pairProducts2;
+                    unset($pairProducts3[$key2]);
+                    if($pairProduct2['sheet_length'] == $searchProduct['sheet_length'])
+                    {
+                        
+                        //three product width sum
+                        for ($rows2=1; $rows2 <= $maxRows2 ; ++$rows2)
+                        {
+                            
+                            $remaining_width -= $rows2 * $pairProduct2['sheet_width'];
+
+                            // remaining third products
+                            foreach ($pairProducts3 as $key3 => $pairProduct3) 
+                            {
+                                //calculating third product rows
+                                $rows3 = (int)floor($remaining_width / $pairProduct3['sheet_width']);
+                                
+
+                                if($rows1 + $rows2 + $rows3 > $maxRowsSum)
+                                {
+                                    $rows3 = $maxRowsSum - $rows2 - $rows1;
+                                }
+                                $widthSum = $rows1 * $searchProductWidth + $rows2 * $pairProduct2['sheet_width'] + $rows3 * $pairProduct3['sheet_width'];
+                                $wasteRatio = round(1 - $widthSum / $maximumWidth, 3);
+
+                                if($rows3 != 0)
+                                {
+                                    $maxWidthSumChecked = 
+                                    [
+                                        'wasteRatio' => $wasteRatio,
+                                        'maximumWidth' => $maximumWidth,
+                                        'maxWidth' => $maxWidth,
+                                        'widthSum' => $widthSum,
+                                        'pairIndex2' => $key2,
+                                        'pairIndex3' => $key3
+                                    ];
+
+                                    $searchProduct['rows'] = $rows1;
+
+                                    $pairProduct2['rows'] = $rows2;
+                                    $pairProduct2['index'] = $key2;
+                                    
+                                    $pairProduct3['rows'] = $rows3;
+                                    $pairProduct3['index'] = $key3;
+                                    
+                                    $pairedList = 
+                                    [
+                                        'product1' => $searchProduct,
+                                        'product2' => $pairProduct2,
+                                        'product3' => $pairProduct3
+                                    ];
+                                }
+                                else
+                                {
+                                    $maxWidthSumChecked = 
+                                    [
+                                        'wasteRatio' => $wasteRatio,
+                                        'maximumWidth' => $maximumWidth,
+                                        'maxWidth' => $maxWidth,
+                                        'widthSum' => $widthSum,
+                                        'pairIndex2' => $key2,
+                                    ];
+
+                                    $searchProduct['rows'] = $rows1;
+
+                                    $pairProduct2['rows'] = $rows2;
+                                    $pairProduct2['index'] = $key2;
+                                    
+                                    $pairedList = 
+                                    [
+                                        'product1' => $searchProduct,
+                                        'product2' => $pairProduct2
+                                    ];
+                                }
+                                
+                                if($this->isWidthsEqual($pairedList, $maxWidthSumChecked)) continue;
+                                
+
+                                // $meters = $this->checkMetersQuantity($products, $maxWidthSumChecked);
+                                // if($meters === false) continue;
+
+                                if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio ){
+                                    $maxSumArr = $maxWidthSumChecked;
+                        
+                                    $checkPairedList = $this->checkMetersQuantity($pairedList, $minMeters, $possibleWidths);
+                                    if($checkPairedList === false) continue;
+
+                                    $result = ['pairedList' => $checkPairedList, 'widthInfo' => $maxSumArr];
+                                }
+                            }   
+                        }
+                    }
+                    else{
+                        
+                        for ($rows2=1; $rows2 <= $maxRows2 ; ++$rows2)
+                        {
+                            
+                            $remaining_width -= $rows2 * $pairProduct2['sheet_width'];
+
+                            // remaining third products
+                            foreach ($pairProducts3 as $key3 => $pairProduct3) 
+                            {
+                                
+                                //calculating third product rows
+                                if($pairProduct2['sheet_length'] == $pairProduct3['sheet_length'])
+                                {
+                                    
+                                    $rows3 = floor($remaining_width / $pairProduct3['sheet_width']);
+                                    // if($rows3 === 0) continue;
+
+                                    if($rows1 + $rows2 + $rows3 > $maxRowsSum)
+                                    {
+                                        $rows3 = $maxRowsSum - $rows2 - $rows1;
+                                    }
+                                    $widthSum = $rows1 * $searchProductWidth + $rows2 * $pairProduct2['sheet_width'] + $rows3 * $pairProduct3['sheet_width'];
+                                    $wasteRatio = round(1 - $widthSum / $maximumWidth, 3);
+                                    
+
+                                    $maxWidthSumChecked = 
+                                    [
+                                        'wasteRatio' => $wasteRatio,
+                                        'maximumWidth' => $maximumWidth,
+                                        'maxWidth' => $maxWidth,
+                                        'widthSum' => $widthSum,
+                                        'rows1' => $rows1,
+                                        'rows2' => $rows2,
+                                        'rows3' => $rows3,
+                                        'pairIndex2' => $key2,
+                                        'pairIndex3' => $key3
+                                    ];
+                                    $searchProduct['rows'] = $rows1;
+                                    $pairProduct2['rows'] = $rows2;
+                                    $pairProduct3['rows'] = $rows3;
+                                    $pairProduct3['index'] = $key3;
+
+                                    $pairedList = 
+                                    [
+                                        'product1' => $searchProduct,
+                                        'product2' => $pairProduct2,
+                                        'product3' => $pairProduct3
+                                    ];
+
+                                    if($this->isWidthsEqual($pairedList, $maxWidthSumChecked)) continue;
+
+                                    if($wasteRatio < $maxSumArr['wasteRatio'] && $wasteRatio <= $maxWasteRatio){
+                                        $maxSumArr = $maxWidthSumChecked;
+                        
+                                        $checkPairedList = $this->checkMetersQuantity($pairedList, $minMeters, $possibleWidths);
+                                        if($checkPairedList === false) continue;
+
+                                        $result = ['pairedList' => $checkPairedList, 'widthInfo' => $maxSumArr];
+                                    }
+                                } 
+                            }   
+                        }
+                    }
+                    
+                }  
+            }
+        }
+        
+        return $maxSumArr['wasteRatio'] != 1 ? $result : false;
+    }
+
+    public function maxWidthJoin($searchProduct, $index, $products, $minMeters, $possibleWidths, $maxWasteRatio)
+    {
+        $maxSumArr = ['wasteRatio' => 1];
+        $maxRowsSum = $this->params()['maxRows'];
+
+        $minusFromWidth = $this->params()['minusfromMaxWidth'];
+        $searchProductWidth = $searchProduct['sheet_width'];
 
         $result = [];
+
         foreach ($possibleWidths as $maximumWidth) 
         {
             $maxWidth = $maximumWidth - $minusFromWidth;
@@ -842,7 +1092,7 @@ class PairController extends Controller
                         $product['pairedQuantity'] = $product['totalQuantity'];
                         $product['meters'] = $product_info['meters'];
                         $product['maximum_width'] = $product_info['maximum_width'];
-                        $singles[$board][$mark][] = $product;
+                        $singles[$board][$mark][]['product1'] = $product;
                         $product_info = [];
                     }
                     else{
@@ -923,7 +1173,7 @@ class PairController extends Controller
 
         $joinList = $this->marksJoin($request);
         
-        dd($productsList);
+        // dd($productsList);
         foreach ($productsList as $boardKey => $markProducts) 
         {
             foreach ($markProducts as $markKey => $products) 
@@ -965,30 +1215,28 @@ class PairController extends Controller
 
     }
 
-    public function pairing($productList, $minMeters, $possibleWidths, $maxWasteRatio)
+    public function pairing($productList, $minMeters, $possibleWidths, $maxWasteRatio, &$prod_to_reduce_waste = [])
     {
 
         $pairs = [];
-        $productCopy = $productList;
 
         $minMetersParam = $this->params()['minMeters'];
-        $maxRowsParam = $this->params()['maxRows'];
-        $largeWasteParam = $this->params()['largeWasteRatio'];
-        $test = [];
+        
+        count($prod_to_reduce_waste) ? $method_name = 'maxWidthJoin' : $method_name = 'maxWidthPair2';
 
         foreach ($productList as $boards => &$marks) 
         {
             foreach ($marks as $mark => &$products) 
             {
-                
+                count($prod_to_reduce_waste) ? $prodList = &$prod_to_reduce_waste : $prodList = &$products;
                 foreach ($products as $key => &$searchProduct) 
                 {
                     
                     if($this->isSingle($searchProduct['sheet_width'], $possibleWidths) 
                     || $searchProduct['quantityLeft'] == 0) continue;
-                    
+
                     while (isset($products[$key]) 
-                    && $maxWidthArr = $this->maxWidthPair2($searchProduct, $key, $products, $minMeters, $possibleWidths, $maxWasteRatio)) 
+                    && $maxWidthArr = $this->$method_name($searchProduct, $key, $prodList, $minMeters, $possibleWidths, $maxWasteRatio)) 
                     {
                         
                         $maxWidthArr['pairedList']['product1']['maximum_width'] = $maxWidthArr['widthInfo']['maximumWidth'];
@@ -998,16 +1246,31 @@ class PairController extends Controller
                         
                         $pairs[$boards][$mark][] = $maxWidthArr['pairedList'];
 
-                        foreach($maxWidthArr['pairedList'] as $product)
+                        foreach($maxWidthArr['pairedList'] as $product_key => $product)
                         {
-                            if($product['quantityLeft'] == 0)
+                            if($product_key == 'product1')
                             {
-                                unset($products[$product['index']]);
+                                if($product['quantityLeft'] == 0)
+                                {
+                                    unset($products[$product['index']]);
+                                }
+                                else
+                                {
+                                    $products[$product['index']]['quantityLeft'] = $product['quantityLeft'];
+                                }
                             }
                             else
                             {
-                                $products[$product['index']]['quantityLeft'] = $product['quantityLeft'];
+                                if($product['quantityLeft'] == 0)
+                                {
+                                    unset($prodList[$product['index']]);
+                                }
+                                else
+                                {
+                                    $prodList[$product['index']]['quantityLeft'] = $product['quantityLeft'];
+                                }
                             }
+                            
                         }
                     
                     } 
