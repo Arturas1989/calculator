@@ -86,69 +86,46 @@ class PairController extends Controller
     {
         $productsList = [];
 
-        isset($request->boards) ? $boards = $request->boards : 
-        $boards = [Board::where('board_name','BC')->get()->first()->id];
-            foreach ($boards as $board_id) 
-            {
-                 
-                $board = Board::find($board_id);
-                $board_name = $board->board_name;
-                $marks = $board->marks()->get()->sort(function ($a, $b){
-                    return $this->gradeNum($b->mark_name) <=> $this->gradeNum($a->mark_name);
-                });
-                
-                foreach ($marks as $mark) 
-                {
-                    $mark_name = $mark->mark_name;
-                    if(!isset($request->boards) && $mark_name!='BC25R' && $mark_name!='BC24R'){
-                        continue;
-                    }
-                    
-                    $mark_id = $mark->id;
-                    if($from2 && $to2)
-                    {
-                        $orders = Order::whereBetween('manufactury_date', [$from, $to])
-                        ->whereBetween('load_date', [$from2, $to2])
-                        ->whereHas('product', function ($q) use ($mark_id)
-                        {
-                            return $q->where('mark_id', $mark_id);
-                        })
-                        ->get()->sortByDesc(function($q)
-                        {
-                            return $q->product()->get()->first()->sheet_width;
-                         })
-                        ->values()->all();
-                    }
-                    else if($from && $to)
-                    {
-                        $orders = Order::whereBetween('manufactury_date', [$from, $to])
-                        ->whereHas('product', function ($q) use ($mark_id)
-                        {
-                            return $q->where('mark_id', $mark_id);
-                        })
-                        ->get()->sortByDesc(function($q)
-                        {
-                            return $q->product()->get()->first()->sheet_width;
-                         })
-                        ->values()->all();
-                    }
-                    else
-                    {
-                        return [];
-                    }
+        if($from2 && $to2)
+        {
+            $data = $board->whereIn('id',$request->boards)->with(['marks.product.order'
+            => function($q) use ($from, $to, $from2, $to2){
+                    return $q->whereBetween('manufactury_date', [$from, $to])
+                    ->whereBetween('load_date', [$from2, $to2]);
+                }, 'marks.product.company'])->get();
+        }
+        else if ($from && $to) 
+        {
+            $data = $board->whereIn('id',$request->boards)->with(['marks.product.order'
+            => function($q) use ($from, $to){
+                    return $q->whereBetween('manufactury_date', [$from, $to]);
+                }, 'marks.product.company'])->get();
+        }
+        else{
+            return [];
+        }
 
-                    foreach ($orders as $order) 
+        foreach($data as $board)
+        {
+            $marks = $board->marks;
+            if (count($marks) == 0) continue;
+
+            $marks = $marks->sortByDesc('mark_name');
+            foreach($marks as $mark)
+            {
+                foreach($mark->product as $product)
+                {
+                    foreach ($product->order as $order) 
                     {
-                        $product = $order->product()->get()->first();
+                        // dd($order);
                         
-                        $company_name = $product->company()->get()->first()->company_name;
+                        $company_name = $product->company->company_name;
                         $product->description ? 
-                        $description =  $company_name . ' ' . $product->description : 
-                        $description =  $company_name;
+                        $description =  $company_name . ' ' . $product->description : $description = $company_name;
         
                         $product->bending ? $bending =  $product->bending : $bending =  '';
                         $dates = substr($order->manufactury_date,-2).' ('.substr($order->load_date,-2).')';
-                        $productsList[$board_name][$mark_name][] = 
+                        $productsList[$board->board_name][$mark->mark_name][] = 
                         [
                             'code' => $order->code,
                             'description' => $description,
@@ -161,28 +138,8 @@ class PairController extends Controller
                             'order_id' => $order->id,
                         ];
                     }
-                }   
-            }
-
-        if(isset($request->marks) && count($request->marks) == 1)
-        {
-            foreach ($request->marks as $mark_id) 
-            {
-                if(Mark::find($mark_id)->mark_name == 'BC24R')
-                {
-                    unset($productsList['BC']['BC25R']);
-                }
-                else
-                {
-                    unset($productsList['BC']['BC24R']);
                 }
             }
-        }
-        
-        if(!isset($request->marks))
-        {
-            unset($productsList['BC']['BC24R']);
-            unset($productsList['BC']['BC25R']);
         }
         
         return $productsList;
@@ -758,7 +715,6 @@ class PairController extends Controller
                     $remaining_width = $maxWidth - $rows1 * $searchProductWidth;
 
                     // calculating second product maximum rows
-                    // dd($pairProduct2);
                     $maxRows2 = (int)floor($remaining_width / $pairProduct2['sheet_width']);
                     if($maxRows2 === 0) break;
 
@@ -1035,7 +991,6 @@ class PairController extends Controller
 
     public function calculatorSingle($products)
     {
-        // dd($products);
         $singles = [];
         $remaining_products = [];
         $product_info = [];
@@ -1057,7 +1012,6 @@ class PairController extends Controller
                         $rows = floor($width / $product['sheet_width']);
 
                         $product_waste_ratio = round(1 - $rows * $product['sheet_width'] / $width,3);
-                        // dd($product,$product_waste_ratio);
                         if($product_waste_ratio < $wasteRatio && $product_waste_ratio <= $params['absoluteMaxWasteRatio'])
                         {
                             
@@ -1090,7 +1044,6 @@ class PairController extends Controller
             
         }
         
-        // dd($singles);
         return ['pairs' => $singles, 'remaining_products' => $remaining_products];
     }
 
@@ -1141,12 +1094,11 @@ class PairController extends Controller
         $maxWasteRatio = $this->params()['absoluteMaxWasteRatio'];
         $resultMaxWaste =  $this->pairing($result['remaining_products'], $minMetersParam, $possibleWidths, $maxWasteRatio);
 
+        
         $resultFuture = $this->pairing($resultMaxWaste['remaining_products'], $minMetersParam, $possibleWidths, $maxWasteRatio, $futureProducts);
         $resultSingle =  $this->calculatorSingle($resultFuture['remaining_products']);
-        // dd($mainResult['pairs'],$resultMaxWaste['pairs'],$resultFuture['pairs'],$resultSingle['pairs']);
         $finalResult['pairs'] = array_merge_recursive($mainResult['pairs'],$resultMaxWaste['pairs'],$resultFuture['pairs'],$resultSingle['pairs']);
         $finalResult['remaining_products'] = $resultSingle['remaining_products'];
-        // dd($finalResult);
         return $finalResult;
     }
 
@@ -1163,12 +1115,13 @@ class PairController extends Controller
         $to4 = $this->dates($request)['future_load_date_till'];
 
         $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
+        if(count($productsList) == 0) return false;
+
         $futureProducts= $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
         $possibleWidths = $this->params()['possibleMaxWidths'];
 
         $joinList = $this->marksJoin($request);
         
-        // dd($futureProducts);
         foreach ($productsList as $boardKey => $markProducts) 
         {
             foreach ($markProducts as $markKey => $products) 
@@ -1177,7 +1130,7 @@ class PairController extends Controller
                 $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
                 $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
                 $allProducts[$boardKey][$markKey] = $products;
-                $futureProducts = &$futureProducts[$boardKey][$markKey];
+                $futureProducts? $futureProducts = &$futureProducts[$boardKey][$markKey] : $futureProducts = [];
                 
                 // $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
                 $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts);
@@ -1216,7 +1169,7 @@ class PairController extends Controller
         $pairs = [];
 
         $minMetersParam = $this->params()['minMeters'];
-        
+
         count($prod_to_reduce_waste) ? $method_name = 'maxWidthJoin' : $method_name = 'maxWidthPair2';
 
         foreach ($productList as $boards => &$marks) 
