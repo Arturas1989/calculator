@@ -18,4 +18,24 @@ class Board extends Model
     {
         return $this->hasMany(Mark::class);
     }
+
+    public function getAllRelationsByIdAndDate($request, $from, $to, $from2,$to2)
+    {
+        if($from2 && $to2)
+        {
+            return $this->whereIn('id',$request->boards)->with(['marks.product.order'
+            => function($q) use ($from, $to, $from2, $to2){
+                    return $q->whereBetween('manufactury_date', [$from, $to])
+                    ->whereBetween('load_date', [$from2, $to2]);
+                }, 'marks.product.company'])->get();
+        }
+        else if ($from && $to) 
+        {
+            return $this->whereIn('id',$request->boards)->with(['marks.product.order'
+            => function($q) use ($from, $to){
+                    return $q->whereBetween('manufactury_date', [$from, $to]);
+                }, 'marks.product.company'])->get();
+        }
+        return [];
+    }
 }

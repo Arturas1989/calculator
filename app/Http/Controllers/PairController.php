@@ -82,28 +82,13 @@ class PairController extends Controller
     //DUOMENU FUNKCIJOS
     //-----------------
 
+    
+
     public function getProductsList($from, $to, $from2, $to2, $request, Board $board)
     {
         $productsList = [];
 
-        if($from2 && $to2)
-        {
-            $data = $board->whereIn('id',$request->boards)->with(['marks.product.order'
-            => function($q) use ($from, $to, $from2, $to2){
-                    return $q->whereBetween('manufactury_date', [$from, $to])
-                    ->whereBetween('load_date', [$from2, $to2]);
-                }, 'marks.product.company'])->get();
-        }
-        else if ($from && $to) 
-        {
-            $data = $board->whereIn('id',$request->boards)->with(['marks.product.order'
-            => function($q) use ($from, $to){
-                    return $q->whereBetween('manufactury_date', [$from, $to]);
-                }, 'marks.product.company'])->get();
-        }
-        else{
-            return [];
-        }
+        $data = $board->getAllRelationsByIdAndDate($request, $from, $to, $from2, $to2);
 
         foreach($data as $board)
         {
@@ -117,8 +102,7 @@ class PairController extends Controller
                 {
                     foreach ($product->order as $order) 
                     {
-                        // dd($order);
-                        
+
                         $company_name = $product->company->company_name;
                         $product->description ? 
                         $description =  $company_name . ' ' . $product->description : $description = $company_name;
