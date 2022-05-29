@@ -1057,7 +1057,7 @@ class PairController extends Controller
         $pairs = [];
         $maxWasteRatio = $this->params()['maxWasteRatio'];
 
-        
+        // dd($productList);
         foreach($productList as $key => $products)
         {
             $productsMerge = array_merge_recursive($remainingProducts,$products);
