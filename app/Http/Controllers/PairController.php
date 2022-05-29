@@ -1118,7 +1118,7 @@ class PairController extends Controller
                 
                 // $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
                 $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts);
-                // dd($result2,$futureProducts);
+                dd($result2,$futureProducts);
             }
         }
 

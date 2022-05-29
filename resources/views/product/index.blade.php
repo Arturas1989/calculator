@@ -30,7 +30,7 @@
                   
                     <tr>
                       <td>{{$product->code}}</td>
-                      <td>{{$product->company()->get()[0]->company_name}}</td>
+                      <td>{{$product->company->company_name}}</td>
                       <td>{{$product->description}}</td>
                       <td>{{$product->sheet_width}}</td>
                       <td>{{$product->sheet_length}}</td>

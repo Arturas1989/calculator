@@ -21,7 +21,7 @@ class ProductController extends Controller
 
     public function allProducts()
     {
-        return Product::all();
+        return Product::with('company')->get()->all();
     }
 
     public function allCompanies()
