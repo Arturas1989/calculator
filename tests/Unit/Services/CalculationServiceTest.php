@@ -467,7 +467,7 @@ class PairControllerTest extends TestCase
     
    
    
-    public function test_pairController_method_pairing_should_return_false_when_meters_below_min_meters_parameter()
+    public function test_calculationService_method_pairing_should_return_false_when_meters_below_min_meters_parameter()
     {
         $productList = $this->productData2();
         $maxWasteRatio =  $this->pairController->params()['maxWasteRatio'];
@@ -476,7 +476,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(false, $result);
     }
     
-    public function test_pairController_method_pairing_should_return_pairs()
+    public function test_calculationService_method_pairing_should_return_pairs()
     {
         $productList = $this->productData();
         $maxWasteRatio =  $this->pairController->params()['maxWasteRatio'];
@@ -562,7 +562,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals($expected_result, $result);
 
     }
-    public function test_pairController_method_checkMetersQuantity_should_return_pairedList_when_meters_above_70()
+    public function test_calculationService_method_checkMetersQuantity_should_return_pairedList_when_meters_above_70()
     {
         $pairedList = 
         [
@@ -614,7 +614,7 @@ class PairControllerTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function test_pairController_method_checkMetersQuantity_assert_false_when_min_meters_below_70()
+    public function test_calculationService_method_checkMetersQuantity_assert_false_when_min_meters_below_70()
     {
         $pairedList = 
         [
@@ -667,7 +667,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(false, $result);
     }
  
-    public function test_pairController_method_correctMeters_shouldnt_correct_when_1_product_dont_meet_quantity_requirements()
+    public function test_calculationService_method_correctMeters_shouldnt_correct_when_1_product_dont_meet_quantity_requirements()
     {
         $meters = 900;
         $pairedList = 
@@ -719,7 +719,7 @@ class PairControllerTest extends TestCase
 
         $this->assertEquals(900, $meters);
     }
-    public function test_pairController_method_correctMeters_should_work_with_3_products()
+    public function test_calculationService_method_correctMeters_should_work_with_3_products()
     {
         $meters = 900;
         $pairedList = 
@@ -772,7 +772,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(915, $meters);
     }
 
-    public function test_pairController_method_correctMeters_shouldnt_correct_with_description_tikslus()
+    public function test_calculationService_method_correctMeters_shouldnt_correct_with_description_tikslus()
     {
         $meters = 300;
         $pairedList = 
@@ -824,7 +824,7 @@ class PairControllerTest extends TestCase
 
         $this->assertEquals(300, $meters);
     }
-    public function test_pairController_method_correctMeters_should_work_with_quantityLeft_below_or_equal_quantityRatio()
+    public function test_calculationService_method_correctMeters_should_work_with_quantityLeft_below_or_equal_quantityRatio()
     {
         $meters = 300;
         $pairedList = 
@@ -877,7 +877,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(339, $meters);
     }
 
-    public function test_pairController_method_correctMeters_should_work_with_quantityLeft_below_or_equal_twenty()
+    public function test_calculationService_method_correctMeters_should_work_with_quantityLeft_below_or_equal_twenty()
     {
         $meters = 300;
         $pairedList = 
@@ -930,7 +930,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(312, $meters);
     }
 
-    public function test_pairController_method_calculatePairedMeters_should_work_with_three_products()
+    public function test_calculationService_method_calculatePairedMeters_should_work_with_three_products()
     {
         $pairedList = 
         [
@@ -983,7 +983,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(310, $result['product1']['meters']);
     }
 
-    public function test_pairController_method_calculatePairedMeters_should_work_with_two_products()
+    public function test_calculationService_method_calculatePairedMeters_should_work_with_two_products()
     {
         $pairedList = 
         [
@@ -1022,7 +1022,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(674, $result['product1']['meters']);
     }
 
-    public function test_pairController_method_minSingleRows_should_work_with_diferent_width()
+    public function test_calculationService_method_minSingleRows_should_work_with_diferent_width()
     {
         $maxRows = $this->pairController->params()['maxRows'];
         $minWidth = 2100;
@@ -1036,7 +1036,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals($singleRows, 8);
     }
 
-     public function test_pairController_method_minSingleRows_should_return_max_rows_if_exceeds_single_rows()
+     public function test_calculationService_method_minSingleRows_should_return_max_rows_if_exceeds_single_rows()
     {
         $maxRows = $this->pairController->params()['maxRows'];
         $minWidth = 2500 - $this->pairController->params()['minusfromMaxWidth'];
@@ -1045,7 +1045,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals($singleRows, $maxRows);
     }
 
-     public function test_pairController_method_minSingleRows_should_return_1_if_product_sheet_width_exceeds_min_width()
+     public function test_calculationService_method_minSingleRows_should_return_1_if_product_sheet_width_exceeds_min_width()
     {
         $minWidth = 2100 - $this->pairController->params()['minusfromMaxWidth'];
         $sheet_width = 2076;
@@ -1053,7 +1053,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals($singleRows, 1);
     }
 
-    public function test_pairController_method_calculateQuantity()
+    public function test_calculationService_method_calculateQuantity()
     {
         $meters1 = 100;
         $rows1 = 3;
@@ -1074,7 +1074,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals($quantity3, 617);
     }
 
-    public function test_pairController_method_calculateMeters()
+    public function test_calculationService_method_calculateMeters()
     {
         $quantity1 = 800;
         $rows1 = 3;
@@ -1095,7 +1095,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals($meters3, 909);
     }
 
-    public function test_pairController_method_widthDif_test_with_input(){
+    public function test_calculationService_method_widthDif_test_with_input(){
         $maxWidth = 2460;
         $widthSum = 2390;
 
@@ -1115,7 +1115,7 @@ class PairControllerTest extends TestCase
         $this->assertEquals(round($result3, 2), -8.33);
     }
 
-    public function test_pairController_method_isWidthsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum2(){
+    public function test_calculationService_method_isWidthsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum2(){
         $data = $this->data3_3();
         $widthInfo = $data['widthInfo'];
         $pairedList = $data['pairedList'];
@@ -1124,7 +1124,7 @@ class PairControllerTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_pairController_method_isWidthsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum(){
+    public function test_calculationService_method_isWidthsEqual_assert_false_when_single_rows_sum_is_not_equal_to_paired_products_rows_sum(){
         $data = $this->data3_2();
         $widthInfo = $data['widthInfo'];
         $pairedList = $data['pairedList'];
@@ -1133,7 +1133,7 @@ class PairControllerTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_pairController_method_isWidthsEqual_assert_true_when_single_rows_sum_is_equal_to_paired_products_rows_sum(){
+    public function test_calculationService_method_isWidthsEqual_assert_true_when_single_rows_sum_is_equal_to_paired_products_rows_sum(){
         $data = $this->data3_1();
         $pairedList = $data['pairedList'];
         $widthInfo = $data['widthInfo'];
@@ -1142,7 +1142,7 @@ class PairControllerTest extends TestCase
         $this->assertTrue($result);
     }
 
-     public function test_pairController_method_maxWidthPair_works_with_diferent_maximum_widths()
+     public function test_calculationService_method_maxWidthPair_works_with_diferent_maximum_widths()
     {
         $widthList = $this->pairController->params()['possibleMaxWidths'];
         $maxWasteRatio = $this->pairController->params()['maxWasteRatio'];
@@ -1155,7 +1155,7 @@ class PairControllerTest extends TestCase
         }
     }
 
-     public function test_pairController_method_maxWidthPair_2_3_products_maxSum_is_greater_or_equal_to_minWidth()
+     public function test_calculationService_method_maxWidthPair_2_3_products_maxSum_is_greater_or_equal_to_minWidth()
     {
         $data2 = $this->data2();
         $data3 = $this->data3();
@@ -1176,7 +1176,7 @@ class PairControllerTest extends TestCase
         $this->assertGreaterThanOrEqual($minWidth3, $result3['widthInfo']['widthSum']);
     }
 
-    public function test_pairController_method_maxWidthPair_2_products_maxSum_is_less_or_equal_to_maxWidth()
+    public function test_calculationService_method_maxWidthPair_2_products_maxSum_is_less_or_equal_to_maxWidth()
     {
         $data = $this->data2();
         $products = $data['products'];
@@ -1189,7 +1189,7 @@ class PairControllerTest extends TestCase
         $this->assertLessThanOrEqual($result['widthInfo']['maxWidth'], $result['widthInfo']['widthSum']);
     }
 
-    public function test_pairController_method_maxWidthPair_2_products_rows_sum_is_less_or_equal_maximum_rows()
+    public function test_calculationService_method_maxWidthPair_2_products_rows_sum_is_less_or_equal_maximum_rows()
     {
         $data = $this->data2();
         $products = $data['products'];
@@ -1208,7 +1208,7 @@ class PairControllerTest extends TestCase
         $this->assertLessThanOrEqual($maxRows, $rowSum);
     }
     
-    public function test_pairController_method_maxWidthPair_should_be_able_to_return_array_with_2_products()
+    public function test_calculationService_method_maxWidthPair_should_be_able_to_return_array_with_2_products()
     {
         $data = $this->data2();
         $products = $data['products'];
@@ -1261,7 +1261,7 @@ class PairControllerTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function test_pairController_method_maxWidthPair_should_be_able_to_return_array_with_3_products()
+    public function test_calculationService_method_maxWidthPair_should_be_able_to_return_array_with_3_products()
     {
         $data = $this->data3();
         $products = $data['products'];
@@ -1330,7 +1330,7 @@ class PairControllerTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function test_pairController_method_maxWidthPair_when_paired_3_products_lengths_of_at_least_2_products_should_be_equal()
+    public function test_calculationService_method_maxWidthPair_when_paired_3_products_lengths_of_at_least_2_products_should_be_equal()
     {
         $data = $this->data3();
         $products = $data['products'];
@@ -1352,7 +1352,7 @@ class PairControllerTest extends TestCase
     
 
 
-    public function test_pairController_method_maxWidthPair_3_products_rows_sum_is_less_or_equal_maximum_rows()
+    public function test_calculationService_method_maxWidthPair_3_products_rows_sum_is_less_or_equal_maximum_rows()
     {
         $data = $this->data3();
         $products = $data['products'];
@@ -1370,7 +1370,7 @@ class PairControllerTest extends TestCase
         $this->assertLessThanOrEqual($maxRows, $rowsSum);
     }
 
-    public function test_pairController_method_maxWidthPair_3_products_maxSum_is_less_or_equal_to_maxWidth()
+    public function test_calculationService_method_maxWidthPair_3_products_maxSum_is_less_or_equal_to_maxWidth()
     {
         $data = $this->data3();
         $products = $data['products'];
@@ -1384,7 +1384,7 @@ class PairControllerTest extends TestCase
         $this->assertLessThanOrEqual($result['widthInfo']['maximumWidth'], $result['widthInfo']['widthSum']);
     }
 
-    public function test_pairController_singleCalculator_method_test_to_include_products_in_remaining_products_if_product_exceeds_maximum_waste()
+    public function test_calculationService_singleCalculator_method_test_to_include_products_in_remaining_products_if_product_exceeds_maximum_waste()
     {
         $params = $this->pairController->params();
         $minPossibleWidth = min($params['possibleMaxWidths']);
