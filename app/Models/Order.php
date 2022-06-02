@@ -34,7 +34,7 @@ class Order extends Model
 
     public function createdProducts()
     {
-        return Order::where('product_id','!=',null)->with('product.company')->get()->all();
+        return Order::where('product_id','!=',null)->with(['product','product.company'])->orderBy('code','desc')->get()->all();
     }
     
     public function errorsHTML($field, $errors)
