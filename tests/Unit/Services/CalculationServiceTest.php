@@ -17,7 +17,7 @@ class CalculationServiceTest extends TestCase
         parent::setUp();
 
         $this->CalculationService = new CalculationService;
-        $this->possibleWidths = $this->CalculationService->params()['possibleMaxWidths'];
+        $this->possibleWidths = $this->CalculationService->params['possibleMaxWidths'];
     }
 
     public function inputGenerator($width, $widthList)
@@ -70,7 +70,7 @@ class CalculationServiceTest extends TestCase
 
     public function productData2()
     {
-        $minMeters = $this->CalculationService->params()['minMeters'];
+        $minMeters = $this->CalculationService->params['minMeters'];
         $sheet_length = 1200;
         $rows = 1;
         $minQuantity = $this->CalculationService->calculateQuantity($minMeters, $rows, $sheet_length) - 1;
@@ -470,7 +470,7 @@ class CalculationServiceTest extends TestCase
     public function test_calculationService_method_pairing_should_return_false_when_meters_below_min_meters_parameter()
     {
         $productList = $this->productData2();
-        $maxWasteRatio =  $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio =  $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->pairing($productList, 0, $this->possibleWidths, $maxWasteRatio);
 
         $this->assertEquals(false, $result);
@@ -479,7 +479,7 @@ class CalculationServiceTest extends TestCase
     public function test_calculationService_method_pairing_should_return_pairs()
     {
         $productList = $this->productData();
-        $maxWasteRatio =  $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio =  $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->pairing($productList, 0, $this->possibleWidths, $maxWasteRatio);
         $expected_result = 
         [
@@ -609,7 +609,7 @@ class CalculationServiceTest extends TestCase
                 'rows' => 1
             ]
         ];
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->checkMetersQuantity($pairedList, 70, $this->possibleWidths, $maxWasteRatio);
         $this->assertIsArray($result);
     }
@@ -661,7 +661,7 @@ class CalculationServiceTest extends TestCase
                 'rows' => 1
             ]
         ];
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->checkMetersQuantity($pairedList, 70, $this->possibleWidths, $maxWasteRatio);
 
         $this->assertEquals(false, $result);
@@ -1024,7 +1024,7 @@ class CalculationServiceTest extends TestCase
 
     public function test_calculationService_method_minSingleRows_should_work_with_diferent_width()
     {
-        $maxRows = $this->CalculationService->params()['maxRows'];
+        $maxRows = $this->CalculationService->params['maxRows'];
         $minWidth = 2100;
         $sheet_width = 270;
         $singleRows = $this->CalculationService->minSingleRows($sheet_width, $minWidth, $maxRows);
@@ -1038,8 +1038,8 @@ class CalculationServiceTest extends TestCase
 
      public function test_calculationService_method_minSingleRows_should_return_max_rows_if_exceeds_single_rows()
     {
-        $maxRows = $this->CalculationService->params()['maxRows'];
-        $minWidth = 2500 - $this->CalculationService->params()['minusfromMaxWidth'];
+        $maxRows = $this->CalculationService->params['maxRows'];
+        $minWidth = 2500 - $this->CalculationService->params['minusfromMaxWidth'];
         $sheet_width = 270;
         $singleRows = $this->CalculationService->minSingleRows($sheet_width, $minWidth);
         $this->assertEquals($singleRows, $maxRows);
@@ -1047,7 +1047,7 @@ class CalculationServiceTest extends TestCase
 
      public function test_calculationService_method_minSingleRows_should_return_1_if_product_sheet_width_exceeds_min_width()
     {
-        $minWidth = 2100 - $this->CalculationService->params()['minusfromMaxWidth'];
+        $minWidth = 2100 - $this->CalculationService->params['minusfromMaxWidth'];
         $sheet_width = 2076;
         $singleRows = $this->CalculationService->minSingleRows($sheet_width, $minWidth);
         $this->assertEquals($singleRows, 1);
@@ -1144,8 +1144,8 @@ class CalculationServiceTest extends TestCase
 
      public function test_calculationService_method_maxWidthPair_works_with_diferent_maximum_widths()
     {
-        $widthList = $this->CalculationService->params()['possibleMaxWidths'];
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $widthList = $this->CalculationService->params['possibleMaxWidths'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $index = 0;
 
         foreach ($widthList as $maximumWidth) {
@@ -1164,7 +1164,7 @@ class CalculationServiceTest extends TestCase
         $searchProduct2 = $data2['searchProduct'];
         $searchProduct3 = $data3['searchProduct'];
         $index = 0;
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
          
         
         $result2 = $this->CalculationService->maxWidthPair2($searchProduct2, $index, $products2, 0, $this->possibleWidths, $maxWasteRatio);
@@ -1183,7 +1183,7 @@ class CalculationServiceTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
 
         $this->assertLessThanOrEqual($result['widthInfo']['maxWidth'], $result['widthInfo']['widthSum']);
@@ -1195,8 +1195,8 @@ class CalculationServiceTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $maxRows = $this->CalculationService->params()['maxRows'];
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxRows = $this->CalculationService->params['maxRows'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         
         $result = $this->CalculationService->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
 
@@ -1255,7 +1255,7 @@ class CalculationServiceTest extends TestCase
             ]
         ];
         
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
@@ -1324,7 +1324,7 @@ class CalculationServiceTest extends TestCase
               ]
             ];
         
-            $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+            $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $this->assertEquals($expectedResult, $result);
         $this->assertIsArray($result);
@@ -1337,7 +1337,7 @@ class CalculationServiceTest extends TestCase
         $searchProduct = $data['searchProduct'];
         $index = 0;
         
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $product1 = $result['pairedList']['product1'];
         $product2 = $result['pairedList']['product2'];
@@ -1358,9 +1358,9 @@ class CalculationServiceTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $maxRows = $this->CalculationService->params()['maxRows'];
+        $maxRows = $this->CalculationService->params['maxRows'];
         
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         $rowsSum = 0;
         // dd($result['pairedList']);
@@ -1376,7 +1376,7 @@ class CalculationServiceTest extends TestCase
         $products = $data['products'];
         $searchProduct = $data['searchProduct'];
         $index = 0;
-        $maxWasteRatio = $this->CalculationService->params()['maxWasteRatio'];
+        $maxWasteRatio = $this->CalculationService->params['maxWasteRatio'];
         
         $result = $this->CalculationService->maxWidthPair2($searchProduct, $index, $products, 0, $this->possibleWidths, $maxWasteRatio);
         
@@ -1386,7 +1386,7 @@ class CalculationServiceTest extends TestCase
 
     public function test_calculationService_singleCalculator_method_test_to_include_products_in_remaining_products_if_product_exceeds_maximum_waste()
     {
-        $params = $this->CalculationService->params();
+        $params = $this->CalculationService->params;
         $minPossibleWidth = min($params['possibleMaxWidths']);
         $sheet_width = floor($minPossibleWidth * (1 - $params['absoluteMaxWasteRatio'] - 0.001));
         $product = 
