@@ -620,7 +620,7 @@ class CalculationService
 
 
         $result = [];
-
+        
         foreach ($possibleWidths as $maximumWidth) {
             $maxWidth = $maximumWidth - $minusFromWidth;
 
@@ -633,11 +633,9 @@ class CalculationService
 
             // remaining second products
             $pairProducts2 = $products;
-            unset($pairProducts2[$index]);
-
             $searchProduct['index'] = $index;
-            foreach ($pairProducts2 as $key2 => &$pairProduct2) {
-
+            foreach ($products as $key2 => &$pairProduct2) {
+                
                 for ($rows1 = 1; $rows1 <= $maxRows1; ++$rows1) {
                     $searchProduct['rows'] = $rows1;
                     $search_prod_width_rate = round($searchProduct['rows'] * $searchProduct['sheet_width'] / $maximumWidth, 3);
@@ -1099,8 +1097,10 @@ class CalculationService
                 $smallestWasteKey = array_key_first($waste);
                 $smallestWasteResult = $$smallestWasteKey;
                 $joinProducts = &$markProducts[$joinList[$markKey]];
+                $finalResult = $this->calculationMethod1($smallestWasteResult['remaining_products'], 0, $possibleWidths, $joinProducts);
+                
 
-                dd($futureProducts1, $joinProducts,$smallestWasteResult);
+                dd($finalResult,$markProducts);
                 dd($this->wasteRatio($result1), $this->wasteRatio($result2), $this->wasteRatio($result3));
                 // $this->quantityTest($result3);
                 // dd($result1, $futureProducts1,$result2, $futureProducts2, $result3, $futureProducts3);
