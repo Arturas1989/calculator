@@ -106,8 +106,9 @@ class CalculationService
     {
         $marksJoin = [];
         if (isset($request->marks_origin)) {
-            $marksJoin['marks_origin'] = $request->marks_origin;
-            $marksJoin['marks_join'] = $request->marks_join;
+            for($i = 0; $i<count($request->marks_origin); $i++){
+                $marksJoin[$request->marks_origin[$i]] = $request->marks_join[$i];
+            }
         }
         return $marksJoin;
     }
@@ -1074,18 +1075,32 @@ class CalculationService
 
         $joinList = $this->marksJoin($request);
 
-        foreach ($productsList as $boardKey => $markProducts) {
+        foreach ($productsList as $boardKey => &$markProducts) {
             foreach ($markProducts as $markKey => $products) {
                 $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
                 $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
                 $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
                 $allProducts[$boardKey][$markKey] = $products;
-                $futureProducts ? $futureProducts = &$futureProducts[$boardKey][$markKey] : $futureProducts = [];
+                
+                isset($futureProducts[$boardKey][$markKey]) ? $futureProducts = &$futureProducts[$boardKey][$markKey] : $futureProducts = [];
                 $futureProducts1 = $futureProducts2 = $futureProducts3 = $futureProducts;
-
+                // dd($futureProducts1);
+                
                 $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths, $futureProducts1);
                 $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts2);
                 $result3 = $this->calculationMethod3([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts3);
+                $waste = 
+                [
+                    'result1' => $this->wasteRatio($result1),
+                    'result2' => $this->wasteRatio($result2),
+                    'result3' => $this->wasteRatio($result3)
+                ];
+                asort($waste);
+                $smallestWasteKey = array_key_first($waste);
+                $smallestWasteResult = $$smallestWasteKey;
+                $joinProducts = &$markProducts[$joinList[$markKey]];
+
+                dd($futureProducts1, $joinProducts,$smallestWasteResult);
                 dd($this->wasteRatio($result1), $this->wasteRatio($result2), $this->wasteRatio($result3));
                 // $this->quantityTest($result3);
                 // dd($result1, $futureProducts1,$result2, $futureProducts2, $result3, $futureProducts3);
