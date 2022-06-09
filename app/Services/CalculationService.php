@@ -901,7 +901,7 @@ class CalculationService
     //     return $singles;
     // }
 
-    public function calculatorSingle($products)
+    public function calculatorSingle($products, $maxWasteRatio)
     {
         $singles = [];
         $remaining_products = [];
@@ -920,7 +920,7 @@ class CalculationService
                         $rows = floor($width / $product['sheet_width']);
 
                         $product_waste_ratio = round(1 - $rows * $product['sheet_width'] / $width, 3);
-                        if ($product_waste_ratio < $wasteRatio && $product_waste_ratio <= $params['absoluteMaxWasteRatio']) {
+                        if ($product_waste_ratio < $wasteRatio && $product_waste_ratio <= $maxWasteRatio) {
 
                             $wasteRatio = $product_waste_ratio;
                             $product_info =
@@ -997,7 +997,7 @@ class CalculationService
 
 
         $resultFuture = $this->pairing($resultMaxWaste['remaining_products'], $minMetersParam, $possibleWidths, $maxWasteRatio, $futureProducts);
-        $resultSingle =  $this->calculatorSingle($resultFuture['remaining_products']);
+        $resultSingle =  $this->calculatorSingle($resultFuture['remaining_products'], $maxWasteRatio);
         $finalResult['pairs'] = array_merge_recursive($mainResult['pairs'], $resultMaxWaste['pairs'], $resultFuture['pairs'], $resultSingle['pairs']);
         $finalResult['remaining_products'] = $resultSingle['remaining_products'];
         return $finalResult;
@@ -1045,7 +1045,7 @@ class CalculationService
         
 
         $resultFuture = $this->pairing($resultMaxWaste['remaining_products'], $minMetersParam, $possibleWidths, $maxWasteRatio, $futureProducts);
-        $resultSingle =  $this->calculatorSingle($resultFuture['remaining_products']);
+        $resultSingle =  $this->calculatorSingle($resultFuture['remaining_products'], $maxWasteRatio);
         // dd($mainResult, $resultMaxWaste, $resultFuture, $resultSingle);
         $finalResult['pairs'] = array_merge_recursive($mainResult['pairs'], $resultMaxWaste['pairs'], $resultFuture['pairs'], $resultSingle['pairs']);
         $finalResult['remaining_products'] = $resultSingle['remaining_products'];
@@ -1120,7 +1120,9 @@ class CalculationService
                     $joinResult['remaining_products'] = $joinFutureResult['remaining_products'];
                 }
 
-                dd($joinResult, $futureProducts);
+                $remainingSingles = $this->calculatorSingle($joinResult['remaining_products'], 1);
+
+                dd($joinResult, $remainingSingles);
                 dd($this->wasteRatio($result1), $this->wasteRatio($result2), $this->wasteRatio($result3));
                 // $this->quantityTest($result3);
                 // dd($result1, $futureProducts1,$result2, $futureProducts2, $result3, $futureProducts3);
@@ -1576,67 +1578,7 @@ class CalculationService
         return $result;
     }
 
-    public function calculationMethod(
-        $productList,
-        $minMeters,
-        Request $request,
-        Board $board,
-        $isLast = false,
-        $joinList = []
-    ) {
-
-        $length = count($productList);
-        $pairs = [];
-        $joinMark = '';
-
-        if (!$length) return
-            [
-                'pairs' => $pairs,
-                'joinList' => $joinList,
-                'joinMark' => $joinMark
-            ];;
-
-
-        $maxWidth = $this->params['maxWidth'];
-        $minMetersParam = $this->params['minMeters'];
-        $isLast = false;
-
-        for ($i = 0; $i < $length; $i++) {
-            if ($i == $length - 1) {
-                $minWidth = 2140;
-                $isLast = true;
-            } else {
-                $minWidth = $this->params['minWidth'];
-            }
-            if ($i) {
-                $merge = array_merge_recursive($remainingProducts, $productList[$i]);
-                $result = $this->calculator($merge, $minWidth, $minMeters, $request, $board, $isLast, $joinList);
-                if (!$result) return $this->calculationMethod($productList, $minMetersParam, $request, $board, $isLast, $joinList);
-
-                $pairs = array_merge_recursive($pairs, $result['pairs']);
-            } else {
-                $result = $this->calculator($productList[$i], $minWidth, $minMeters, $request, $board, $isLast, $joinList);
-                if (!$result) return $this->calculationMethod($productList, $minMetersParam, $request, $board, $isLast, $joinList);
-                $pairs = $result['pairs'];
-            }
-            $remainingProducts = $result['remaining_products'];
-        }
-
-        $joinList = $result['joinList'];
-        $joinMark = $result['joinMark'];
-        if (count($remainingProducts)) {
-            $singleProducts = $this->calculatorSingle($remainingProducts, $maxWidth, $request, $board);
-            $pairs = array_merge_recursive($pairs, $singleProducts);
-        }
-        $wasteSumArr = $this->wasteSum($pairs);
-        $pairs = array_merge_recursive($pairs, $wasteSumArr);
-        return
-            [
-                'pairs' => $pairs,
-                'joinList' => $joinList,
-                'joinMark' => $joinMark
-            ];
-    }
+    
 
     // public function passOneByOne ($productArray, $count, $request, $board)
     // {
