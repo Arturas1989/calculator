@@ -472,7 +472,6 @@ class CalculationServiceTest extends TestCase
         $productList = $this->productData2();
         $maxWasteRatio =  $this->CalculationService->params['maxWasteRatio'];
         $result = $this->CalculationService->pairing($productList, 0, $this->possibleWidths, $maxWasteRatio);
-
         $this->assertEquals(false, $result);
     }
     
@@ -735,7 +734,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 1
+                'rows' => 1,
+                'pairedQuantity' => 750
             ],
 
             'product2' =>
@@ -749,7 +749,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 2
+                'rows' => 2,
+                'pairedQuantity' => 1500
             ],
             
             'product3' =>
@@ -763,7 +764,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 1
+                'rows' => 1,
+                'pairedQuantity' => 590
             ]
         ];
 
@@ -840,7 +842,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 2
+                'rows' => 2,
+                'pairedQuantity' => 1235
             ],
 
             'product2' =>
@@ -854,7 +857,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 2
+                'rows' => 2,
+                'pairedQuantity' => 1295
             ],
 
             'product3' =>
@@ -868,7 +872,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 2
+                'rows' => 2,
+                'pairedQuantity' => 1295
             ]
         ];
 
@@ -893,7 +898,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 2
+                'rows' => 2,
+                'pairedQuantity' => 1280
             ],
 
             'product2' =>
@@ -907,7 +913,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 2
+                'rows' => 2,
+                'pairedQuantity' => 1300
             ],
 
             'product3' =>
@@ -921,7 +928,8 @@ class CalculationServiceTest extends TestCase
                 "dates" => "08 (09)",
                 "bending" => "",
                 "order_id" => 203,
-                'rows' => 2
+                'rows' => 2,
+                'pairedQuantity' => 1295
             ]
         ];
 
@@ -1408,7 +1416,7 @@ class CalculationServiceTest extends TestCase
             ]
         ];
 
-        $result = $this->CalculationService->calculatorSingle($product);
+        $result = $this->CalculationService->calculatorSingle($product,$params['absoluteMaxWasteRatio']);
         $this->assertEquals($result['remaining_products'],$product);
     }
     
