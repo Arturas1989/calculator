@@ -1093,12 +1093,13 @@ class CalculationService
 
         $pairs = [];
         foreach ($productsList as $boardKey => &$markProducts) {
-            foreach ($markProducts as $markKey => $products) {
+            foreach ($markProducts as $markKey => &$products) {
+                
                 $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
                 $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
                 $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
+                $allProducts = [];
                 $allProducts[$boardKey][$markKey] = $products;
-                
                 
                 isset($futureProducts[$boardKey][$markKey]) ? $futureList = $futureProducts[$boardKey][$markKey] : $futureList = [];
                 $futureProducts1 = $futureProducts2 = $futureProducts3 = $futureList;
@@ -1106,7 +1107,7 @@ class CalculationService
                 $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths, $futureProducts1);
                 $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts2);
                 $result3 = $this->calculationMethod3([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts3);
-               
+                
                 $waste = 
                 [
                     'result1' => $this->wasteRatio($result1),
@@ -1125,15 +1126,19 @@ class CalculationService
                 $smallestWasteKey = array_key_first($waste);
                 $futureProducts[$boardKey][$markKey] = $remainingFutureProducts[$smallestWasteKey];
                 $finalResult = $$smallestWasteKey;
+                // dd($finalResult);
                 
-
                 //pataisyti joinList[$markKey] - patikrinti ar issetintas
                 if(isset($joinList[$markKey]) && isset($markProducts[$joinList[$markKey]])){
                     $joinProducts = &$markProducts[$joinList[$markKey]];
-                
+                    // dd($markProducts[$joinList[$markKey]]);
+                    // dd($joinProducts);
+                   
                     $joinResult = $this->calculationMethod1($finalResult['remaining_products'], 0, $possibleWidths, $joinProducts);
                     $finalResult['pairs'] = array_merge_recursive($finalResult['pairs'], $joinResult['pairs']);
-
+                    
+                    $finalResult['remaining_products'] = $joinResult['remaining_products'];
+                    // dd($finalResult);
                     // if(!isset($joinResult['remaining_products'][$boardKey])){
                     //     dd($joinResult);
                     // }
@@ -1148,17 +1153,26 @@ class CalculationService
                         }
                     }
                 }
+                // if($markKey == 'BE21W'){
+                //     dd($products);
+                // }
+                
                 $remainingSingles = $this->calculatorSingle($finalResult['remaining_products'], 1);
-
+                $products = [];
+                // dd($finalResult['remaining_products']);
                 $pairs = array_merge_recursive($pairs, $finalResult['pairs'], $remainingSingles['pairs']);
+                
+                // dd($pairs);
                 
                 
                 // dd($this->wasteRatio($result1), $this->wasteRatio($result2), $this->wasteRatio($result3));
                 // $this->quantityTest($result3);
                 // dd($result1, $futureProducts1,$result2, $futureProducts2, $result3, $futureProducts3);
             }
+            
         }
-        dd($pairs);
+        $pairs2['pairs'] = $pairs;
+        dd($pairs2, $this->quantityTest($pairs2));
         
 
 
@@ -1239,6 +1253,7 @@ class CalculationService
     public function quantityTest($array)
     {
         $quantityList = [];
+        // dd($array);
         foreach($array as $option => $productList){
             foreach ($productList as $board) {
                 foreach ($board as $mark) {
@@ -1254,8 +1269,6 @@ class CalculationService
                             }
                             else{
                                 foreach ($pair as $product) {
-                                
-                                
                                     if (!isset($quantityList[$product['code']])) {
                                         $quantityList[$product['code']] = $product['pairedQuantity'];
                                     }
