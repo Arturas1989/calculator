@@ -43,7 +43,7 @@ class CalculationService
             'minusfromMaxWidth' => 40,
             'maxWasteRatio' => 0.08,
             'maxSingleWasteRatio' => 0.068,
-            'absoluteMaxWasteRatio' => 0.144,
+            'absoluteMaxWasteRatio' => 0.12,
             'maxRows' => 8
         ];
     }
@@ -1074,7 +1074,7 @@ class CalculationService
         return $finalResult;
     }
 
-    public function smallestWasteResult(&$products, $futureProducts, $markKey, $boardKey, $possibleWidths)
+    public function smallestWasteResult(&$products, &$futureProducts, $markKey, $boardKey, $possibleWidths)
     {
         $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
         $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
@@ -1089,7 +1089,7 @@ class CalculationService
         $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths, $futureProducts1);
         $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts2);
         $result3 = $this->calculationMethod3([$widerThan820, $lessThan821, $singles], 0, $possibleWidths, $futureProducts3);
-        
+        // dd($result1, $result2, $result3)
         $waste = 
         [
             'result1' => $this->wasteRatio($result1),
@@ -1126,8 +1126,8 @@ class CalculationService
         $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
         $futureProducts = $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
         $productList_for_second_calculation = $product_test = $productsList;
-        $futureProducts_for_second_calculation = $futureProducts;
-        // dd($productsList);
+        $futureProducts2 = $futureProducts;
+        // dd($futureProducts);
         if (count($productsList) == 0) return false;
 
         $possibleWidths = $this->params['possibleMaxWidths'];
@@ -1138,11 +1138,12 @@ class CalculationService
             foreach ($markProducts as $markKey => &$products) {
                 
                 $finalResult = $this->smallestWasteResult($products, $futureProducts, $markKey, $boardKey, $possibleWidths);
-                
-               
+                // dd($finalResult);
                 if(count($finalResult['remaining_products']) > 0){
+                    
 
                     if(isset($joinList[$markKey]) && isset($markProducts[$joinList[$markKey]])){
+                        // dd($products);
                         $joinProducts = &$markProducts[$joinList[$markKey]];
                        
                         $joinResult = $this->calculationMethod1($finalResult['remaining_products'], 0, $possibleWidths, $joinProducts);
@@ -1168,7 +1169,6 @@ class CalculationService
             
         }
         $result_from_highest_mark_to_lowest = ['pairs' => $pairs, 'remaining_products' => []];
-        // dd($result_from_highest_mark_to_lowest, $this->quantityTest($result_from_highest_mark_to_lowest));
         
         
         $pairs = [];
@@ -1178,7 +1178,7 @@ class CalculationService
             // dd($markProducts);
             foreach($markProducts as $markKey => &$products){
                 // dd($products);
-                $finalResult = $this->smallestWasteResult($products, $futureProducts, $markKey, $boardKey, $possibleWidths);
+                $finalResult = $this->smallestWasteResult($products, $futureProducts2, $markKey, $boardKey, $possibleWidths);
                 
 
                 if(count($finalResult['remaining_products']) > 0){
@@ -1194,9 +1194,9 @@ class CalculationService
                         
                             $finalResult['remaining_products'] = $joinResult['remaining_products'];
 
-                            if( isset( $futureProducts[$boardKey][$joinMarkKey] ) ){
+                            if( isset( $futureProducts2[$boardKey][$joinMarkKey] ) ){
                                 if(isset( $joinResult['remaining_products'][$boardKey][$markKey] ) && count($joinResult['remaining_products'][$boardKey][$markKey]) ){
-                                    $joinFutureResult = $this->calculationMethod1($joinResult['remaining_products'], 0, $possibleWidths, $futureProducts[$boardKey][$joinMarkKey]);
+                                    $joinFutureResult = $this->calculationMethod1($joinResult['remaining_products'], 0, $possibleWidths, $futureProducts2[$boardKey][$joinMarkKey]);
                                 
                                     $finalResult['pairs'] = array_merge_recursive($finalResult['pairs'], $joinFutureResult['pairs']);
                                     $finalResult['remaining_products'] = $joinFutureResult['remaining_products'];
@@ -1211,30 +1211,14 @@ class CalculationService
                 $pairs = array_merge_recursive($pairs, $finalResult['pairs'], $remainingSingles['pairs']);
                 
             }
+        }
             $result_from_lowest_mark_to_highest = ['pairs' => $pairs, 'remaining_products' => []];
+            // dd($result_from_highest_mark_to_lowest);
             $wasteRatio1 = $this->wasteRatio($result_from_highest_mark_to_lowest);
             $wasteRatio2 = $this->wasteRatio($result_from_lowest_mark_to_highest);
-            dd($wasteRatio1, $wasteRatio2);
-            // dd($markProducts, $futureProducts_for_second_calculation);
-            // foreach ($reversedProducts as $markKey => $products) 
-            // {
-                //     $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
-                //     $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
-            //     $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
-            //     $allProducts[$boardKey][$markKey] = $products;
-
-            
-            //     // $result1 = $this->calculationMethod1($allProducts, 0, $possibleWidths);
-            //     $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], 0, $possibleWidths);
-            // }
-        }
-
-        dd($productList_for_second_calculation, $futureProducts_for_second_calculation);
-        
-        
-        // $widerThan820 = $this->getArrays('widerThan820', $request, $board);
-        // $lessThan821 = $this->getArrays('lessThan821', $request, $board);
-        // $singles = $this->getArrays('singles', $request, $board);
+            // dd($wasteRatio1, $wasteRatio2);
+            $finalResult = $wasteRatio2 <= $wasteRatio1 ? $result_from_lowest_mark_to_highest : $result_from_highest_mark_to_lowest;
+            dd($finalResult);
         
 
     }
