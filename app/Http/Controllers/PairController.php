@@ -64,7 +64,6 @@ class PairController extends Controller
     {
 
         $this->calculator->mainCalculator($request, $board);
-
         return redirect()->route('pair.index');
         
     }
