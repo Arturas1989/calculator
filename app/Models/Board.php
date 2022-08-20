@@ -30,7 +30,7 @@ class Board extends Model
             , 'marks.product.order'=> function($q) use ($from, $to, $from2, $to2)
             {
                 return $q->whereBetween('manufactury_date', [$from, $to])
-                ->whereBetween('load_date', [$from, $to]);
+                ->whereBetween('load_date', [$from2, $to2]);
             }, 'marks.product.company'])->get();
         }
         else if ($from && $to) 
