@@ -41,7 +41,7 @@ class CalculationService
             'quantityRatio' => 0.05,
             'largeWasteRatio' => 0.12,
             'minMeters' => 70,
-            'possibleMaxWidths' => [2500],
+            'possibleMaxWidths' => [2500, 2300, 2100],
             'minusfromMaxWidth' => 40,
             'maxWasteRatio' => 0.08,
             'maxSingleWasteRatio' => 0.068,
@@ -180,10 +180,39 @@ class CalculationService
                 });
                 break;
 
+            case 'problematicProducts':
+                $productList[$board][$mark] = $this->getProblematicProducts($markProducts, $possibleWidths);
+                break;
+            
+            case 'nonProblematicProducts':
+                $productList[$board][$mark] = array_filter($markProducts, function ($product) use ($possibleWidths) {
+                    return $this->singleProductsWaste($product['sheet_width'], $product['totalQuantity'], $product['sheet_length'], $possibleWidths) < 1000
+                    || $this->isSingle($product['sheet_width'], $possibleWidths);
+                });
+                break;
+
             default:
                 return [];
         }
         return $productList;
+    }
+
+    public function getProblematicProducts($markProducts, $possibleWidths)
+    {
+        $filtered = [];
+        foreach($markProducts as $key => &$product){
+            
+            $singleWaste = $this->singleProductsWaste($product['sheet_width'], $product['totalQuantity'], $product['sheet_length'], $possibleWidths);
+            
+            $product['singleWaste'] = $singleWaste;
+            if ($singleWaste >= 1000 && !$this->isSingle($product['sheet_width'], $possibleWidths)){
+                $filtered[$key] = $product;
+            }
+        }
+        uasort($filtered, function($product1, $product2){
+            return $product2['singleWaste']<=>$product1['singleWaste'];
+        });
+        return $filtered;
     }
 
     public function checkMetersQuantity($pairedList, $minMeters, $possibleWidths)
@@ -806,6 +835,27 @@ class CalculationService
         return false;
     }
 
+    public function singleProductsWaste($sheetWidth, $quantity, $sheet_length, $possibleWidths)
+    {
+        $maxRows = $this->params['maxRows'];
+        $minusfromMaxWidth = $this->params['minusfromMaxWidth'];
+        $maxWasteRatio = $this->params['maxSingleWasteRatio'];
+        $minWaste = PHP_INT_MAX;
+
+        foreach ($possibleWidths as $maximumWidth) {
+            $maxWidth = $maximumWidth - $this->params['minusfromMaxWidth'];
+            $rowsSingle = floor($maxWidth / $sheetWidth);
+            if ($rowsSingle > $maxRows) $rowsSingle = $maxRows;
+            if ($rowsSingle == 0) continue;
+            $meters = $this->calculateMeters($quantity, $rowsSingle, $sheet_length);
+            $waste = round($meters * $maximumWidth / 1000, 0);
+
+            if ($waste < $minWaste) $minWaste = $waste;
+        }
+
+        return $minWaste;
+    }
+
     public function calculatorSingle($products, $maxWasteRatio)
     {
         $singles = [];
@@ -951,11 +1001,21 @@ class CalculationService
         return $finalResult;
     }
 
+    // public function calculationMethod4($productList, $minMeters, $possibleWidths, &$futureProducts = [], &$joinProducts = [])
+    // {
+
+    // }
+
+
     public function smallestWasteResult(&$products, &$futureProducts, $markKey, $boardKey, $possibleWidths)
     {
         $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
         $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
         $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
+        $problematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'problematicProducts', $possibleWidths);
+        // uasort()
+        $nonProblematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'nonProblematicProducts', $possibleWidths);
+        if(isset($problematicProducts['BE']['BE20R']))dd($problematicProducts);
         $allProducts = [];
         $allProducts[$boardKey][$markKey] = &$products;
         
