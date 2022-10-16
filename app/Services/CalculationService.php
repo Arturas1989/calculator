@@ -40,8 +40,8 @@ class CalculationService
             'quantityMore' => 20,
             'quantityRatio' => 0.05,
             'largeWasteRatio' => 0.12,
-            'minMeters' => 300,
-            'possibleMaxWidths' => [2300],
+            'minMeters' => 70,
+            'possibleMaxWidths' => [2500],
             'minusfromMaxWidth' => 40,
             'maxWasteRatio' => 0.08,
             'maxSingleWasteRatio' => 0.068,
@@ -631,6 +631,7 @@ class CalculationService
                     $remaining_width = $maxWidth - $rows1 * $searchProductWidth;
 
                     // calculating second product maximum rows
+                    if(!isset($pairProduct2['sheet_width'])) dd(debug_backtrace());
                     $maxRows2 = (int)floor($remaining_width / $pairProduct2['sheet_width']);
                     if ($maxRows2 === 0) break;
 
@@ -827,7 +828,6 @@ class CalculationService
         $maxRows = $this->params['maxRows'];
         $minusfromMaxWidth = $this->params['minusfromMaxWidth'];
         $maxWasteRatio = $this->params['maxSingleWasteRatio'];
-        if(gettype($possibleWidths) == 'integer')dd(debug_backtrace());
         foreach ($possibleWidths as $maximumWidth) {
             $maxWidth = $maximumWidth - $this->params['minusfromMaxWidth'];
             $rowsSingle = floor($maxWidth / $sheetWidth);
@@ -844,6 +844,7 @@ class CalculationService
         $minusfromMaxWidth = $this->params['minusfromMaxWidth'];
         $maxWasteRatio = $this->params['maxSingleWasteRatio'];
         $minWaste = PHP_INT_MAX;
+        $wasteRatio = 0;
 
         foreach ($possibleWidths as $maximumWidth) {
             $maxWidth = $maximumWidth - $this->params['minusfromMaxWidth'];
@@ -913,7 +914,6 @@ class CalculationService
         return ['pairs' => $singles, 'remaining_products' => $remaining_products];
     }
 
-    //Calculation of the products from largest product width to smalest
     public function calculationMethod1($productsRSortByWidth, $minMeters, $possibleWidths, &$futureProducts = [], &$joinProducts = [])
     {
         $minMetersParam = $this->params['minMeters'];
@@ -1031,6 +1031,7 @@ class CalculationService
 
     public function smallestWasteResult(&$products, &$futureProducts, $markKey, $boardKey, $possibleWidths)
     {
+        
         $minMetersParam = $this->params['minMeters'];
         $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
         $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
@@ -1054,7 +1055,8 @@ class CalculationService
         $result4 = $this->calculationMethod4($problematicProducts, $nonProblematicProducts, $minMetersParam, $markKey, $boardKey, $possibleWidths, $futureProducts4);
 
         
-        // if(isset($result1['pairs']['BE']['BE20R']))dd($this->quantityTest($result4,$productsCopy));
+        // if(isset($result1['pairs']['BE']['BE20R']))dd($this->quantityTest($result3,$productsCopy));
+        // if(isset($result1['pairs']['BE']['BE20R']))dd($this->filterPairs('G20BE0R12', $result4, $boardKey, $markKey));
         // if(isset($result1['pairs']['BE']['BE21W']))dd($problematicProducts, $nonProblematicProducts);
         
         $waste = 
@@ -1099,6 +1101,23 @@ class CalculationService
         return $finalResult;
     }
 
+    public function problematicCalculation($products, $markKey, $boardKey, $possibleWidths, &$futureProducts2)
+    {
+        $problematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'problematicProducts', $possibleWidths);
+        $nonProblematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'nonProblematicProducts', $possibleWidths);
+        
+        $probResult = $this->smallestWasteResult($problematicProducts[$boardKey][$markKey], $futureProducts2, $markKey, $boardKey, $possibleWidths);
+
+        if(isset($probResult['remaining_products'][$boardKey][$markKey])){
+            $currentResult = $this->smallestWasteResult($probResult['remaining_products'][$boardKey][$markKey], $nonProblematicProducts, $markKey, $boardKey, $possibleWidths);
+            $currentResult['pairs'] = array_merge_recursive($probResult['pairs'],$currentResult['pairs']);
+        }
+        else{
+            $currentResult = $probResult;
+        }
+        return ['currentResult' => $currentResult, 'nonProblematicProducts' => $nonProblematicProducts];
+    }
+
     public function mainCalculator(Request $request, Board $board)
     {
         
@@ -1113,6 +1132,7 @@ class CalculationService
 
         $productsList = $this->getProductsList($from, $to, $from2, $to2, $request, $board);
         $futureProducts = $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
+        $minMetersParam = $this->params['minMeters'];
         $productList2 = $product_test = $productsList;
         $futureProducts2 = $futureProducts;
 
@@ -1124,7 +1144,6 @@ class CalculationService
         $pairs = [];
         foreach ($productsList as $boardKey => &$markProducts) {
             foreach ($markProducts as $markKey => &$products) {
-                
                 $finalResult = $this->smallestWasteResult($products, $futureProducts, $markKey, $boardKey, $possibleWidths);
                 
                 if(count($finalResult['remaining_products'])){
@@ -1149,22 +1168,42 @@ class CalculationService
         {
             $markProducts = array_reverse($markProducts,true);
             foreach($markProducts as $markKey => &$products){
-                // $problematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'problematicProducts', $possibleWidths);
-                // $nonProblematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'nonProblematicProducts', $possibleWidths);
-                // // if($markKey == 'BE21W') dd($problematicProducts);
-                // $probResult = $this->smallestWasteResult($problematicProducts[$boardKey][], $futureProducts2, $markKey, $boardKey, $possibleWidths);
-                // $remainingProducts = array_merge_recursive($probResult['remaining_products'], $nonProblematicProducts);
-
-                $finalResult = $this->smallestWasteResult($products, $futureProducts2, $markKey, $boardKey, $possibleWidths);
+                $result = $this->problematicCalculation($products, $markKey, $boardKey, $possibleWidths, $futureProducts2);
+                
+                $currentResult = $result['currentResult'];
+                $goodProductsForJoin = $result['nonProblematicProducts'];
+                
+                
+                
                 
                 if(in_array($markKey, $joinList)){
+
                     $originMark = array_search($markKey, $joinList);
-                    $originProducts = $markProducts[$originMark];
-                    if(isset($finalResult['remaining_products'][$boardKey][$markKey])){
-                        $remainingProducts = $finalResult['remaining_products'][$boardKey][$markKey];
-                        $allProducts = array_merge($originProducts, $remainingProducts);
+                    isset($markProducts[$originMark]) ? $originProducts = &$markProducts[$originMark] : $originProducts = [];
+                    $result2 = $this->problematicCalculation($originProducts, $originMark, $boardKey, $possibleWidths, $futureProducts2);
+                    $originResult = $result2['currentResult'];
+                    $originGoodProducts = $result2['nonProblematicProducts'];
+
+                    if(isset($currentResult['remaining_products'][$boardKey][$markKey])){
+
+                        $remainingProductsCurrent = $currentResult['remaining_products'][$boardKey][$markKey];
+                        $join = $this->joinDiferentMarks($originResult, $joinList, $possibleWidths, $originMark, $boardKey, $futureProducts2, $goodProductsForJoin[$boardKey][$markKey]);
+
+                        if(isset($join['remaining_products'][$boardKey][$originMark])){
+                            $remainingProductsOrigin = array_merge_recursive($join['remaining_products'][$boardKey][$originMark], $originGoodProducts);
+                        }
+                        else if(isset($originGoodProducts[$boardKey][$originMark])){
+                            $remainingProductsOrigin = $originGoodProducts[$boardKey][$originMark];
+                        }
+                        else{
+                            $remainingProductsOrigin = [];
+                        }
+                        
+                        $allProducts = array_merge($remainingProductsOrigin, $remainingProductsCurrent);
                         $joinResult = $this->smallestWasteResult($allProducts, $futureProducts, $originMark, $boardKey, $possibleWidths);
+
                         if(count($joinResult['remaining_products'])>0){
+                            $remainingProductsJoin = [];
                             $remainingProductsJoin[$boardKey][$markKey] = array_filter($joinResult['remaining_products'][$boardKey][$originMark], function($el) use ($markKey){
                                 return $this->ProductController->mark($el['code']) == $markKey;
                             });
@@ -1172,35 +1211,38 @@ class CalculationService
                                 return $this->ProductController->mark($el['code']) == $originMark;
                             });
                             $markProducts[$originMark] = $remainingProductsOrigin;
+                            
+                            $remainingProductsJoin = array_merge_recursive($remainingProductsJoin, $goodProductsForJoin);
                             $remainingSingles = $this->calculatorSingle($remainingProductsJoin, 1);
-                            $pairs = array_merge_recursive($pairs, $finalResult['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
+                            $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
+                            
                         }
                         else{
-                            $pairs = array_merge_recursive($pairs, $finalResult['pairs'], $joinResult['pairs']);
+                            $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $join['pairs'], $joinResult['pairs']);
                         }
                         
                     }
                     else{
-                        $pairs = array_merge_recursive($pairs, $finalResult['pairs']);
-                    } 
+                        $currentResult = $this->smallestWasteResult($products, $futureProducts2, $markKey, $boardKey, $possibleWidths);
+                        $pairs = array_merge_recursive($pairs, $currentResult['pairs']);
+                    }
                     
                 }
                 else{
-                    $remainingSingles = $this->calculatorSingle($finalResult['remaining_products'], 1);
-                    $pairs = array_merge_recursive($pairs, $finalResult['pairs'], $remainingSingles['pairs']);
+                    $remainingProducts = array_merge_recursive($currentResult['remaining_products'], $goodProductsForJoin);
+                    $remainingSingles = $this->calculatorSingle($remainingProducts, 1);
+                    $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $remainingSingles['pairs']);
                 }
             }
                 
         }
+
         $result_from_lowest_mark_to_highest = ['pairs' => $pairs, 'remaining_products' => []];
-        
             $wasteRatio1 = $this->wasteRatio($result_from_highest_mark_to_lowest);
-            $wasteRatio2 = $this->wasteRatio($result_from_lowest_mark_to_highest);
-        // dd($wasteRatio1,$wasteRatio2);   
+            $wasteRatio2 = $this->wasteRatio($result_from_lowest_mark_to_highest);  
             $finalResult = $wasteRatio2 <= $wasteRatio1 ? $result_from_lowest_mark_to_highest : $result_from_highest_mark_to_lowest;
             
-            
-         dd($finalResult,$this->quantityTest($finalResult, $product_test),1);   
+         dd($wasteRatio1,$wasteRatio2,$finalResult,$this->quantityTest($finalResult, $product_test),1);   
     }
     
     public function calculate_product_m2($sheet_width, $sheet_length, $quantity)
@@ -1279,6 +1321,32 @@ class CalculationService
                                     else{
                                         $quantityList[$product['code']] += $product['pairedQuantity'];
                                     }
+                                    // if(isset($product['meters'])){
+                                    //     if($product['meters'] < $this->params['minMeters']){
+                                    //         $isAtLeastOne = false;
+                                    //         foreach ($pair as $key2 => $product2){
+                                    //             $filteredByCode = array_filter($mark,function($el) use($product2,$pair){
+                                    //                 if(isset($el['product3'])){
+                                    //                     return $el['product1']['code'] == $product2['code'] 
+                                    //                     || $el['product2']['code'] == $product2['code']
+                                    //                     || $el['product3']['code'] == $product2['code'];
+                                    //                 }
+                                    //                 else if (isset($el['product2'])){
+                                    //                     return $el['product1']['code'] == $product2['code'] 
+                                    //                     || $el['product2']['code'] == $product2['code'];
+                                    //                 }
+                                    //                 else{
+                                    //                     return $el['product1']['code'] == $product2['code'];
+                                    //                 } 
+                                    //             });
+                                    //             $isAtLeastOne = count($filteredByCode) < 2;   
+                                    //         }
+                                    //         if(!$isAtLeastOne){
+                                    //             $badProductList[$product['code']]['pair'] = $pair;
+                                    //             $badProductList[$product['code']]['error_message'] = 'pora neatitinka minimalaus metro reikalavimo';
+                                    //         }
+                                    //     }
+                                    // }
                                 }
                             }
                             
@@ -1307,9 +1375,10 @@ class CalculationService
                         }
                         if($product['totalQuantity'] + $params['quantityMore'] < $quantityList[$product['code']]){
                             $badProductList[$product['code']]['totalQuantity'] = $product['totalQuantity'];
-                            $badProductList[$product['code']]['error_message'] = "kiekis produktu sarase: ". $quantityList[$product['code']] ." daugiau nei parametras " . $params['quantityMore']. $product['totalQuantity'];
+                            $badProductList[$product['code']]['error_message'] = "kiekio suma yra: ". $quantityList[$product['code']] ."; parametras yra: " . $params['quantityMore']. "; uzsakymas yra: ". $product['totalQuantity'];
                         }
-                    } 
+                    }
+                    
                 }
             }
         }
@@ -1337,7 +1406,6 @@ class CalculationService
     public function pairing($productList, $minMeters, $possibleWidths, $maxWasteRatio, &$prod_to_reduce_waste = [])
     {
         $pairs = [];
-        // if($minMeters == 0)dd('yes');
         $minMetersParam = $this->params['minMeters'];
         count($prod_to_reduce_waste) ? $method_name = 'maxWidthJoin' : $method_name = 'maxWidthPair2';
 
