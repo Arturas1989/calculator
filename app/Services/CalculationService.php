@@ -41,7 +41,7 @@ class CalculationService
             'quantityRatio' => 0.05,
             'largeWasteRatio' => 0.12,
             'minMeters' => 70,
-            'possibleMaxWidths' => [2500],
+            'possibleMaxWidths' => [2500, 2300, 2100, 1900],
             'minusfromMaxWidth' => 40,
             'maxWasteRatio' => 0.08,
             'maxSingleWasteRatio' => 0.068,
@@ -1173,9 +1173,6 @@ class CalculationService
                 $currentResult = $result['currentResult'];
                 $goodProductsForJoin = $result['nonProblematicProducts'];
                 
-                
-                
-                
                 if(in_array($markKey, $joinList)){
 
                     $originMark = array_search($markKey, $joinList);
@@ -1194,16 +1191,20 @@ class CalculationService
                         }
                         else if(isset($originGoodProducts[$boardKey][$originMark])){
                             $remainingProductsOrigin = $originGoodProducts[$boardKey][$originMark];
+                            $markProducts[$originMark] = [];
                         }
                         else{
                             $remainingProductsOrigin = [];
                         }
                         
                         $allProducts = array_merge($remainingProductsOrigin, $remainingProductsCurrent);
+                        // if($markKey == "BE21W")dd($allProducts);
                         $joinResult = $this->smallestWasteResult($allProducts, $futureProducts, $originMark, $boardKey, $possibleWidths);
-
+                        
+                        
                         if(count($joinResult['remaining_products'])>0){
                             $remainingProductsJoin = [];
+                            
                             $remainingProductsJoin[$boardKey][$markKey] = array_filter($joinResult['remaining_products'][$boardKey][$originMark], function($el) use ($markKey){
                                 return $this->ProductController->mark($el['code']) == $markKey;
                             });
@@ -1216,20 +1217,28 @@ class CalculationService
                             $remainingSingles = $this->calculatorSingle($remainingProductsJoin, 1);
                             $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
                             
+                            
                         }
                         else{
-                            $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $join['pairs'], $joinResult['pairs']);
+                            $remainingSingles = $this->calculatorSingle($goodProductsForJoin, 1);
+                            // if($markKey == "BE21W")dd($currentResult['pairs'], $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
+                            $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
+                            // if($markKey == "BE21W")dd($pairs);
                         }
                         
                     }
                     else{
+                        
                         $currentResult = $this->smallestWasteResult($products, $futureProducts2, $markKey, $boardKey, $possibleWidths);
                         $pairs = array_merge_recursive($pairs, $currentResult['pairs']);
+                        
                     }
                     
                 }
                 else{
+                    
                     $remainingProducts = array_merge_recursive($currentResult['remaining_products'], $goodProductsForJoin);
+                    // if($markKey == "BE22W")dd($pairs, $currentResult['remaining_products'], $goodProductsForJoin);
                     $remainingSingles = $this->calculatorSingle($remainingProducts, 1);
                     $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $remainingSingles['pairs']);
                 }
