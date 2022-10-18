@@ -38,7 +38,7 @@ class CalculationService
         [
             'description' => 'tikslus',
             'quantityMore' => 20,
-            'quantityRatio' => 0.05,
+            'quantityRatio' => 0.03,
             'largeWasteRatio' => 0.12,
             'minMeters' => 70,
             'possibleMaxWidths' => [2500],
@@ -291,45 +291,47 @@ class CalculationService
     }
 
     // check if quantityLeft doesnt exceed minimum requirements. If so add meters that it takes all quantity.
+    public function canAdMetr($productList, $adMetr, $params)
+    {
+        foreach($productList as $product)
+        {
+            if($product['quantityLeft'] == 0){
+                $additionalQuantity = $this->calculateQuantity($adMetr, $product['rows'], $product['sheet_length']);
+                if($additionalQuantity / $product['totalQuantity'] > $params['quantityRatio']){
+                    if($additionalQuantity > $params['quantityMore']){
+                        return false;
+                    }
+                }
+            }  
+        }
+        return true;
+    }
+
     public function correctMeters($productList, &$meters)
     {
         
         $params = $this->params;
-        $adMetr = 0;
-        foreach ($productList as $product) {
-            
+        $adMetrList = [];
+        foreach ($productList as $product){
             if (strpos($product['description'], $params['description'])) return;
-            
-            //pataisyti sita vieta $product['quantityLeft'] / $product['totalQuantity'] <= $params['quantityRatio'])
-            if (
-                ($product['quantityLeft'] <= $params['quantityMore']
-                || $product['quantityLeft'] / $product['totalQuantity'] <= $params['quantityRatio'])
-                && !strpos($product['description'], $params['description'])
-                && $product['quantityLeft'] != 0
-            ) {
-                // if(isset($productList['product1']) && isset($productList['product2'])){
-                //     if($productList['product2']['code'] == 'G21BE1W225' && $productList['product2']['quantityLeft'] == 194 && $productList['product1']['code'] == 'G21BE0W213'){
-                //         dd($productList,$meters,1);
-                //     }
-                // }
-                $adMetr2 = $this->calculateMeters($product['quantityLeft'], $product['rows'], $product['sheet_length']);
-                if ($adMetr2 > $adMetr) $adMetr = $adMetr2;
-                
-            } else {
-                $adMetr = 0;
-                break;
+            $adMetr = $this->calculateMeters($product['quantityLeft'], $product['rows'], $product['sheet_length']);
+            if($adMetr != 0){
+                if($this->canAdMetr($productList, $adMetr, $params)){
+                    $adMetrList[] = $adMetr;
+                }
             }
         }
 
-        if ($adMetr != 0){
-            foreach ($productList as &$product){
-                $additionalQuantity = $this->calculateQuantity($adMetr, $product['rows'], $product['sheet_length']);
-                $product['quantityLeft'] -= $additionalQuantity;
-                $product['quantityLeft'] = max($product['quantityLeft'], 0);
-                $product['pairedQuantity'] += $additionalQuantity;
-            }
+        if(count($adMetrList) == 0) return;
+        $adMetr = max($adMetrList);
+
+        foreach ($productList as &$product){
+            $additionalQuantity = $this->calculateQuantity($adMetr, $product['rows'], $product['sheet_length']);
+            $product['quantityLeft'] -= $additionalQuantity;
+            $product['quantityLeft'] = max($product['quantityLeft'], 0);
+            $product['pairedQuantity'] += $additionalQuantity;
         }
-        
+
         $meters += $adMetr;
     }
 
@@ -1276,7 +1278,6 @@ class CalculationService
                     }
                     else{
                         $currentResult['remaining_products'][$boardKey][$originMark] = $markProducts[$originMark];
-                        if($markKey == 'BE21W')dd($currentResult);
                         $joinResult = $this->joinDiferentMarks($currentResult, $joinList, $possibleWidths, $originMark, $boardKey, $futureProducts2, $goodProductsForJoin[$boardKey][$markKey]);
 
                         $remainingProductsJoin = [];
@@ -1439,12 +1440,16 @@ class CalculationService
                         $badProductList[$product['code']]['error_message'] = "kiekis produktu sarase: ". $quantityList[$product['code']] ." mazesnis nei ivestas: ". $product['totalQuantity'];
                     }
                     else if($quantityList[$product['code']] > $product['totalQuantity']){
-                        if($product['totalQuantity'] * (1 + $params['quantityRatio']) < $quantityList[$product['code']]){
+                        
+                        if($product['totalQuantity'] * (1 + $params['quantityRatio']) < $quantityList[$product['code']]
+                        && $product['totalQuantity'] + $params['quantityMore'] < $quantityList[$product['code']]){
+
                             $percent = $params['quantityRatio'] * 100;
                             $badProductList[$product['code']]['totalQuantity'] = $product['totalQuantity'];
                             $badProductList[$product['code']]['error_message'] = "kiekis produktu sarase: ". $quantityList[$product['code']] ." daugiau nei parametras: $percent% nei ivestas:".  $product['totalQuantity'];
                         }
-                        if($product['totalQuantity'] + $params['quantityMore'] < $quantityList[$product['code']]){
+                        if($product['totalQuantity'] + $params['quantityMore'] < $quantityList[$product['code']]
+                        && $product['totalQuantity'] / $quantityList[$product['code']] - 1 > $params['quantityRatio']){
                             $badProductList[$product['code']]['totalQuantity'] = $product['totalQuantity'];
                             $badProductList[$product['code']]['error_message'] = "kiekio suma yra: ". $quantityList[$product['code']] ."; parametras yra: " . $params['quantityMore']. "; uzsakymas yra: ". $product['totalQuantity'];
                         }
