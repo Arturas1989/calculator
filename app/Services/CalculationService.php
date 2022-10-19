@@ -1176,8 +1176,9 @@ class CalculationService
         $futureProducts = $this->getProductsList($from3, $to3, $from4, $to4, $request, $board);
         $minMetersParam = $this->params['minMeters'];
         $productList2 = $product_test = $productsList;
-        $futureProducts2 = $futureProducts;
+        $futureProducts2 = $future_test = $futureProducts;
 
+        
         if (count($productsList) == 0) return false;
 
         
@@ -1204,17 +1205,28 @@ class CalculationService
             }
             
         }
+
         $result_from_highest_mark_to_lowest = ['pairs' => $pairs, 'remaining_products' => []];
+        // dd($future_test);
+        
+
         $pairs = [];
         foreach ($productList2 as $boardKey => &$markProducts) 
         {
             $markProducts = array_reverse($markProducts,true);
             foreach($markProducts as $markKey => &$products){
-                $result = $this->problematicCalculation($products, $markKey, $boardKey, $possibleWidths, $futureProducts2);
+                $count = 2;
+                $currentResult['remaining_products'][$boardKey][$markKey] = [];
+                while($count!=0 && isset($currentResult['remaining_products'][$boardKey][$markKey])){
+                    $result = $this->problematicCalculation($products, $markKey, $boardKey, $possibleWidths, $futureProducts2);
+                    $currentResult = $result['currentResult'];
+                    $goodProductsForJoin = $result['nonProblematicProducts'];
+                    $products = array_merge_recursive($currentResult['remaining_products'], $goodProductsForJoin);
+                    $products = $products[$boardKey][$markKey];
+                    $pairs = array_merge_recursive($pairs, $currentResult['pairs']);
+                    $count--;
+                }
                 
-                $currentResult = $result['currentResult'];
-                
-                $goodProductsForJoin = $result['nonProblematicProducts'];
                 
                 if(in_array($markKey, $joinList)){
                     
@@ -1244,7 +1256,7 @@ class CalculationService
                         
                         $allProducts = array_merge($remainingProductsOrigin, $remainingProductsCurrent);
                         // if($markKey == "BE21W")dd($allProducts);
-                        $joinResult = $this->smallestWasteResult($allProducts, $futureProducts, $originMark, $boardKey, $possibleWidths);
+                        $joinResult = $this->smallestWasteResult($allProducts, $futureProducts2, $originMark, $boardKey, $possibleWidths);
                         
                         
                         if(count($joinResult['remaining_products'])>0){
@@ -1263,7 +1275,7 @@ class CalculationService
                             
                             $remainingProductsJoin = array_merge_recursive($remainingProductsJoin, $goodProductsForJoin);
                             $remainingSingles = $this->calculatorSingle($remainingProductsJoin, 1);
-                            $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
+                            $pairs = array_merge_recursive($pairs, $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
                             
                             
                             
@@ -1271,15 +1283,16 @@ class CalculationService
                         else{
                             $remainingSingles = $this->calculatorSingle($goodProductsForJoin, 1);
                             // if($markKey == "BE21W")dd($currentResult['pairs'], $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
-                            $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
+                            $pairs = array_merge_recursive($pairs, $join['pairs'], $joinResult['pairs'], $remainingSingles['pairs']);
                             
                         }
                         
                     }
                     else{
                         $currentResult['remaining_products'][$boardKey][$originMark] = $markProducts[$originMark];
+                        $currentResult['pairs'] = [];
                         $joinResult = $this->joinDiferentMarks($currentResult, $joinList, $possibleWidths, $originMark, $boardKey, $futureProducts2, $goodProductsForJoin[$boardKey][$markKey]);
-
+                        
                         $remainingProductsJoin = [];
                         if(!isset($joinResult['remaining_products'][$boardKey][$originMark])){
                             $joinResult['remaining_products'][$boardKey][$originMark] = [];
@@ -1291,6 +1304,8 @@ class CalculationService
                             return $this->ProductController->mark($el['code']) == $originMark;
                         });
                         $markProducts[$originMark] = $remainingProductsOrigin;
+
+                        $remainingProductsJoin = array_merge_recursive($remainingProductsJoin, $goodProductsForJoin);
                         $remainingSingles = $this->calculatorSingle($remainingProductsJoin, 1);
                         
                         $pairs = array_merge_recursive($pairs, $joinResult['pairs'], $remainingSingles['pairs']);
@@ -1301,9 +1316,8 @@ class CalculationService
                 else{
                     
                     $remainingProducts = array_merge_recursive($currentResult['remaining_products'], $goodProductsForJoin);
-                    // if($markKey == "BE22W")dd($pairs, $currentResult['remaining_products'], $goodProductsForJoin);
                     $remainingSingles = $this->calculatorSingle($remainingProducts, 1);
-                    $pairs = array_merge_recursive($pairs, $currentResult['pairs'], $remainingSingles['pairs']);
+                    $pairs = array_merge_recursive($pairs, $remainingSingles['pairs']);
                 }
             }
                 
@@ -1312,8 +1326,7 @@ class CalculationService
         $result_from_lowest_mark_to_highest = ['pairs' => $pairs, 'remaining_products' => []];
             $wasteRatio1 = $this->wasteRatio($result_from_highest_mark_to_lowest);
             $wasteRatio2 = $this->wasteRatio($result_from_lowest_mark_to_highest);  
-            $finalResult = $wasteRatio2 <= $wasteRatio1 ? $result_from_lowest_mark_to_highest : $result_from_highest_mark_to_lowest;
-            
+            $finalResult = $wasteRatio2 <= $wasteRatio1 ? $result_from_lowest_mark_to_highest : $result_from_highest_mark_to_lowest;  
          dd($wasteRatio1,$wasteRatio2,$finalResult,$this->quantityTest($finalResult, $product_test),1);   
     }
     
@@ -1366,13 +1379,10 @@ class CalculationService
         return $wasteRatio;
     }
 
-    public function quantityTest($array,$products)
+    public function getQuantityList($result)
     {
-        $badProductList = [];
         $quantityList = [];
-        $params = $this->params;
-
-        foreach($array as $option => $productList){
+        foreach($result as $option => $productList){
             foreach ($productList as $board) {
                 foreach ($board as $mark) {
                     foreach ($mark as $pair) {
@@ -1393,32 +1403,6 @@ class CalculationService
                                     else{
                                         $quantityList[$product['code']] += $product['pairedQuantity'];
                                     }
-                                    // if(isset($product['meters'])){
-                                    //     if($product['meters'] < $this->params['minMeters']){
-                                    //         $isAtLeastOne = false;
-                                    //         foreach ($pair as $key2 => $product2){
-                                    //             $filteredByCode = array_filter($mark,function($el) use($product2,$pair){
-                                    //                 if(isset($el['product3'])){
-                                    //                     return $el['product1']['code'] == $product2['code'] 
-                                    //                     || $el['product2']['code'] == $product2['code']
-                                    //                     || $el['product3']['code'] == $product2['code'];
-                                    //                 }
-                                    //                 else if (isset($el['product2'])){
-                                    //                     return $el['product1']['code'] == $product2['code'] 
-                                    //                     || $el['product2']['code'] == $product2['code'];
-                                    //                 }
-                                    //                 else{
-                                    //                     return $el['product1']['code'] == $product2['code'];
-                                    //                 } 
-                                    //             });
-                                    //             $isAtLeastOne = count($filteredByCode) < 2;   
-                                    //         }
-                                    //         if(!$isAtLeastOne){
-                                    //             $badProductList[$product['code']]['pair'] = $pair;
-                                    //             $badProductList[$product['code']]['error_message'] = 'pora neatitinka minimalaus metro reikalavimo';
-                                    //         }
-                                    //     }
-                                    // }
                                 }
                             }
                             
@@ -1427,6 +1411,48 @@ class CalculationService
                 }
             }
         }
+        return $quantityList;
+    }
+
+    public function quantityFutureTest($result, $products)
+    {
+        $badProductList = [];
+        $quantityList = $this->getQuantityList($result);
+        $params = $this->params;
+
+        foreach($products as $boards){
+            foreach($boards as $marks){
+                foreach($marks as $product){
+                    if(isset($quantityList[$product['code']])){
+                        if($quantityList[$product['code']] > $product['totalQuantity']){
+
+                            if($product['totalQuantity'] * (1 + $params['quantityRatio']) < $quantityList[$product['code']]
+                            && $product['totalQuantity'] + $params['quantityMore'] < $quantityList[$product['code']]){
+    
+                                $percent = $params['quantityRatio'] * 100;
+                                $badProductList[$product['code']]['totalQuantity'] = $product['totalQuantity'];
+                                $badProductList[$product['code']]['error_message'] = "kiekis produktu sarase: ". $quantityList[$product['code']] ." daugiau nei parametras: $percent% nei ivestas:".  $product['totalQuantity'];
+                            }
+                            if($product['totalQuantity'] + $params['quantityMore'] < $quantityList[$product['code']]
+                            && $product['totalQuantity'] / $quantityList[$product['code']] - 1 > $params['quantityRatio']){
+                                $badProductList[$product['code']]['totalQuantity'] = $product['totalQuantity'];
+                                $badProductList[$product['code']]['error_message'] = "kiekio suma yra: ". $quantityList[$product['code']] ."; parametras yra: " . $params['quantityMore']. "; uzsakymas yra: ". $product['totalQuantity'];
+                            }
+                        }
+                    }
+                    
+                    
+                }
+            }
+        }
+        return count($badProductList) ? $badProductList : 'success';
+    }
+
+    public function quantityTest($result,$products)
+    {
+        $badProductList = [];
+        $quantityList = $this->getQuantityList($result);
+        $params = $this->params;
 
         foreach($products as $boards){
             foreach($boards as $marks){
@@ -1440,7 +1466,7 @@ class CalculationService
                         $badProductList[$product['code']]['error_message'] = "kiekis produktu sarase: ". $quantityList[$product['code']] ." mazesnis nei ivestas: ". $product['totalQuantity'];
                     }
                     else if($quantityList[$product['code']] > $product['totalQuantity']){
-                        
+
                         if($product['totalQuantity'] * (1 + $params['quantityRatio']) < $quantityList[$product['code']]
                         && $product['totalQuantity'] + $params['quantityMore'] < $quantityList[$product['code']]){
 
