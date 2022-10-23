@@ -43,7 +43,7 @@ class CalculationService
             'minMeters' => 70,
             'minMarkMeters' => 1000,
             'minBoardMeters' => 5000,
-            'possibleMaxWidths' => [2500, 2300, 2100, 1900],
+            'possibleMaxWidths' => [2500],
             'minusfromMaxWidth' => 40,
             'maxWasteRatio' => 0.08,
             'maxSingleWasteRatio' => 0.068,
@@ -1179,7 +1179,7 @@ class CalculationService
         return $maxList;
     }
 
-    public function calculationHighestToLowest($productsList, $futureProducts, $joinList, $markWidths)
+    public function calculationHighestToLowest($productsList, $futureProducts, $joinList, $markWidths, $index)
     {
         $pairs = [];
         foreach ($productsList as $boardKey => &$markProducts) {
@@ -1207,8 +1207,10 @@ class CalculationService
         return ['pairs' => $pairs, 'remaining_products' => []];
     }
 
-    public function calculationLowestToHighest($productList2, $futureProducts2, $joinList, $markWidths)
+    public function calculationLowestToHighest($productList2, $futureProducts2, $joinList, $markWidths, $index)
     {
+        // dd($markWidths);
+        // if($index == 1) dd($productList2, $markWidths);
         $pairs = [];
         foreach ($productList2 as $boardKey => &$markProducts) 
         {
@@ -1274,6 +1276,7 @@ class CalculationService
                         
                     }
                     else{
+                        $possibleWidths = $markWidths[$boardKey][$originMark];
                         $currentResult['remaining_products'][$boardKey][$originMark] = $markProducts[$originMark];
                         $currentResult['pairs'] = [];
                         $joinResult = $this->joinDiferentMarks($currentResult, $joinList, $possibleWidths, $originMark, $boardKey, $futureProducts2, $goodProductsForJoin[$boardKey][$markKey]);
@@ -1345,34 +1348,113 @@ class CalculationService
 
         
         $joinList = $this->marksJoin($request);
+        $markWidths2 = $markWidths;
+        $k1 = 0;
 
-        $result_from_highest_mark_to_lowest = $this->calculationHighestToLowest($productsList, $futureProducts, $joinList, $markWidths);
-        $result_from_lowest_mark_to_highest = $this->calculationLowestToHighest($productList2, $futureProducts2, $joinList, $markWidths);
-        dd($this->isWidthMetersCorrect($markWidths, $result_from_highest_mark_to_lowest['pairs'], $possibleWidths));
+        do{
+
+            $result_from_highest_mark_to_lowest = $this->calculationHighestToLowest($productsList, $futureProducts, $joinList, $markWidths, $k1);
+            $checkWidth = $this->isWidthMetersCorrect($markWidths, $result_from_highest_mark_to_lowest['pairs'], $possibleWidths, $max_sheet_width_list, $k1);
+            $markWidths = $checkWidth[0];
+            $isWidthCorrect = $checkWidth[1];
+            $k1++;
+
+        }while(!$isWidthCorrect && $k1 < 20);
+
+        $k2 = 0;
+
+        do{
+
+            $result_from_lowest_mark_to_highest = $this->calculationLowestToHighest($productList2, $futureProducts2, $joinList, $markWidths2, $k2);
+            $checkWidth = $this->isWidthMetersCorrect($markWidths2, $result_from_lowest_mark_to_highest['pairs'], $possibleWidths, $max_sheet_width_list, $k2);
+            $markWidths2 = $checkWidth[0];
+            $isWidthCorrect = $checkWidth[1];
+            $k2++;
+
+        }while(!$isWidthCorrect && $k2 < 20);
+        // dd($result_from_lowest_mark_to_highest);
         
         $wasteRatio1 = $this->wasteRatio($result_from_highest_mark_to_lowest);
         $wasteRatio2 = $this->wasteRatio($result_from_lowest_mark_to_highest);  
         $finalResult = $wasteRatio2 <= $wasteRatio1 ? $result_from_lowest_mark_to_highest : $result_from_highest_mark_to_lowest;
         // dd($this->quantityTest($finalResult, $product_test), $finalResult);
-        dd($this->maximumWidthMeters($finalResult['pairs'], $possibleWidths));  
-        dd($wasteRatio1,$wasteRatio2,$finalResult,$this->quantityTest($finalResult, $product_test),1);   
+        // dd($this->maximumWidthMeters($result_from_highest_mark_to_lowest['pairs'], $possibleWidths), $this->maximumWidthMeters($result_from_lowest_mark_to_highest['pairs'], $possibleWidths)); 
+        dd($wasteRatio1,$wasteRatio2,$finalResult,$this->quantityTest($finalResult, $product_test),1, $k1, $k2, $this->maximumWidthMeters($finalResult['pairs'], $possibleWidths));   
     }
 
-    public function isWidthMetersCorrect(&$markWidths, $pairs, $possibleWidths)
+    public function getLargerToFitWidth($possibleWidths, $maxProductWidth, $fromWidth)
     {
+        sort($possibleWidths);
+        foreach($possibleWidths as $width){
+            if($width - $fromWidth >= $maxProductWidth) return $width;
+        }
+        return 0;
+    }
+
+    public function getFirstLargerWidth($widthMeters, $toFitWidth)
+    {
+        rsort($widthMeters);
+        foreach($widthMeters as $width => $meterSum){
+            if($width >= $toFitWidth) return $width;
+        }
+    }
+
+    public function isWidthMetersCorrect($markWidths, $pairs, $possibleWidths, $max_sheet_width_list, $k)
+    {
+        
+        $isCorrect = true;
         $widthMetersList = $this->maximumWidthMeters($pairs, $possibleWidths);
+        // if($index == 1)dd($pairs, $markWidths, $widthMetersList);
         $minMarkMeters = $this->params['minMarkMeters'];
         $minBoardMeters = $this->params['minBoardMeters'];
-
-        foreach($widthMetersList as $board => &$marks){
-            $total = $widthMetersList[$board]['total'];
-            unset($widthMetersList[$board]['total']);
-            foreach($marks as $widths){
-                dd($widths);
-            }
-        }
+        $fromWidth = $this->params['minusfromMaxWidth'];
+        $maxProductWidth = max($max_sheet_width_list);
+        $toFitWidth = $this->getLargerToFitWidth($possibleWidths, $maxProductWidth, $fromWidth);
+        // dd($toFitWidth);
+        // dd($widthMetersList);
         
-        dd($widthMetersList, $pairs);
+        foreach($widthMetersList as $board => &$marks){
+            $totalWidthMeters = $widthMetersList[$board]['total'];
+            $maxTotal = max($totalWidthMeters);
+            unset($widthMetersList[$board]['total']);
+            if($maxTotal < $minBoardMeters){
+                
+                $isCorrect = false;
+                $highestMeterWidth = $this->getFirstLargerWidth($totalWidthMeters, $toFitWidth);
+                foreach($marks as $mark => &$widths){
+                    $markWidths[$board][$mark] = [$highestMeterWidth];
+                }
+            }
+            else{
+                foreach($marks as $mark => $widths){
+                    $maxMarkProductWidth = $max_sheet_width_list[$mark];
+                    $toFitMarkWidth = $this->getLargerToFitWidth($possibleWidths, $maxMarkProductWidth, $fromWidth);
+                    $maxMarkWidthMeters = max($widths);
+                    if($maxMarkWidthMeters < $minMarkMeters){
+                        
+                        $isCorrect = false;
+                        $highestWidth = $this->getFirstLargerWidth($widths, $toFitMarkWidth);
+                        $markWidths[$board][$mark] = [$highestMeterWidth];
+                    }
+                    else{
+                        foreach($widths as $width => $metersSum){
+                            if($metersSum < $minMarkMeters && count($markWidths[$board][$mark]) > 1){
+                                // dd($metersSum);
+                                if($metersSum != 0){
+                                    
+                                    $isCorrect = false;
+                                }
+                                $index = array_search($width,$markWidths[$board][$mark]);
+                                unset($markWidths[$board][$mark][$index]);
+                            }
+                        }
+                    }
+                }
+            }  
+        }
+
+        // if($k== 1) dd($isCorrect);
+        return [$markWidths, $isCorrect];
     }
 
     public function maximumWidthMeters($result, $possibleWidths)
