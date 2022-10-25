@@ -33,24 +33,43 @@ class ProductController extends Controller
 
     public function mark($code)
     {
-        if(strlen($code)<8){
-            return ['mark'=>$code,'board'=>$code];
+        $code = strtoupper($code);
+
+        $grade_str_start = 1;
+        $grade_str_length = 2;
+        $grade = substr($code, $grade_str_start, $grade_str_length);
+
+        $board_str_start = $grade_str_start + $grade_str_length;
+        $board_str_length = (strpos($code, "P") !== false || $grade < 20) ?  1 : 2;
+        $board = substr($code, $board_str_start, $board_str_length);
+        if($board == 'P') $board = "BC";
+
+
+        $str_has_WW = strpos($code, "WW");
+        $str_has_W = strpos($code, "W");
+        $str_has_R = strpos($code, "R");
+
+        $color_str_start = 5;
+        $color_str_length = 1;
+
+        if($str_has_WW){
+            $color_str_start = $str_has_WW;
+            $color_str_length = 2;
         }
-        $num = substr($code,1,2);
-
-        strpos($code, 'R') ? $position = strpos($code, 'R') : 
-        (strpos($code, 'W') ? $position = strpos($code, 'W') : $position = 0);
-
-        strpos($code, 'WW') ? $color = 'WW' : $color = substr($code,$position,1);
-        
-        $code[3] == 'P' ? $board = 'BC' : $board = substr($code,3,2);
-        
-
-        if(is_numeric($board[1])){
-            $board = $board[0];
+        else if($str_has_W){
+            $color_str_start = $str_has_W;
+            $color_str_length = 1;
         }
-        return  $board.$num.$color;
+        else if($str_has_R){
+            $color_str_start = $str_has_R;
+            $color_str_length = 1;
+        }
+
+        $color = substr($code, $color_str_start, $color_str_length);
+
+        return $board.$grade.$color;
     }
+    
     public function markId($code)
     {
         $mark = $this->mark($code);

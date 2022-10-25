@@ -165,8 +165,9 @@ class OrderController extends Controller
 
         if($nullArr){
             $unknownProducts = $this->Order->where('product_id','=',null)->get()->all();
-            return redirect()->route('product.create',['unknownProducts'=>$unknownProducts])
+            return redirect()->route('product.create')
             ->withErrors(['msg'=>'Yra nesuvestų gaminių']);
+            // ['unknownProducts'=>$unknownProducts]
         }
 
         return redirect()->route('order.index');
