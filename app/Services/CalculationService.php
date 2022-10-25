@@ -230,7 +230,7 @@ class CalculationService
         $filtered = [];
         
         foreach($markProducts as $key => &$product){
-            
+
             $singleWasteRows = $this->singleProductsWaste($product['sheet_width'], $product['totalQuantity'], $product['sheet_length'], $possibleWidths);
             
             $product['singleWaste'] = $singleWasteRows['minWaste'];
@@ -642,7 +642,6 @@ class CalculationService
 
     public function maxWidthJoin($searchProduct, $index, $products, $minMeters, $possibleWidths, $maxWasteRatio)
     {
-        // if(count($products) == 1)dd($products);
         
         
         $maxSumArr = ['wasteRatio' => 1, 'search_prod_width_rate' => 0];
@@ -968,7 +967,6 @@ class CalculationService
         $minMetersParam = $this->params['minMeters'];
         $maxWasteRatio = $this->params['maxWasteRatio'];
         
-        // if(isset($productsRSortByWidth['BC']['BC20R'])) dd()
         $result = $this->pairing($productsRSortByWidth, $minMeters, $possibleWidths, $maxWasteRatio);
         
         $maxWasteRatio = $this->params['absoluteMaxWasteRatio'];
@@ -1061,7 +1059,6 @@ class CalculationService
     public function calculationMethod4($problematicProducts, $nonProblematicProducts, $minMeters, $markKey, $boardKey, $possibleWidths, &$futureProducts = [], &$joinProducts = [])
     {
         $copy = array_merge_recursive($problematicProducts, $nonProblematicProducts);
-        
         $maxWasteRatio = $this->params['maxWasteRatio'];
         $problematicProductsResult = $this->pairing($problematicProducts, $minMeters, $possibleWidths, $maxWasteRatio);
         
@@ -1079,22 +1076,23 @@ class CalculationService
         return $finalResult;
     }
 
-
-    public function smallestWasteResult(&$products, &$futureProducts, $markKey, $boardKey, $possibleWidths)
+    public function smallestCalculation(&$products, &$futureProducts, $markKey, $boardKey, $possibleWidths)
     {
-        
         $minMetersParam = $this->params['minMeters'];
-
-        // dd($products);
-        uasort($products,function($a,$b){
-            return $b['sheet_width'] <=> $a['sheet_width'];
-        });
         $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
         $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
         $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
         $problematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'problematicProducts', $possibleWidths);
-        // dd($problematicProducts);
         $nonProblematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'nonProblematicProducts', $possibleWidths);
+        $probSortByWidth = $problematicProducts;
+        $nonProbSortByWidth = $nonProblematicProducts;
+        uasort($probSortByWidth[$boardKey][$markKey], function($a,$b){
+            return $b['sheet_width']<=>$a['sheet_width'];
+        });
+        uasort($nonProbSortByWidth[$boardKey][$markKey], function($a,$b){
+            return $b['sheet_width']<=>$a['sheet_width'];
+        });
+        
         $productsCopy[$boardKey][$markKey] = $products;
         $allProducts = [];
 
@@ -1103,25 +1101,22 @@ class CalculationService
         
 
         isset($futureProducts[$boardKey][$markKey]) ? $futureList = $futureProducts[$boardKey][$markKey] : $futureList = [];
-        $futureProducts1 = $futureProducts2 = $futureProducts3 = $futureProducts4 = $futureList;
+        $futureProducts1 = $futureProducts2 = $futureProducts3 = $futureProducts4 = $futureProducts5 = $futureList;
 
-        $minMeters = 0;
         $result1 = $this->calculationMethod1($allProducts, $minMetersParam, $possibleWidths, $futureProducts1);
         $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], $minMetersParam, $possibleWidths, $futureProducts2);
         $result3 = $this->calculationMethod3([$widerThan820, $lessThan821, $singles], $minMetersParam, $possibleWidths, $futureProducts3);
         $result4 = $this->calculationMethod4($problematicProducts, $nonProblematicProducts, $minMetersParam, $markKey, $boardKey, $possibleWidths, $futureProducts4);
-        // if($markKey == 'BC20R') dd($result1);
+        $result5 = $this->calculationMethod4($probSortByWidth, $nonProbSortByWidth, $minMetersParam, $markKey, $boardKey, $possibleWidths, $futureProducts4);
         
-        // if(isset($result1['pairs']['BE']['BE20R']))dd($this->quantityTest($result3,$productsCopy));
-        // if(isset($result1['pairs']['BE']['BE20R']))dd($this->filterPairs('G20BE0R12', $result4, $boardKey, $markKey));
-        // if(isset($result1['pairs']['BE']['BE21W']))dd($problematicProducts, $nonProblematicProducts);
         
         $waste = 
         [
             'result1' => $this->wasteRatio($result1),
             'result2' => $this->wasteRatio($result2),
             'result3' => $this->wasteRatio($result3),
-            'result4' => $this->wasteRatio($result4)
+            'result4' => $this->wasteRatio($result4),
+            'result5' => $this->wasteRatio($result5)
         ];
 
         $remainingFutureProducts = 
@@ -1129,14 +1124,48 @@ class CalculationService
             'result1' => $futureProducts1,
             'result2' => $futureProducts2,
             'result3' => $futureProducts3,
-            'result4' => $futureProducts4
+            'result4' => $futureProducts4,
+            'result5' => $futureProducts5
+        ];
+        asort($waste);
+        $smallestWasteKey = array_key_first($waste);
+        $futureProducts = $remainingFutureProducts[$smallestWasteKey];
+        $finalResult = $$smallestWasteKey;
+        return $finalResult;
+    }
+
+
+    public function smallestWasteResult(&$products, &$futureProducts, $markKey, $boardKey, $possibleWidths)
+    {
+        isset($futureProducts[$boardKey][$markKey]) ? $futureList = $futureProducts[$boardKey][$markKey] : $futureList = [];
+        $futureProducts1 = $futureProducts2 = $futureProducts3 = $futureList;
+        
+        $result = $this->smallestCalculation($products, $futureProducts1, $markKey, $boardKey, $possibleWidths);
+        uasort($products,function($a,$b){
+            return $b['sheet_width'] <=> $a['sheet_width'];
+        });
+
+        $highestToLowestWidthResult = $this->smallestCalculation($products, $futureProducts2, $markKey, $boardKey, $possibleWidths);
+        $waste = 
+        [
+            'result' => $this->wasteRatio($result),
+            'highestToLowestWidthResult' => $this->wasteRatio($highestToLowestWidthResult)
         ];
 
+        $remainingFutureProducts = 
+        [
+            'result' => $futureProducts1,
+            'highestToLowestWidthResult' => $futureProducts2
+        ];
+
+        
         asort($waste);
         $smallestWasteKey = array_key_first($waste);
         $futureProducts[$boardKey][$markKey] = $remainingFutureProducts[$smallestWasteKey];
+        
         $finalResult = $$smallestWasteKey;
         return $finalResult;
+        
     }
 
     public function joinDiferentMarks($finalResult, $joinList, $possibleWidths, $markKey, $boardKey, &$futureProducts, &$joinProducts)
@@ -1162,9 +1191,9 @@ class CalculationService
     {
         $problematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'problematicProducts', $possibleWidths);
         $nonProblematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'nonProblematicProducts', $possibleWidths);
+        
         $probResult = $this->smallestWasteResult($problematicProducts[$boardKey][$markKey], $nonProblematicProducts, $markKey, $boardKey, $possibleWidths);
         
-        // if($markKey == 'BE21W')dd($nonProblematicProducts);
 
         if(isset($probResult['remaining_products'][$boardKey][$markKey])){
             $currentResult = $this->smallestWasteResult($probResult['remaining_products'][$boardKey][$markKey], $futureProducts2, $markKey, $boardKey, $possibleWidths);
@@ -1173,6 +1202,7 @@ class CalculationService
         else{
             $currentResult = $probResult;
         }
+        
         return ['currentResult' => $currentResult, 'nonProblematicProducts' => $nonProblematicProducts];
     }
 
@@ -1217,8 +1247,6 @@ class CalculationService
 
     public function calculationLowestToHighest($productList2, $futureProducts2, $joinList, $markWidths, $index)
     {
-        // dd($markWidths);
-        // if($index == 1) dd($productList2, $markWidths);
         $pairs = [];
         foreach ($productList2 as $boardKey => &$markProducts) 
         {
@@ -1229,6 +1257,7 @@ class CalculationService
                 $possibleWidths = $markWidths[$boardKey][$markKey];
                 while($count!=0 && isset($currentResult['remaining_products'][$boardKey][$markKey])){
                     $result = $this->problematicCalculation($products, $markKey, $boardKey, $possibleWidths, $futureProducts2);
+                    
                     $currentResult = $result['currentResult'];
                     $goodProductsForJoin = $result['nonProblematicProducts'];
                     $products = array_merge_recursive($currentResult['remaining_products'], $goodProductsForJoin);
@@ -1256,7 +1285,6 @@ class CalculationService
                         
 
                         if(isset($join['remaining_products'][$boardKey][$originMark])){
-                            // dd($join['remaining_products'][$boardKey][$originMark], $originGoodProducts);
                             $remainingProductsOrigin = array_merge_recursive($join['remaining_products'][$boardKey][$originMark], $originGoodProducts[$boardKey][$originMark]);
                         }
                         else if(isset($originGoodProducts[$boardKey][$originMark])){
@@ -1268,7 +1296,6 @@ class CalculationService
                         }
                         
                         $allProducts = array_merge($remainingProductsOrigin, $remainingProductsCurrent);
-                        if($markKey == "B14W")dd($allProducts);
                         $joinResult = $this->smallestWasteResult($allProducts, $futureProducts2, $originMark, $boardKey, $possibleWidths);
                         
                         
@@ -1343,7 +1370,6 @@ class CalculationService
         $possibleWidths = $this->params['possibleMaxWidths'];
         $markWidths = $this->getMarkWidths($possibleWidths, $productsList);
         $max_sheet_width_list = $this->get_max_sheetWidth_list($productsList);
-        // dd($max_sheet_width_list);
 
         $this->sortBySingleRows($productsList, $possibleWidths);
 
@@ -1373,7 +1399,7 @@ class CalculationService
         $k2 = 0;
 
         do{
-
+            
             $result_from_lowest_mark_to_highest = $this->calculationLowestToHighest($productList2, $futureProducts2, $joinList, $markWidths2, $k2);
             $checkWidth = $this->isWidthMetersCorrect($markWidths2, $result_from_lowest_mark_to_highest['pairs'], $possibleWidths, $max_sheet_width_list, $k2);
             $markWidths2 = $checkWidth[0];
@@ -1389,7 +1415,7 @@ class CalculationService
         // dd($this->quantityTest($finalResult, $product_test), $finalResult);
         // dd($this->maximumWidthMeters($result_from_highest_mark_to_lowest['pairs'], $possibleWidths), $this->maximumWidthMeters($result_from_lowest_mark_to_highest['pairs'], $possibleWidths));
         // dd($this->quantityTest($result_from_highest_mark_to_lowest, $product_test), $this->quantityTest($result_from_lowest_mark_to_highest, $product_test));
-        // dd($finalResult['pairs']['BC']['BC20R']);
+        // dd($finalResult['pairs']['BC']['BC22R']);
         dd($wasteRatio1,$wasteRatio2,$finalResult,$this->quantityTest($finalResult, $product_test),1, $k1, $k2, $this->maximumWidthMeters($finalResult['pairs'], $possibleWidths));   
     }
 
@@ -1404,10 +1430,12 @@ class CalculationService
 
     public function getFirstLargerWidth($widthMeters, $toFitWidth)
     {
-        rsort($widthMeters);
+        arsort($widthMeters);
+        $largestWidth = max(array_keys($widthMeters));
         foreach($widthMeters as $width => $meterSum){
             if($width >= $toFitWidth) return $width;
         }
+        return $largestWidth;
     }
 
     public function isWidthMetersCorrect($markWidths, $pairs, $possibleWidths, $max_sheet_width_list, $k)
@@ -1425,7 +1453,9 @@ class CalculationService
         // dd($widthMetersList);
         
         foreach($widthMetersList as $board => &$marks){
+            
             $totalWidthMeters = $widthMetersList[$board]['total'];
+            
             $maxTotal = max($totalWidthMeters);
             unset($widthMetersList[$board]['total']);
             if($maxTotal < $minBoardMeters){
@@ -1438,6 +1468,7 @@ class CalculationService
             }
             else{
                 foreach($marks as $mark => $widths){
+                    
                     $maxMarkProductWidth = $max_sheet_width_list[$mark];
                     $toFitMarkWidth = $this->getLargerToFitWidth($possibleWidths, $maxMarkProductWidth, $fromWidth);
                     $maxMarkWidthMeters = max($widths);
@@ -1445,11 +1476,17 @@ class CalculationService
                         
                         $isCorrect = false;
                         $highestWidth = $this->getFirstLargerWidth($widths, $toFitMarkWidth);
+                        $highestMeterWidth = $this->getFirstLargerWidth($totalWidthMeters, $toFitWidth);
+                        
                         $markWidths[$board][$mark] = [$highestMeterWidth];
+                        if($markWidths['B']['B16R'][0] === null) dd($highestMeterWidth,$totalWidthMeters, $toFitWidth, $mark, $highestWidth, $toFitMarkWidth, $widths);
                     }
                     else{
+                        
                         foreach($widths as $width => $metersSum){
+                            
                             if($metersSum < $minMarkMeters && count($markWidths[$board][$mark]) > 1){
+                                
                                 // dd($metersSum);
                                 if($metersSum != 0){
                                     
@@ -1463,7 +1500,8 @@ class CalculationService
                 }
             }  
         }
-
+        
+        // if($markWidths['B']['B16R'] === null)dd($markWidths);
         // if($k== 1) dd($isCorrect);
         return [$markWidths, $isCorrect];
     }
