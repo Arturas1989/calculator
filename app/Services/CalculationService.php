@@ -967,6 +967,8 @@ class CalculationService
     {
         $minMetersParam = $this->params['minMeters'];
         $maxWasteRatio = $this->params['maxWasteRatio'];
+        
+        // if(isset($productsRSortByWidth['BC']['BC20R'])) dd()
         $result = $this->pairing($productsRSortByWidth, $minMeters, $possibleWidths, $maxWasteRatio);
         
         $maxWasteRatio = $this->params['absoluteMaxWasteRatio'];
@@ -1082,14 +1084,21 @@ class CalculationService
     {
         
         $minMetersParam = $this->params['minMeters'];
+
+        // dd($products);
+        uasort($products,function($a,$b){
+            return $b['sheet_width'] <=> $a['sheet_width'];
+        });
         $widerThan820 = $this->filterByProductWidth($products, $markKey, $boardKey, 'widerThan820', $possibleWidths);
         $lessThan821 = $this->filterByProductWidth($products, $markKey, $boardKey, 'lessThan821', $possibleWidths);
         $singles = $this->filterByProductWidth($products, $markKey, $boardKey, 'singles', $possibleWidths);
         $problematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'problematicProducts', $possibleWidths);
-        // uasort()
+        // dd($problematicProducts);
         $nonProblematicProducts = $this->filterByProductWidth($products, $markKey, $boardKey, 'nonProblematicProducts', $possibleWidths);
         $productsCopy[$boardKey][$markKey] = $products;
         $allProducts = [];
+
+        
         $allProducts[$boardKey][$markKey] = $products;
         
 
@@ -1097,12 +1106,11 @@ class CalculationService
         $futureProducts1 = $futureProducts2 = $futureProducts3 = $futureProducts4 = $futureList;
 
         $minMeters = 0;
-
         $result1 = $this->calculationMethod1($allProducts, $minMetersParam, $possibleWidths, $futureProducts1);
         $result2 = $this->calculationMethod2([$widerThan820, $lessThan821, $singles], $minMetersParam, $possibleWidths, $futureProducts2);
         $result3 = $this->calculationMethod3([$widerThan820, $lessThan821, $singles], $minMetersParam, $possibleWidths, $futureProducts3);
         $result4 = $this->calculationMethod4($problematicProducts, $nonProblematicProducts, $minMetersParam, $markKey, $boardKey, $possibleWidths, $futureProducts4);
-
+        // if($markKey == 'BC20R') dd($result1);
         
         // if(isset($result1['pairs']['BE']['BE20R']))dd($this->quantityTest($result3,$productsCopy));
         // if(isset($result1['pairs']['BE']['BE20R']))dd($this->filterPairs('G20BE0R12', $result4, $boardKey, $markKey));
@@ -1248,7 +1256,8 @@ class CalculationService
                         
 
                         if(isset($join['remaining_products'][$boardKey][$originMark])){
-                            $remainingProductsOrigin = array_merge_recursive($join['remaining_products'][$boardKey][$originMark], $originGoodProducts);
+                            // dd($join['remaining_products'][$boardKey][$originMark], $originGoodProducts);
+                            $remainingProductsOrigin = array_merge_recursive($join['remaining_products'][$boardKey][$originMark], $originGoodProducts[$boardKey][$originMark]);
                         }
                         else if(isset($originGoodProducts[$boardKey][$originMark])){
                             $remainingProductsOrigin = $originGoodProducts[$boardKey][$originMark];
@@ -1259,7 +1268,7 @@ class CalculationService
                         }
                         
                         $allProducts = array_merge($remainingProductsOrigin, $remainingProductsCurrent);
-                        // if($markKey == "BE21W")dd($allProducts);
+                        if($markKey == "B14W")dd($allProducts);
                         $joinResult = $this->smallestWasteResult($allProducts, $futureProducts2, $originMark, $boardKey, $possibleWidths);
                         
                         
@@ -1378,7 +1387,9 @@ class CalculationService
         $wasteRatio2 = $this->wasteRatio($result_from_lowest_mark_to_highest);  
         $finalResult = $wasteRatio2 <= $wasteRatio1 ? $result_from_lowest_mark_to_highest : $result_from_highest_mark_to_lowest;
         // dd($this->quantityTest($finalResult, $product_test), $finalResult);
-        // dd($this->maximumWidthMeters($result_from_highest_mark_to_lowest['pairs'], $possibleWidths), $this->maximumWidthMeters($result_from_lowest_mark_to_highest['pairs'], $possibleWidths)); 
+        // dd($this->maximumWidthMeters($result_from_highest_mark_to_lowest['pairs'], $possibleWidths), $this->maximumWidthMeters($result_from_lowest_mark_to_highest['pairs'], $possibleWidths));
+        // dd($this->quantityTest($result_from_highest_mark_to_lowest, $product_test), $this->quantityTest($result_from_lowest_mark_to_highest, $product_test));
+        // dd($finalResult['pairs']['BC']['BC20R']);
         dd($wasteRatio1,$wasteRatio2,$finalResult,$this->quantityTest($finalResult, $product_test),1, $k1, $k2, $this->maximumWidthMeters($finalResult['pairs'], $possibleWidths));   
     }
 
